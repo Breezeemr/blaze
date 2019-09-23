@@ -9,6 +9,7 @@
     [clojure.spec.alpha :as s]
     [clojure.string :as str]
     [blaze.bundle :as bundle]
+    [blaze.datomic.metrics :as datomic-metrics]
     [blaze.datomic.transaction :as tx]
     [blaze.datomic.schema :as schema]
     [blaze.executors :as ex]
@@ -420,6 +421,9 @@
     (.register ts/request-duration-seconds)
     (.register evaluate-measure/compile-duration-seconds)
     (.register evaluate-measure/evaluate-duration-seconds)
+    (.register datomic-metrics/object-cache-requests-total)
+    (.register datomic-metrics/object-cache-hits-total)
+    (.register datomic-metrics/object-cache-size)
     (.register (metrics/thread-pool-executor-collector
                  [["server" server-executor]
                   ["transaction-interaction" transaction-interaction-executor]

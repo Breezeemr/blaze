@@ -19,8 +19,6 @@
    [camel-snake-kebab "0.4.0"]
    [cheshire "5.9.0"]
    [com.cognitect/anomalies "0.1.12"]
-   [com.datomic/datomic-free "0.9.5697"
-    :exclusions [io.netty/netty-all]]
    [com.h2database/h2 "1.4.199"]
    [com.taoensso/timbre "4.10.0"]
    [info.cqframework/cql-to-elm "1.4.6"
@@ -73,8 +71,29 @@
      [org.clojure/tools.namespace "0.3.1"]]}
 
    :uberjar
-   {:aot [blaze.core]}}
+   {:aot [blaze.core]
+    :main ^:skip-aot blaze.core}
 
-  :main ^:skip-aot blaze.core
+   :provided
+   {:dependencies
+    [[com.datomic/datomic-free "0.9.5697"
+      :exclusions [io.netty/netty-all]]]}
 
-  :hiera {:ignore-ns #{user}})
+   :datomic-free
+   {:dependencies
+    [[com.datomic/datomic-free "0.9.5697"
+      :exclusions [io.netty/netty-all]]]}
+
+   :datomic-pro
+   {:repositories
+    [["my.datomic.com"
+      {:url "https://my.datomic.com/repo"}]]
+    :dependencies
+    [[com.datomic/datomic-pro "0.9.5930"
+      :exclusions [io.netty/netty-all]]
+     [com.google.guava/guava "19.0"]]
+    :uberjar-name "blaze-pro-%s-standalone.jar"}}
+
+  :aliases
+  {"build" ["with-profile" "+datomic-free" "uberjar"]
+   "build-pro" ["with-profile" "-provided,+datomic-pro" "uberjar"]})
