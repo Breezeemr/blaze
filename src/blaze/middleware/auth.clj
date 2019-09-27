@@ -22,6 +22,7 @@
    :timestamp  (.getTime (Date.))})
 
 
+;; TODO: Possibly make the expiration time configurable
 (defn- public-key-str
   "When the public key atom is more than 1 hour old, update the public key.
    Always return the public key."
