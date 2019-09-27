@@ -1,6 +1,7 @@
 (ns blaze.handler.app
   (:require
     [blaze.middleware.json :refer [wrap-json]]
+    [blaze.middleware.auth :refer [wrap-auth]]
     [blaze.middleware.fhir.type :refer [wrap-type]]
     [clojure.spec.alpha :as s]
     [reitit.core :as reitit]
@@ -25,7 +26,7 @@
       {:middleware [wrap-json wrap-remove-context-path]
        :handler (:handler.fhir/core handlers)}]
      ["/fhir/{*more}"
-      {:middleware [wrap-json wrap-remove-context-path]
+      {:middleware [wrap-json wrap-auth wrap-remove-context-path]
        :handler (:handler.fhir/core handlers)}]]
     {:syntax :bracket
      ::reitit-ring/default-options-handler

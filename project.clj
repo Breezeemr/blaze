@@ -10,6 +10,7 @@
 
   :dependencies
   [[aleph "0.4.7-alpha1"]
+   [buddy/buddy-sign "3.1.0"]
    [camel-snake-kebab "0.4.0"]
    [cheshire "5.9.0"]
    [com.cognitect/anomalies "0.1.12"]
