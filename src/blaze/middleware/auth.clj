@@ -63,5 +63,5 @@
           auth-header (get-in request [:headers "authorization"])
           token       (unsigned-token public-key-atom auth-header)]
       (prn token)
-      ;; TODO: Insert the token into the response
+      ;; TODO: Insert the token into the response. Will possibly handle 403 here.
       response)))
