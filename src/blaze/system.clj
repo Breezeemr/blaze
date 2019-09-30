@@ -35,6 +35,7 @@
     [blaze.server :as server]
     [blaze.structure-definition :refer [read-structure-definitions]]
     [blaze.terminology-service.extern :as ts]
+    [cheshire.core :as j]
     [datomic.api :as d]
     [datomic-tools.schema :as dts]
     [integrant.core :as ig]
@@ -45,7 +46,7 @@
                                          ClassLoadingExports VersionInfoExports]
            [java.time Clock]))
 
-
+;; TODO: Figure out how to pass the resulting public key into the authorization middleware
 
 ;; ---- Specs -------------------------------------------------------------
 
@@ -56,6 +57,11 @@
 (s/def :config/logging (s/keys :opt [:log/level]))
 (s/def :database/uri string?)
 (s/def :config/database-conn (s/keys :opt [:database/uri]))
+(s/def :authorization-service/name string?)
+(s/def :authorization-service/url string?)
+(s/def :config/authorization-service
+  (s/keys :opt-un [:authorization-service/name
+                   :authorization-service/url]))
 (s/def :term-service/uri string?)
 (s/def :term-service/proxy-host string?)
 (s/def :term-service/proxy-port pos-int?)
@@ -84,6 +90,7 @@
     :opt-un
     [:config/logging
      :config/database-conn
+     :config/authorization-service
      :config/term-service
      :config/cache
      :config/fhir-capabilities-handler
@@ -107,6 +114,8 @@
    :database-conn
    {:structure-definitions (ig/ref :structure-definitions)
     :database/uri "datomic:mem://dev"}
+
+   :authorization-service {}
 
    :term-service
    {:uri "http://tx.fhir.org/r4"}
@@ -261,6 +270,16 @@
   (upsert-schema uri structure-definitions)
 
   (d/connect uri))
+
+(defn- keycloak-public-key [url]
+  (-> url
+      slurp
+      j/parse-string
+      (get "public_key")))
+
+(defmethod ig/init-key :authorization-service
+  [_ {:keys [name url]}]
+  (keycloak-public-key url))
 
 
 (defmethod ig/init-key :term-service
