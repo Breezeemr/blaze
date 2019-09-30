@@ -46,7 +46,7 @@
                                          ClassLoadingExports VersionInfoExports]
            [java.time Clock]))
 
-;; TODO: Figure out how to pass the resulting public key into the authorization middleware
+
 
 ;; ---- Specs -------------------------------------------------------------
 
