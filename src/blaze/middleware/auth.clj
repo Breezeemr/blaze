@@ -65,11 +65,14 @@
   "If successful process request, else respond with 403."
   [handler]
   (fn [request]
-    (let [response     (handler request)
-          auth-header  (get-in request [:headers "authorization"])
-          bearer-token (string/replace auth-header "Bearer " "")
-          token        (unsigned-token public-key-atom bearer-token)]
-      (if (some? token)
-        (handler request)
-        (-> (ring/response {:message "Access denied"})
-            (ring/status 403))))))
+    ;; TODO: If auth is enabled (via env var)
+    (let [auth-header     (get-in request [:headers "authorization"])
+          denied-response (-> (ring/response {:message "Access denied"})
+                              (ring/status 403))]
+      (if (some? auth-header)
+        (let [bearer-token (string/replace auth-header "Bearer " "")
+              token        (unsigned-token public-key-atom bearer-token)]
+          (if (some? token)
+            (handler request)
+            denied-response))
+        denied-response))))
