@@ -15,7 +15,7 @@
 (def expiration-minutes 60)
 
 
-;; TODO: This url needs to be configurable, probably via an env var
+;; TODO: This url or even this function needs to be configurable
 (defn- keycloak-public-key []
   (-> "https://auth.breezeehr.com/auth/realms/patient-portal"
       slurp
@@ -57,8 +57,8 @@
       nil)))
 
 
-;; TODO: Don't use a global state atom?
 (def public-key-atom (atom (public-key-atom-value nil)))
+
 
 (defn wrap-auth
   "Adds an Access-Control-Allow-Origin header with the value * to responses."
