@@ -3,6 +3,7 @@
    [clojure.string :as string]
    [buddy.sign.jwt :as jwt]
    [cheshire.core :as json]
+   [ring.util.response :as ring]
    #_[manifold.deferred :as md])
   (:import
    (java.util Base64 Date)
@@ -51,8 +52,7 @@
     (let [public-key (str->public-key (public-key-str public-key-atom))]
       (jwt/unsign signed-token public-key {:alg :rs256}))
     (catch Exception e
-      ;; TODO: Figure out correct response. I was initially using nil because
-      ;; that's what Geheimtur wanted.
+      ;; Return nil to signal failure to unsign token
       (prn "e.cause::" (:cause (Throwable->map e)))
       nil)))
 
@@ -68,5 +68,7 @@
           auth-header  (get-in request [:headers "authorization"])
           bearer-token (string/replace auth-header "Bearer " "")
           token        (unsigned-token public-key-atom bearer-token)]
-      ;; TODO: Insert the token into the response. Will possibly handle 403 here.
-      response)))
+      (if (some? token)
+        (handler request)
+        (-> (ring/response {:message "Access denied"})
+            (ring/status 403))))))
