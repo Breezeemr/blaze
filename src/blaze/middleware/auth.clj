@@ -57,11 +57,12 @@
       nil)))
 
 
+;; TODO: Store/manage this using Integrant?
 (def public-key-atom (atom (public-key-atom-value nil)))
 
 
 (defn wrap-auth
-  "Adds an Access-Control-Allow-Origin header with the value * to responses."
+  "If successful process request, else respond with 403."
   [handler]
   (fn [request]
     (let [response     (handler request)
