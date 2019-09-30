@@ -1,5 +1,6 @@
 (ns blaze.middleware.auth
   (:require
+   [clojure.string :as string]
    [buddy.sign.jwt :as jwt]
    [cheshire.core :as json]
    #_[manifold.deferred :as md])
@@ -45,13 +46,10 @@
        (.generatePublic (KeyFactory/getInstance "RSA"))))
 
 
-(defn- unsigned-token [public-key-atom auth-header]
+(defn- unsigned-token [public-key-atom signed-token]
   (try
-    ;; TODO (first): Figure out why the token is invalid when it is valid... only difference from previous is cheshire and passing atom around
     (let [public-key (str->public-key (public-key-str public-key-atom))]
-      (prn "auth-header::" auth-header)
-      (prn "public-key::" public-key)
-      (jwt/unsign auth-header public-key {:alg :rs256}))
+      (jwt/unsign signed-token public-key {:alg :rs256}))
     (catch Exception e
       ;; TODO: Figure out correct response. I was initially using nil because
       ;; that's what Geheimtur wanted.
@@ -59,16 +57,16 @@
       nil)))
 
 
-;; TODO: Don't use a global state atom, I think
+;; TODO: Don't use a global state atom?
 (def public-key-atom (atom (public-key-atom-value nil)))
 
 (defn wrap-auth
   "Adds an Access-Control-Allow-Origin header with the value * to responses."
   [handler]
   (fn [request]
-    (let [response    (handler request)
-          auth-header (get-in request [:headers "authorization"])
-          token       (unsigned-token public-key-atom auth-header)]
-      (prn "token::" token)
+    (let [response     (handler request)
+          auth-header  (get-in request [:headers "authorization"])
+          bearer-token (string/replace auth-header "Bearer " "")
+          token        (unsigned-token public-key-atom bearer-token)]
       ;; TODO: Insert the token into the response. Will possibly handle 403 here.
       response)))
