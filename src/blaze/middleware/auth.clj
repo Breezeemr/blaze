@@ -10,6 +10,7 @@
    (java.security KeyFactory)
    (java.security.spec X509EncodedKeySpec)))
 
+;; TODO Probably should be renamed to authentication.clj and all names updated accordingly
 
 ;; TODO: Possibly make the expiration time configurable
 (def expiration-minutes 60)
