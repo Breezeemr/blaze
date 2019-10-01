@@ -1,4 +1,4 @@
-(ns blaze.middleware.auth
+(ns blaze.middleware.authentication
   (:require
    [clojure.string :as string]
    [buddy.sign.jwt :as jwt]
@@ -10,7 +10,7 @@
    (java.security KeyFactory)
    (java.security.spec X509EncodedKeySpec)))
 
-;; TODO Probably should be renamed to authentication.clj and all names updated accordingly
+;; TODO: Should I have used https://funcool.github.io/buddy-auth/latest/api/buddy.auth.middleware.html#var-wrap-authentication instead?
 
 ;; TODO: Possibly make the expiration time configurable
 (def expiration-minutes 60)
@@ -62,11 +62,11 @@
 (def public-key-atom (atom (public-key-atom-value nil)))
 
 
-(defn wrap-auth
+(defn wrap-authentication
   "If successful process request, else respond with 403."
   [handler]
   (fn [request]
-    ;; TODO: If auth is enabled (via env var)
+    ;; TODO: If authentication is enabled (via env var)
     (let [auth-header     (get-in request [:headers "authorization"])
           denied-response (-> (ring/response {:message "Access denied"})
                               (ring/status 403))]
