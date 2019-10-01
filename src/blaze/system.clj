@@ -274,8 +274,6 @@
   (d/connect uri))
 
 
-;; TODO: I think this should return a function that updates
-;; the keycloak-public-key-atom if necessary
 (defmethod ig/init-key :authorization-service
   [_ {:keys [name url]}]
   (case name
