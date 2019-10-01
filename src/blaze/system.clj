@@ -32,7 +32,7 @@
     [blaze.metrics :as metrics]
     [blaze.middleware.fhir.metrics :as fhir-metrics]
     [blaze.middleware.json :as json]
-    [blaze.middleware.authentication :as authentication ]
+    [blaze.middleware.authentication :as authentication]
     [blaze.server :as server]
     [blaze.structure-definition :refer [read-structure-definitions]]
     [blaze.terminology-service.extern :as ts]
