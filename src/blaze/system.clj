@@ -36,7 +36,6 @@
     [blaze.server :as server]
     [blaze.structure-definition :refer [read-structure-definitions]]
     [blaze.terminology-service.extern :as ts]
-    [cheshire.core :as j]
     [datomic.api :as d]
     [datomic-tools.schema :as dts]
     [integrant.core :as ig]
