@@ -276,6 +276,7 @@
 
 (defmethod ig/init-key :authorization-service
   [_ {:keys [name url]}]
+  ;; TODO: Must validate that `url` is non-nil is `name` is known.
   (case name
     "keycloak" (authentication/wrap-authentication (atom (authentication/public-key-atom-value
                                                           nil
