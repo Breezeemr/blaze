@@ -274,9 +274,8 @@
 
 (defmethod ig/init-key :authorization
   [_ {:keys [url]}]
-  ;; TODO: Initialize public key
-  (let [public-key-atom (atom authentication/public-key-atom-value url)])
-  (authentication/wrap-authentication public-key-atom))
+  (let [public-key-atom (when url (atom authentication/public-key-atom-value url))]
+    (authentication/wrap-authentication public-key-atom)))
 
 
 (defmethod ig/init-key :term-service

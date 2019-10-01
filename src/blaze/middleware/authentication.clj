@@ -35,7 +35,7 @@
   (do
     (when (< (* expiration-minutes 60000)
              (- (.getTime (Date.)) (:timestamp @public-key-atom)))
-      (swap! public-key-atom public-key-atom-value))
+      (swap! public-key-atom public-key-atom-value (:openid-url @public-key-atom)))
     (:public-key @public-key-atom)))
 
 
@@ -64,10 +64,10 @@
 (defn wrap-authentication
   "If successful process request, else respond with 403. Update the
   public key when necessary."
-  [openid-url public-key-atom]
+  [public-key-atom]
   (fn [handler]
     (fn [request]
-      (if (string/blank? openid-url) ;; If string is nil or empty, skip authentication
+      (if (nil? public-key-atom) ;; If atom is nil, skip authentication
         (handler request)
         (let [auth-header (get-in request [:headers "authorization"])]
           (if (string/blank? auth-header) ;; If auth header is nil or empty, inform client
