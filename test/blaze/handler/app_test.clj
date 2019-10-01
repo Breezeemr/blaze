@@ -30,9 +30,11 @@
    :handler/health (fn [_] ::health-handler)
    :handler.fhir/core (fn [_] ::fhir-core-handler)})
 
+(def ^:private middleware
+  {:middleware/authorization (fn [_] ::authorization-service)})
 
 (def ^:private test-handler
-  (reitit-ring/ring-handler (router handlers)))
+  (reitit-ring/ring-handler (router handlers middleware)))
 
 
 (defn- match [path request-method]
