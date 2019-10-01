@@ -11,15 +11,21 @@
    (java.security.spec X509EncodedKeySpec)))
 
 ;; TODO: Should I have used https://funcool.github.io/buddy-auth/latest/api/buddy.auth.middleware.html#var-wrap-authentication instead?
+;; https://auth.breezeehr.com/auth/realms/patient-portal/.well-known/openid-configuration
 
 ;; TODO: Possibly make the expiration time configurable
 (def expiration-minutes 60)
 
 
-(defn public-key-atom-value [_ f]
-  {:public-key (f)
+;; TODO: Figure out if I can do this with only one argument
+(defn- public-key-atom-value [_ openid-url]
+  ;; TODO: Replace this inline function with openid-url processing function
+  {:public-key (-> "https://auth.breezeehr.com/auth/realms/patient-portal"
+                   slurp
+                   json/parse-string
+                   (get "public_key"))
    :timestamp  (.getTime (Date.))
-   :update f})
+   :openid-url openid-url})
 
 
 (defn- public-key-str
@@ -29,7 +35,7 @@
   (do
     (when (< (* expiration-minutes 60000)
              (- (.getTime (Date.)) (:timestamp @public-key-atom)))
-      (swap! public-key-atom public-key-atom-value (:update @public-key-atom)))
+      (swap! public-key-atom public-key-atom-value))
     (:public-key @public-key-atom)))
 
 
@@ -47,35 +53,27 @@
       (jwt/unsign signed-token public-key {:alg :rs256}))
     (catch Exception e
       ;; Return nil to signal failure to unsign token
-      (prn "e.cause::" (:cause (Throwable->map e)))
-      nil)))
+      (:cause (Throwable->map e)))))
+
+
+(defn unauthenticated-response [message]
+  (-> (ring/response {:message message})
+      (ring/status 401)))
 
 
 (defn wrap-authentication
   "If successful process request, else respond with 403. Update the
   public key when necessary."
-  [public-key-atom]
+  [openid-url public-key-atom]
   (fn [handler]
     (fn [request]
-      (if (some? public-key-atom)
-        (let [auth-header     (get-in request [:headers "authorization"])
-              denied-response (-> (ring/response {:message "Access denied"})
-                                  (ring/status 403))]
-          (if (some? auth-header)
-            (let [bearer-token (string/replace auth-header "Bearer " "")
-                  token        (unsigned-token public-key-atom bearer-token)]
-              (if (some? token)
-                (handler request)
-                denied-response))
-            denied-response))
-        (handler request)))))
-
-
-;; The following [service]-public-key functions should return a
-;; string value of the services public key.
-
-(defn keycloak-public-key []
-  (-> "https://auth.breezeehr.com/auth/realms/patient-portal"
-      slurp
-      json/parse-string
-      (get "public_key")))
+      (if (string/blank? openid-url) ;; If string is nil or empty, skip authentication
+        (handler request)
+        (let [auth-header (get-in request [:headers "authorization"])]
+          (if (string/blank? auth-header) ;; If auth header is nil or empty, inform client
+            (unauthenticated-response "Missing authorization header")
+            (let [bearer-token    (string/replace auth-header "Bearer " "")
+                  token           (unsigned-token public-key-atom bearer-token)]
+              (if (string? token) ;; If token is a string, it really is an error message, pass along to client (TODO: Is this too much info to expose?)
+                (unauthenticated-response token)
+                (handler request)))))))))

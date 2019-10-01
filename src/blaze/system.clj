@@ -59,9 +59,7 @@
 (s/def :config/database-conn (s/keys :opt [:database/uri]))
 (s/def :authorization-service/name string?)
 (s/def :authorization-service/url string?)
-(s/def :config/authorization-service
-  (s/keys :opt-un [:authorization-service/name
-                   :authorization-service/url]))
+(s/def :config/authorization (s/keys :opt-un [:authorization/url]))
 (s/def :term-service/uri string?)
 (s/def :term-service/proxy-host string?)
 (s/def :term-service/proxy-port pos-int?)
@@ -90,7 +88,7 @@
     :opt-un
     [:config/logging
      :config/database-conn
-     :config/authorization-service
+     :config/authorization
      :config/term-service
      :config/cache
      :config/fhir-capabilities-handler
@@ -115,7 +113,7 @@
    {:structure-definitions (ig/ref :structure-definitions)
     :database/uri "datomic:mem://dev"}
 
-   :authorization-service {}
+   :authorization {}
 
    :term-service
    {:uri "http://tx.fhir.org/r4"}
@@ -274,14 +272,11 @@
   (d/connect uri))
 
 
-(defmethod ig/init-key :authorization-service
-  [_ {:keys [name url]}]
-  ;; TODO: Must validate that `url` is non-nil is `name` is known.
-  (case name
-    "keycloak" (authentication/wrap-authentication (atom (authentication/public-key-atom-value
-                                                          nil
-                                                          authentication/keycloak-public-key)))
-    (authentication/wrap-authentication nil)))
+(defmethod ig/init-key :authorization
+  [_ {:keys [url]}]
+  ;; TODO: Initialize public key
+  (let [public-key-atom (atom authentication/public-key-atom-value url)])
+  (authentication/wrap-authentication public-key-atom))
 
 
 (defmethod ig/init-key :term-service
