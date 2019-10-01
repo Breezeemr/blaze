@@ -1,7 +1,6 @@
 (ns blaze.handler.app
   (:require
     [blaze.middleware.json :refer [wrap-json]]
-    [blaze.middleware.authentication :refer [wrap-authentication]]
     [blaze.middleware.fhir.type :refer [wrap-type]]
     [clojure.spec.alpha :as s]
     [reitit.core :as reitit]
@@ -14,7 +13,7 @@
     (handler (-> request (assoc :uri more) (dissoc ::reitit/match :path-params)))))
 
 
-(defn router [handlers]
+(defn router [handlers middleware]
   (reitit-ring/router
     [["/health"
       {:head (:handler/health handlers)
@@ -26,7 +25,7 @@
       {:middleware [wrap-json wrap-remove-context-path]
        :handler (:handler.fhir/core handlers)}]
      ["/fhir/{*more}"
-      {:middleware [wrap-json wrap-authentication wrap-remove-context-path]
+      {:middleware [wrap-json (:middleware/authorization middleware) wrap-remove-context-path]
        :handler (:handler.fhir/core handlers)}]]
     {:syntax :bracket
      ::reitit-ring/default-options-handler
@@ -41,10 +40,15 @@
                 :handler.fhir/core]))
 
 
+(s/def ::middleware
+  (s/keys :req [:middleware/authorization]))
+
+
 (s/fdef handler
-  :args (s/cat :handlers ::handlers))
+  :args (s/cat :handlers ::handlers
+               :middleware ::middleware))
 
 (defn handler
   "Whole app Ring handler."
-  [handlers]
-  (reitit-ring/ring-handler (router handlers)))
+  [handlers middleware]
+  (reitit-ring/ring-handler (router handlers middleware)))

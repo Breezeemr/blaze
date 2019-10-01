@@ -32,6 +32,7 @@
     [blaze.metrics :as metrics]
     [blaze.middleware.fhir.metrics :as fhir-metrics]
     [blaze.middleware.json :as json]
+    [blaze.middleware.authentication :as authentication ]
     [blaze.server :as server]
     [blaze.structure-definition :refer [read-structure-definitions]]
     [blaze.terminology-service.extern :as ts]
@@ -197,7 +198,9 @@
     :handlers
     {:handler/cql-evaluation (ig/ref :cql-evaluation-handler)
      :handler/health (ig/ref :health-handler)
-     :handler.fhir/core (ig/ref :fhir-core-handler)}}
+     :handler.fhir/core (ig/ref :fhir-core-handler)}
+    :middleware
+    {:middleware/authorization (ig/ref :authorization-service)}}
 
    :server-executor {}
 
@@ -271,15 +274,16 @@
 
   (d/connect uri))
 
-(defn- keycloak-public-key [url]
-  (-> url
-      slurp
-      j/parse-string
-      (get "public_key")))
 
+;; TODO: I think this should return a function that updates
+;; the keycloak-public-key-atom if necessary
 (defmethod ig/init-key :authorization-service
   [_ {:keys [name url]}]
-  (keycloak-public-key url))
+  (case name
+    "keycloak" (authentication/wrap-authentication (atom (authentication/public-key-atom-value
+                                                          nil
+                                                          authentication/keycloak-public-key)))
+    (authentication/wrap-authentication nil)))
 
 
 (defmethod ig/init-key :term-service
@@ -396,8 +400,8 @@
 
 
 (defmethod ig/init-key :app-handler
-  [_ {:keys [handlers]}]
-  (app-handler/handler handlers))
+  [_ {:keys [handlers middleware]}]
+  (app-handler/handler handlers middleware))
 
 
 (defmethod ig/init-key :server-executor
@@ -411,6 +415,7 @@
   (server/init! port executor handler version))
 
 
+;; TODO: I may want to register authorization here
 (defmethod ig/init-key :metrics/registry
   [_ {:keys [server-executor transaction-interaction-executor
              evaluate-measure-operation-executor]}]

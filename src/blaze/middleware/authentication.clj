@@ -16,17 +16,10 @@
 (def expiration-minutes 60)
 
 
-;; TODO: This url or even this function needs to be configurable
-(defn- keycloak-public-key []
-  (-> "https://auth.breezeehr.com/auth/realms/patient-portal"
-      slurp
-      json/parse-string
-      (get "public_key")))
-
-
-(defn- public-key-atom-value [_]
-  {:public-key (keycloak-public-key)
-   :timestamp  (.getTime (Date.))})
+(defn public-key-atom-value [_ f]
+  {:public-key (f)
+   :timestamp  (.getTime (Date.))
+   :update f})
 
 
 (defn- public-key-str
@@ -36,7 +29,7 @@
   (do
     (when (< (* expiration-minutes 60000)
              (- (.getTime (Date.)) (:timestamp @public-key-atom)))
-      (swap! public-key-atom public-key-atom-value))
+      (swap! public-key-atom public-key-atom-value (:update @public-key-atom)))
     (:public-key @public-key-atom)))
 
 
@@ -58,22 +51,31 @@
       nil)))
 
 
-;; TODO: Store/manage this using Integrant?
-(def public-key-atom (atom (public-key-atom-value nil)))
-
-
 (defn wrap-authentication
-  "If successful process request, else respond with 403."
-  [handler]
-  (fn [request]
-    ;; TODO: If authentication is enabled (via env var)
-    (let [auth-header     (get-in request [:headers "authorization"])
-          denied-response (-> (ring/response {:message "Access denied"})
-                              (ring/status 403))]
-      (if (some? auth-header)
-        (let [bearer-token (string/replace auth-header "Bearer " "")
-              token        (unsigned-token public-key-atom bearer-token)]
-          (if (some? token)
-            (handler request)
+  "If successful process request, else respond with 403. Update the
+  public key when necessary."
+  [public-key-atom]
+  (fn [handler]
+    (fn [request]
+      (if (some? public-key-atom)
+        (let [auth-header     (get-in request [:headers "authorization"])
+              denied-response (-> (ring/response {:message "Access denied"})
+                                  (ring/status 403))]
+          (if (some? auth-header)
+            (let [bearer-token (string/replace auth-header "Bearer " "")
+                  token        (unsigned-token public-key-atom bearer-token)]
+              (if (some? token)
+                (handler request)
+                denied-response))
             denied-response))
-        denied-response))))
+        (handler request)))))
+
+
+;; The following [service]-public-key functions should return a
+;; string value of the services public key.
+
+(defn keycloak-public-key []
+  (-> "https://auth.breezeehr.com/auth/realms/patient-portal"
+      slurp
+      json/parse-string
+      (get "public_key")))
