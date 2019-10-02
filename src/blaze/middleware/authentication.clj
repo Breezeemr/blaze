@@ -15,9 +15,6 @@
    (java.security.spec X509EncodedKeySpec)))
 
 
-(def ^:private expiration-minutes 60)
-
-
 (defn- public-key
   "From the OpenID Configuration url, follow the `jwks_uri` to get the
    first jwk."
@@ -29,14 +26,15 @@
       slurp
       (json/parse-string keyword)
       :keys ;; Buddy expects keywords, not strings
-      first
+      first ;; TODO: Handle missing key?
       keys/jwk->public-key))
 
 
 (defn public-key-atom-value [v]
-  {:public-key (public-key (:openid-url v))
-   :timestamp  (.getTime (Date.))
-   :openid-url (:openid-url v)})
+  {:public-key         (public-key (:openid-url v))
+   :timestamp          (.getTime (Date.))
+   :openid-url         (:openid-url v)
+   :expiration-minutes 60})
 
 
 (defn- updated-public-key-atom
@@ -44,7 +42,7 @@
    update the public key. Always return the public key."
   [public-key-atom]
   (do
-    (when (< (* expiration-minutes 60000)
+    (when (< (* (:expiration-minutes @public-key-atom) 60000)
              (- (.getTime (Date.)) (:timestamp @public-key-atom)))
       (swap! public-key-atom public-key-atom-value))
     public-key-atom))
@@ -81,5 +79,5 @@
                   token        (unsigned-token public-key-atom bearer-token)]
               ;; If token is a string, it is actually the error message. Otherwise, authorization succeeded.
               (if (string? token)
-                (unauthenticated-response token)
+                (unauthenticated-response "Forbidden")
                 (handler request)))))))))
