@@ -70,13 +70,16 @@
   [public-key-atom]
   (fn [handler]
     (fn [request]
-      (if (nil? public-key-atom) ;; If there is no atom, skip authorization
+      ;; If there is no atom, skip authorization. Otherwise, continue authorization.
+      (if (nil? public-key-atom)
         (handler request)
         (let [auth-header (get-in request [:headers "authorization"])]
-          (if (string/blank? auth-header) ;; If auth header is nil or empty, inform client
+          ;; If auth header is nil or empty, inform client. Otherwise, continue authorization.
+          (if (string/blank? auth-header)
             (unauthenticated-response "Missing authorization header")
             (let [bearer-token (string/replace auth-header "Bearer " "")
                   token        (unsigned-token public-key-atom bearer-token)]
-              (if (string? token) ;; If token is a string, it really is an error message, pass along to client (TODO: Is this too much info to expose?)
+              ;; If token is a string, it is actually the error message. Otherwise, authorization succeeded.
+              (if (string? token)
                 (unauthenticated-response token)
                 (handler request)))))))))
