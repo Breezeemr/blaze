@@ -57,8 +57,7 @@
 (s/def :config/logging (s/keys :opt [:log/level]))
 (s/def :database/uri string?)
 (s/def :config/database-conn (s/keys :opt [:database/uri]))
-(s/def :authorization-service/name string?)
-(s/def :authorization-service/url string?)
+(s/def :authorization/url string?)
 (s/def :config/authorization (s/keys :opt-un [:authorization/url]))
 (s/def :term-service/uri string?)
 (s/def :term-service/proxy-host string?)
@@ -197,7 +196,7 @@
      :handler/health (ig/ref :health-handler)
      :handler.fhir/core (ig/ref :fhir-core-handler)}
     :middleware
-    {:middleware/authorization (ig/ref :authorization-service)}}
+    {:middleware/authorization (ig/ref :authorization)}}
 
    :server-executor {}
 
@@ -274,7 +273,7 @@
 
 (defmethod ig/init-key :authorization
   [_ {:keys [url]}]
-  (let [public-key-atom (when url (atom authentication/public-key-atom-value url))]
+  (let [public-key-atom (when url (atom (authentication/public-key-atom-value nil url)))]
     (authentication/wrap-authentication public-key-atom)))
 
 

@@ -13,13 +13,15 @@
 ;; TODO: Should I have used https://funcool.github.io/buddy-auth/latest/api/buddy.auth.middleware.html#var-wrap-authentication instead?
 ;; https://auth.breezeehr.com/auth/realms/patient-portal/.well-known/openid-configuration
 
-;; TODO: Possibly make the expiration time configurable
-(def expiration-minutes 60)
 
+;; TODO: Possibly make the expiration time configurable
+(def ^:private expiration-minutes 1)
+
+
+(defn- public-key)
 
 ;; TODO: Figure out if I can do this with only one argument
-(defn- public-key-atom-value [_ openid-url]
-  ;; TODO: Replace this inline function with openid-url processing function
+(defn public-key-atom-value [_ openid-url]
   {:public-key (-> "https://auth.breezeehr.com/auth/realms/patient-portal"
                    slurp
                    json/parse-string
@@ -29,8 +31,8 @@
 
 
 (defn- public-key-str
-  "When the public key atom is more than 1 hour old, update the public key.
-   Always return the public key."
+  "When the public key atom is more than `expiration-minutes` old,
+   update the public key. Always return the public key."
   [public-key-atom]
   (do
     (when (< (* expiration-minutes 60000)
@@ -58,7 +60,7 @@
 
 (defn unauthenticated-response [message]
   (-> (ring/response {:message message})
-      (ring/status 401)))
+      (ring/status 403)))
 
 
 (defn wrap-authentication
@@ -67,7 +69,7 @@
   [public-key-atom]
   (fn [handler]
     (fn [request]
-      (if (nil? public-key-atom) ;; If atom is nil, skip authentication
+      (if (nil? public-key-atom) ;; If there is no atom, skip authorization
         (handler request)
         (let [auth-header (get-in request [:headers "authorization"])]
           (if (string/blank? auth-header) ;; If auth header is nil or empty, inform client
