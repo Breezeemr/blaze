@@ -18,7 +18,10 @@
 (def ^:private expiration-minutes 60)
 
 
-(defn- public-key [url]
+(defn- public-key
+  "From the OpenID Configuration url, follow the `jwks_uri` to get the
+   first jwk."
+  [url]
   (-> url
       slurp
       json/parse-string
@@ -47,7 +50,8 @@
     public-key-atom))
 
 
-(defn- unsigned-token [public-key-atom signed-token]
+(defn- unsigned-token
+  [public-key-atom signed-token]
   (try
     (let [public-key (:public-key @(updated-public-key-atom public-key-atom))]
       (jwt/unsign signed-token public-key {:alg :rs256}))
