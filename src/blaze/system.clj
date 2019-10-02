@@ -273,7 +273,7 @@
 
 (defmethod ig/init-key :authorization
   [_ {:keys [url]}]
-  (let [public-key-atom (when url (atom (authentication/public-key-atom-value nil url)))]
+  (let [public-key-atom (when url (atom (authentication/public-key-atom-value {:openid-url url})))]
     (authentication/wrap-authentication public-key-atom)))
 
 

@@ -10,24 +10,28 @@
    (java.security KeyFactory)
    (java.security.spec X509EncodedKeySpec)))
 
-;; TODO: Should I have used https://funcool.github.io/buddy-auth/latest/api/buddy.auth.middleware.html#var-wrap-authentication instead?
 ;; https://auth.breezeehr.com/auth/realms/patient-portal/.well-known/openid-configuration
 
 
-;; TODO: Possibly make the expiration time configurable
 (def ^:private expiration-minutes 1)
 
 
-(defn- public-key)
+;; TODO: Acutally use proper OpenID methods
+(defn- get-public-key [url]
+  (-> url
+      slurp
+      json/parse-string
+      (get "issuer")
+      slurp
+      json/parse-string
+      (get "public_key")))
+
 
 ;; TODO: Figure out if I can do this with only one argument
-(defn public-key-atom-value [_ openid-url]
-  {:public-key (-> "https://auth.breezeehr.com/auth/realms/patient-portal"
-                   slurp
-                   json/parse-string
-                   (get "public_key"))
+(defn public-key-atom-value [v]
+  {:public-key (get-public-key (:openid-url v))
    :timestamp  (.getTime (Date.))
-   :openid-url openid-url})
+   :openid-url (:openid-url v)})
 
 
 (defn- public-key-str
@@ -37,7 +41,7 @@
   (do
     (when (< (* expiration-minutes 60000)
              (- (.getTime (Date.)) (:timestamp @public-key-atom)))
-      (swap! public-key-atom public-key-atom-value (:openid-url @public-key-atom)))
+      (swap! public-key-atom public-key-atom-value))
     (:public-key @public-key-atom)))
 
 
