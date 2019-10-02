@@ -7,8 +7,7 @@
    [buddy.core.keys :as keys]
    [buddy.sign.jwt :as jwt]
    [cheshire.core :as json]
-   [ring.util.response :as ring]
-   #_[manifold.deferred :as md])
+   [ring.util.response :as ring])
   (:import
    (java.util Date)))
 
