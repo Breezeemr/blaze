@@ -10,9 +10,7 @@
    [ring.util.response :as ring]
    #_[manifold.deferred :as md])
   (:import
-   (java.util Base64 Date)
-   (java.security KeyFactory)
-   (java.security.spec X509EncodedKeySpec)))
+   (java.util Date)))
 
 
 (defn- public-key
