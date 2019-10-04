@@ -47,8 +47,10 @@
 (def patient-with-condition (read-data "query-3"))
 
 (deftest sandbox
-  (let [db    (db-with patient-with-condition)
-        ;;TODO query to get data. Need to look into schema
-        query '[]]
-    (println (d/q query db))))
-
+  (let [db (db-with patient-with-condition)]
+    ;;Retrieves condition given patient id "0"
+    (d/q '[:find ?condition_id
+           :where
+           [?c :Condition/id ?condition_id]
+           [?c :Condition/subject ?p ]
+           [?p :Patient/id "0"]] db)))
