@@ -2,6 +2,7 @@
   (:require
    [cheshire.core :as json]
    [clojure.spec.test.alpha :as st]
+   [blaze.handler.fhir.search :refer [handler]]
    [clojure.test :refer :all]
    [datomic.api :as d]
    [datomic-spec.test :as dst]
@@ -17,7 +18,8 @@
    [java.time OffsetDateTime Year]))
 
 
-(defonce db (d/db (st/with-instrument-disabled (test-util/connect))))
+(defonce conn (test-util/connect))
+(defonce db (d/db (st/with-instrument-disabled conn)))
 
 
 (defn fixture [f]
@@ -34,7 +36,7 @@
 (defn db-with [{:strs [entries]}]
   (let [entries        @(bundle/annotate-codes term-service db entries)
         {db :db-after} (d/with db (bundle/code-tx-data db entries))]
-    (:db-after (d/with db (bundle/tx-data db entries)))))
+    (d/with db (bundle/tx-data db entries))))
 
 (defn- evaluate [db query]
   @(evaluator/evaluate db (OffsetDateTime/now)
@@ -46,11 +48,26 @@
 
 (def patient-with-condition (read-data "query-3"))
 
+(def r (atom nil))
+
 (deftest sandbox
-  (let [db (db-with patient-with-condition)]
-    ;;Retrieves condition given patient id "0"
-    (d/q '[:find ?condition_id
-           :where
-           [?c :Condition/id ?condition_id]
-           [?c :Condition/subject ?p ]
-           [?p :Patient/id "0"]] db)))
+  (let [db                             (db-with patient-with-condition)
+        {:keys [status body] :as resp} @((handler conn)
+                                         {:path-params {:type "Patient"}
+                                          :params      {"_summary" "count"}})
+        ]
+    ;; Retrieves condition given patient id "0"
+    #_(d/q '[:find ?condition_id
+             :where
+             [?c :Condition/id ?condition_id]
+             [?c :Condition/subject ?p ]
+             [?p :Patient/id "0"]] after-db)
+
+    ;; NOTE the status is 200, but the total is 0.
+    ;; I suspect this is because the db is created using datomic.api/with which i believe
+    ;; doesn't update the db. So the connection, which were passing to the handler, doesn't
+    ;; have the same state.
+    (reset! r resp)
+    ))
+
+@r
