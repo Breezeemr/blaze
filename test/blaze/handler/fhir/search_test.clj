@@ -52,7 +52,7 @@
       (let [{:keys [status body]}
             @((handler ::conn)
               {::reitit/router ::router
-               :path-params {:type "Patient"}})]
+               :path-params    {:type "Patient"}})]
 
         (is (= 200 status))
 
@@ -77,10 +77,9 @@
   (testing "Summary Count"
     (datomic-test-util/stub-type-total ::db "Patient" 42)
 
-    (let [{:keys [status body]}
-          @((handler ::conn)
-            {:path-params {:type "Patient"}
-             :params {"_summary" "count"}})]
+    (let [{:keys [status body]} @((handler ::conn)
+                                  {:path-params {:type "Patient"}
+                                   :params      {"_summary" "count"}})]
 
       (is (= 200 status))
 
@@ -99,7 +98,7 @@
     (let [{:keys [status body]}
           @((handler ::conn)
             {:path-params {:type "Patient"}
-             :params {"_count" "0"}})]
+             :params      {"_count" "0"}})]
 
       (is (= 200 status))
 
@@ -131,7 +130,7 @@
       (let [{:keys [status body]}
             @((handler ::conn)
               {::reitit/router ::router
-               :path-params {:type "Patient"}})]
+               :path-params    {:type "Patient"}})]
 
         (is (= 200 status))
 
