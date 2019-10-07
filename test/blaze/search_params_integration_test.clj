@@ -52,38 +52,34 @@
 
 (def patient-with-condition (read-data "query-3"))
 
-;; TODO remove. temp var for debugging
-(def sresp (atom nil))
+;; TODO 1. fails with subject 1 as null pointer executable.
+;; TODO 2. Make a test to lookup something other then test id, like by code. Code's value will be more complex will have to parse it.
+;; TODO 3. use other query data.
+;; TODO get references and coding.
+
 
 (deftest sandbox
-  (testing "Given a Patient with Condition, when a server gets a FHIR search query param"
-    ;; stub router
-    (fhir-test-util/stub-instance-url ::router "Condition" "0" ::full-url)
-    (let [db                             (db-with patient-with-condition)
-          {:keys [status body] :as resp} @((handler conn)
-                                           {:path-params    {:type "Condition"}
-                                            ;; mocked router
-                                            ::reitit/router ::router
-                                            ;; example needed params
-                                            :params         {"subject" "0"}
-                                            ;; example working params
-                                            #_#_:params     {"_summary" "count"}})]
+  (testing "Given a Patient with Condition, when a server gets a FHIR search query"
+    (testing "with just just one filter"
+      ;; load data into db and stub router
+      (let [resource "Condition"
+            id       "0"]
+        (db-with patient-with-condition)
+        (fhir-test-util/stub-instance-url ::router resource id ::full-url)
+        (let [{:keys [status body]} @((handler conn)
+                                      {:path-params    {:type resource}
+                                       ::reitit/router ::router
+                                       :params         {"subject" id}})
+              returned-resource-ids (into #{}
+                                          (->> body
+                                               :entry
+                                               (map #(get-in % [:resource "id"]))))]
 
-      (reset! sresp resp)
-
-      (is (= 200 status)))))
-
-(comment
-  (->> @sresp
-       :body
-       :entry
-       first
-       :resource))
+          (is (= 200 status))
+          (is (contains? returned-resource-ids id)))))))
 
 ;; the below resource from the response is the same as we put into the db. so this query is working. Will have to consider if the router being stubbed in this way is acceptable.
 ;; => {"code" {"coding" [{"version" "2019", "system" "http://fhir.de/CodeSystem/dimdi/icd-10-gm", "code" "M06.9"}]}, "subject" {"reference" "Patient/0"}, "id" "0", "onsetDateTime" "2018", "resourceType" "Condition", "meta" {"versionId" "9841", "lastUpdated" "2019-10-07T14:05:59.085Z"}}
-
-
 
 ;; Example datomic query that retrieves condition given patient id "0"
 #_(d/q '[:find ?condition_id
