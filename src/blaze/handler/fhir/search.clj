@@ -43,6 +43,39 @@
             (some matches? value)
             (matches? value)))))))
 
+;; Generalize v1 and v2
+;; NOTE this attempt only tries to allow for any search term, NOT multiple search terms
+;; 1. can't destructive because that implies we only care about one search param.
+;; 2. need to lookup the validation key in `matches?`
+
+;;TODO What this is doing needs to be made more clear.
+;; Its used as part of the validation that the returned
+;; value from the database is indeed what the user searched for.
+;; This check is used as a filter on the DB sense the db retuns *more*
+;; the then search asked for.
+
+(def type+search-param->lookup-attr
+  {"Condition" {"subject" :Patient/id}})
+
+;;TODO Merge this map into the one above. Dont overthink it though as
+;; Ultamitly will be generating this from the FHIR serach params list
+(def valid-search-params #{"identifier" "subject"})
+
+(defn resource-pred-v3 [db type query-params]
+  ;;NOTE we assume only one search param so grabbing the first
+  (if-some [[search-param search-value] (first (select-keys query-params valid-search-params))]
+    (let [attr                     (keyword type search-param)
+          lookup-attr              (get-in type+search-param->lookup-attr [type search-param])
+          {:db/keys [cardinality]} (util/cached-entity db attr)
+          matches?
+          (fn [x]
+            (= search-value (lookup-attr x)))]
+      (fn [resource]
+        (let [value (get resource attr)]
+          (if (= :db.cardinality/many cardinality)
+            (some matches? value)
+            (matches? value)))))))
+
 (defn- entry
   [router {type "resourceType" id "id" :as resource}]
   {:fullUrl (fhir-util/instance-url router type id)
@@ -57,7 +90,7 @@
 
 
 (defn- search [router db type query-params]
-  (let [pred (resource-pred-v2 db type query-params)]
+  (let [pred (resource-pred-v3 db type query-params)]
     (cond->
       {:resourceType "Bundle"
        :type "searchset"}
