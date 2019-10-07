@@ -22,10 +22,16 @@
       {:options (:handler/cql-evaluation handlers)
        :post (:handler/cql-evaluation handlers)}]
      ["/fhir"
-      {:middleware [wrap-json (:middleware/authentication middleware) wrap-remove-context-path]
+      {:middleware [wrap-json
+                    (:middleware/authentication middleware)
+                    (:middleware/authorization middleware)
+                    wrap-remove-context-path]
        :handler (:handler.fhir/core handlers)}]
      ["/fhir/{*more}"
-      {:middleware [wrap-json (:middleware/authentication middleware) wrap-remove-context-path]
+      {:middleware [wrap-json
+                    (:middleware/authentication middleware)
+                    (:middleware/authorization middleware)
+                    wrap-remove-context-path]
        :handler (:handler.fhir/core handlers)}]]
     {:syntax :bracket
      ::reitit-ring/default-options-handler

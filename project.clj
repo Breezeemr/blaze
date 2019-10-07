@@ -70,7 +70,7 @@
 
   :profiles
   {:dev
-   {:source-paths ["dev"]
+   {:source-paths ["dev" "dev/blaze-authorization.jar"]
     :dependencies
     [[criterium "0.4.5"]
      [org.clojars.akiel/iota "0.1"]

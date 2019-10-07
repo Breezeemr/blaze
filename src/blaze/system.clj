@@ -61,6 +61,7 @@
 (s/def :config/database-conn (s/keys :opt [:database/uri]))
 (s/def :openid-provider/url string?)
 (s/def :config/authentication (s/keys :opt [:openid-provider/url]))
+(s/def :config/authorization (s/keys :opt [:authorization/ns]))
 (s/def :term-service/uri string?)
 (s/def :term-service/proxy-host string?)
 (s/def :term-service/proxy-port pos-int?)
@@ -90,6 +91,7 @@
     [:config/logging
      :config/database-conn
      :config/authentication
+     :config/authorization
      :config/term-service
      :config/cache
      :config/fhir-capabilities-handler
@@ -116,6 +118,9 @@
 
    :guard
    {:authentication (ig/ref :authentication)}
+
+   :authorization
+   {:database/conn (ig/ref :database-conn)}
 
    :term-service
    {:uri "http://tx.fhir.org/r4"}
@@ -199,7 +204,8 @@
      :handler/health (ig/ref :health-handler)
      :handler.fhir/core (ig/ref :fhir-core-handler)}
     :middleware
-    {:middleware/authentication (ig/ref :authentication)}}
+    {:middleware/authentication (ig/ref :authentication)
+     :middleware/authorization (ig/ref :authorization)}}
 
    :server-executor {}
 

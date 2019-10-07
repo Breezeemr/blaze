@@ -26,7 +26,8 @@
     [spec-coerce.alpha :refer [coerce]])
   (:import
     [io.prometheus.client CollectorRegistry]
-    [java.time OffsetDateTime]))
+    [java.time OffsetDateTime]
+    [java.io FileNotFoundException]))
 
 
 ;; Spec Instrumentation
@@ -37,7 +38,17 @@
 (defonce system nil)
 
 (defn init []
-  (let [config (coerce :system/config (env-tools/build-config :system/config))]
+  (let [config (coerce :system/config (env-tools/build-config :system/config))
+        authorization-ns (get-in config [:authorization :authorization/ns])]
+
+    ;; TODO: The following must be copied to blaze.core/-main
+    ;; Require authorization namespace
+    (try
+      (-> authorization-ns symbol require)
+      (catch FileNotFoundException e
+        (prn "Could not find namespace: " authorization-ns)
+        (System/exit 1)))
+
     (if (s/valid? :system/config config)
       (alter-var-root #'system (constantly (system/init! config)))
       (s/explain :system/config config))
