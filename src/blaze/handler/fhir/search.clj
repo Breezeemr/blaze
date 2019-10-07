@@ -29,6 +29,19 @@
             (some matches? value)
             (matches? value)))))))
 
+(defn- resource-pred-v2 [db type {:strs [subject]}]
+  (when subject
+    (let [attr                     (keyword type "subject")
+          {:db/keys [cardinality]} (util/cached-entity db attr)
+          matches?
+          ;; NOTE this Identifier/keys might need to be something else
+          (fn [x]
+            (= subject (:Patient/id x)))]
+      (fn [resource]
+        (let [value (get resource attr)]
+          (if (= :db.cardinality/many cardinality)
+            (some matches? value)
+            (matches? value)))))))
 
 (defn- entry
   [router {type "resourceType" id "id" :as resource}]
@@ -44,7 +57,7 @@
 
 
 (defn- search [router db type query-params]
-  (let [pred (resource-pred db type query-params)]
+  (let [pred (resource-pred-v2 db type query-params)]
     (cond->
       {:resourceType "Bundle"
        :type "searchset"}
