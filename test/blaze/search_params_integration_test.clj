@@ -88,3 +88,16 @@
          [?c :Condition/subject ?p]
          [?p :Patient/id "0"]] db)
 
+;; Example of how to query given a Conditions based on is code.
+#_(d/q '[:find ?id
+         :where
+         [?code :code/code "M06.9"]
+         [?condition :Condition.index/code ?code]
+         [?condition :Condition/id ?id]
+         ]
+       (:db @y))
+;; => #{["0"]}
+
+
+
+
