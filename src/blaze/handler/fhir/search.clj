@@ -100,6 +100,42 @@
             (some (partial matches? search-value) r)
             (matches? search-value r)))))))
 
+;; Version 5
+
+
+(def get-valid-search-params #{"identifier" "subject" "code"})
+
+;; handles multiple arguments, there might be another way to do this
+;; thats more high level then reduce
+;; and we can defiantly short circuit
+
+
+;; Note not yet tested
+(defn resource-pred-v5
+  [db type query-params]
+  ;;NOTE we assume only one search param so grabbing the first
+  (if-some [valid-search-params (select-keys query-params get-valid-search-params)]
+    (let [foo (reduce-kv
+                (fn [coll search-param search-value]
+                  (assoc coll
+                         :search-param search-param
+                         :search-value search-value
+                         :matches-fn (get-in type+search-param->matches? [type search-param])
+                         :attr (keyword type search-param)
+                         :cardinality (:db/cardinality (util/cached-entity db attr))))
+                {}
+                valid-search-params)]
+      (fn [resource]
+        (every? true? (reduce
+                        (fn [matches {:keys [matches-fn attr search-value cardinality]}]
+                          (let [r (get resource attr)]
+                            (conj matches
+                                  (if (= :db.cardinality/many cardinality)
+                                    (some (partial matches-fn search-value) r)
+                                    (matches-fn search-value r)))))
+                        []
+                        foo))))))
+
 (defn- entry
   [router {type "resourceType" id "id" :as resource}]
   {:fullUrl (fhir-util/instance-url router type id)
