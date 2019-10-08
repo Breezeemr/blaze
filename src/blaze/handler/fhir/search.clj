@@ -117,16 +117,18 @@
   (if-some [valid-search-params (select-keys query-params get-valid-search-params)]
     (let [foo (reduce-kv
                 (fn [coll search-param search-value]
-                  (assoc coll
-                         :search-param search-param
-                         :search-value search-value
-                         :matches-fn (get-in type+search-param->matches? [type search-param])
-                         :attr (keyword type search-param)
-                         :cardinality (:db/cardinality (util/cached-entity db attr))))
-                {}
+                  (let [attr (keyword type search-param)]
+                    (conj coll
+                          {:search-param search-param
+                           :search-value search-value
+                           :matches-fn   (get-in type+search-param->matches? [type search-param])
+                           :attr         attr
+                           :cardinality  (:db/cardinality (util/cached-entity db attr))})))
+                []
                 valid-search-params)]
       (fn [resource]
-        (every? true? (reduce
+        ;;TODO consider makeing it so matches functions return true instead of match?
+        (every? some? (reduce
                         (fn [matches {:keys [matches-fn attr search-value cardinality]}]
                           (let [r (get resource attr)]
                             (conj matches
@@ -138,9 +140,9 @@
 
 (defn- entry
   [router {type "resourceType" id "id" :as resource}]
-  {:fullUrl (fhir-util/instance-url router type id)
+  {:fullUrl  (fhir-util/instance-url router type id)
    :resource resource
-   :search {:mode "match"}})
+   :search   {:mode "match"}})
 
 
 (defn- summary?
@@ -150,10 +152,10 @@
 
 
 (defn- search [router db type query-params]
-  (let [pred (resource-pred-v4 db type query-params)]
+  (let [pred (resource-pred-v5 db type query-params)]
     (cond->
-      {:resourceType "Bundle"
-       :type "searchset"}
+        {:resourceType "Bundle"
+         :type "searchset"}
 
       (nil? pred)
       (assoc :total (util/type-total db type))
