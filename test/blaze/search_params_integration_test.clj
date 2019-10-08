@@ -126,6 +126,3 @@
          [?condition :Condition/id ?condition-id]
          ]
        db)
-
-=> #{["0"]}
-
