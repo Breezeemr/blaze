@@ -103,12 +103,29 @@
          [?c :Condition/subject ?p]
          [?p :Patient/id "0"]] db)
 
-;; Example of how to query given a Conditions based on is code.
+;; Example of how to query given a Conditions based on is code. Takes
+;; advantage of this ".index" which i'm not sure how its produced.
 #_(d/q '[:find ?id
          :where
          [?code :code/code "M06.9"]
          [?condition :Condition.index/code ?code]
          [?condition :Condition/id ?id]
          ]
-       (:db @y))
+       db)
+
 ;; => #{["0"]}
+
+;; The query that more closely matches the raw structure presented
+;; in the search query...
+#_(d/q '[:find ?condition-id
+         :where
+         [?coding-code :code/code "M06.9"]
+         [?coding :Coding/code ?coding-code]
+         [?code :CodeableConcept/coding ?coding]
+         [?condition :Condition/code ?code]
+         [?condition :Condition/id ?condition-id]
+         ]
+       db)
+
+=> #{["0"]}
+
