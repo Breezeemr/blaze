@@ -52,7 +52,7 @@
 
 (def patient-with-condition (read-data "query-3"))
 
-(deftest sandbox
+(deftest SearchParams
   (testing "Given a Patient with Condition, when a server gets a FHIR search query"
     (testing "with a reference parameter as described https://www.hl7.org/fhir/search.html#reference"
       (testing "supporting lookup via logical id"
