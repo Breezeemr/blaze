@@ -29,6 +29,7 @@
             (some matches? value)
             (matches? value)))))))
 
+;; version 2 attempts to handle one case of a reference search. A Condition with a subject.
 (defn- resource-pred-v2 [db type {:strs [subject]}]
   (when subject
     (let [attr                     (keyword type "subject")
@@ -48,18 +49,10 @@
 ;; 1. can't destructive because that implies we only care about one search param.
 ;; 2. need to lookup the validation key in `matches?`
 
-;;TODO What this is doing needs to be made more clear.
-;; Its used as part of the validation that the returned
-;; value from the database is indeed what the user searched for.
-;; This check is used as a filter on the DB sense the db retuns *more*
-;; the then search asked for.
-
 (def type+search-param->lookup-attr
   {"Condition" {"subject" :Patient/id}})
 
-;;TODO Merge this map into the one above. Dont overthink it though as
-;; Ultamitly will be generating this from the FHIR serach params list
-(def valid-search-params #{"identifier" "subject"})
+(def valid-search-params #{"identifier" "subject" "code"})
 
 (defn resource-pred-v3 [db type query-params]
   ;;NOTE we assume only one search param so grabbing the first
@@ -76,6 +69,37 @@
             (some matches? value)
             (matches? value)))))))
 
+;; Version 4 attempts to tackle a more complex search. One found in the `tokens` secion.
+;; The example is to return a Condition based on a code. e.g A condition with the code
+;; "M06.9". The schema is
+;; Condition -has-one--> code ---has-many-> coding --- has-one--> code
+;; So the search would return any Condition whose coding.code matched. This involves
+;; a filter which the previous resource-pred's didnt need. The logic to filter becomes
+;; more complex
+
+(defn by-condition-code
+  [search resource]
+  (filter #(= search (->> % :Coding/code :code/code))
+          (:CodeableConcept/coding resource)))
+
+(def type+search-param->matches?
+  ;;NOTE overloading the word resource.
+  {"Condition" {"subject" (fn [search resource] (= (:Patient/id resource)) search)
+                "code"    by-condition-code }})
+
+(defn resource-pred-v4
+  [db type query-params]
+  ;;NOTE we assume only one search param so grabbing the first
+  (if-some [[search-param search-value] (first (select-keys query-params valid-search-params))]
+    (let [attr                     (keyword type search-param)
+          matches?                 (get-in type+search-param->matches? [type search-param])
+          {:db/keys [cardinality]} (util/cached-entity db attr)]
+      (fn [resource]
+        (let [r (get resource attr)]
+          (if (= :db.cardinality/many cardinality)
+            (some (partial matches? search-value) r)
+            (matches? search-value r)))))))
+
 (defn- entry
   [router {type "resourceType" id "id" :as resource}]
   {:fullUrl (fhir-util/instance-url router type id)
@@ -90,7 +114,7 @@
 
 
 (defn- search [router db type query-params]
-  (let [pred (resource-pred-v3 db type query-params)]
+  (let [pred (resource-pred-v4 db type query-params)]
     (cond->
       {:resourceType "Bundle"
        :type "searchset"}

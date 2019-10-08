@@ -52,34 +52,49 @@
 
 (def patient-with-condition (read-data "query-3"))
 
-;; TODO 1. fails with subject 1 as null pointer executable.
-;; TODO 2. Make a test to lookup something other then test id, like by code. Code's value will be more complex will have to parse it.
-;; TODO 3. use other query data.
-;; TODO get references and coding.
-
-
 (deftest sandbox
   (testing "Given a Patient with Condition, when a server gets a FHIR search query"
-    (testing "with just just one filter"
-      ;; load data into db and stub router
-      (let [resource "Condition"
-            id       "0"]
+    (testing "with a reference parameter as described https://www.hl7.org/fhir/search.html#reference"
+      (testing "supporting lookup via logical id"
+        (let [resource        "Condition"
+              reference-param "subject"
+              logical-id      "0"
+              search-params   {reference-param logical-id}]
+          ;; load data into db and stub router
+          (db-with patient-with-condition)
+          (fhir-test-util/stub-instance-url ::router resource logical-id ::full-url)
+          (let [{:keys [status body]} @((handler conn)
+                                        {:path-params    {:type resource}
+                                         ::reitit/router ::router
+                                         :params         search-params})
+                returned-resource-ids (into #{}
+                                            (->> body
+                                                 :entry
+                                                 (map #(get-in % [:resource "id"]))))]
+
+            (is (= 200 status))
+            (is (contains? returned-resource-ids logical-id))))))
+    (testing "with a token type parameter as described here https://www.hl7.org/fhir/search.html#token"
+      (testing "supporting `code`")
+      (let [resource      "Condition"
+            paramater     "code"
+            code          "M06.8"
+            search-params {paramater code}]
+        ;; load data into db and stub router
         (db-with patient-with-condition)
-        (fhir-test-util/stub-instance-url ::router resource id ::full-url)
+        ;;TODO get the id from the db to stub the id, which we dont have because were searching by code...
+        (fhir-test-util/stub-instance-url ::router resource "0" ::full-url)
         (let [{:keys [status body]} @((handler conn)
                                       {:path-params    {:type resource}
                                        ::reitit/router ::router
-                                       :params         {"subject" id}})
-              returned-resource-ids (into #{}
-                                          (->> body
-                                               :entry
-                                               (map #(get-in % [:resource "id"]))))]
+                                       :params         search-params})]
+          ;;TODO awkward nested verification step
+          ;; (map #(get-in % [:resource "code" "coding"])
+          ;;      (:entry @r))
 
-          (is (= 200 status))
-          (is (contains? returned-resource-ids id)))))))
+          ;;   '([{"version" "2019", "system" "http://fhir.de/CodeSystem/dimdi/icd-10-gm", "code" "M06.9"}])
 
-;; the below resource from the response is the same as we put into the db. so this query is working. Will have to consider if the router being stubbed in this way is acceptable.
-;; => {"code" {"coding" [{"version" "2019", "system" "http://fhir.de/CodeSystem/dimdi/icd-10-gm", "code" "M06.9"}]}, "subject" {"reference" "Patient/0"}, "id" "0", "onsetDateTime" "2018", "resourceType" "Condition", "meta" {"versionId" "9841", "lastUpdated" "2019-10-07T14:05:59.085Z"}}
+          (is (= 200 status)))))))
 
 ;; Example datomic query that retrieves condition given patient id "0"
 #_(d/q '[:find ?condition_id
@@ -97,7 +112,3 @@
          ]
        (:db @y))
 ;; => #{["0"]}
-
-
-
-
