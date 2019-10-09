@@ -109,25 +109,23 @@
 ;; thats more high level then reduce
 ;; and we can defiantly short circuit
 
-
-;; Note not yet tested
 (defn resource-pred-v5
   [db type query-params]
-  ;;NOTE we assume only one search param so grabbing the first
   (if-some [valid-search-params (select-keys query-params get-valid-search-params)]
-    (let [foo (reduce-kv
-                (fn [coll search-param search-value]
-                  (let [attr (keyword type search-param)]
-                    (conj coll
-                          {:search-param search-param
-                           :search-value search-value
-                           :matches-fn   (get-in type+search-param->matches? [type search-param])
-                           :attr         attr
-                           :cardinality  (:db/cardinality (util/cached-entity db attr))})))
-                []
-                valid-search-params)]
+    (let [search-info (reduce-kv
+                        (fn [coll search-param search-value]
+                          (let [attr (keyword type search-param)]
+                            (conj coll
+                                  {:search-param search-param
+                                   :search-value search-value
+                                   :matches-fn   (get-in type+search-param->matches? [type search-param])
+                                   :attr         attr
+                                   :cardinality  (:db/cardinality (util/cached-entity db attr))})))
+                        []
+                        valid-search-params)]
       (fn [resource]
-        ;;TODO consider makeing it so matches functions return true instead of match?
+        ;;TODO consider making it so matches functions return true instead of match?
+        ;;TODO consider moving this functionality into the matches-fn.
         (every? some? (reduce
                         (fn [matches {:keys [matches-fn attr search-value cardinality]}]
                           (let [r (get resource attr)]
