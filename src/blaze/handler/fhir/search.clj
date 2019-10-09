@@ -26,11 +26,8 @@
   [search codeable-concept]
   ((set (codeable-concept->coding codeable-concept)) search))
 
-(def refe (atom nil))
-
 (defn match-reference
   [search reference]
-  (reset! refe reference)
   (= (:Patient/id reference)) search)
 
 (defn match-identifier
