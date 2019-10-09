@@ -26,6 +26,8 @@
   [search codeable-concept]
   ((set (codeable-concept->coding codeable-concept)) search))
 
+;; NOTE this is assuming the reference id
+;; is always Patient/id.
 (defn match-reference
   [search reference]
   (= (:Patient/id reference)) search)
@@ -114,15 +116,12 @@
             (map #(entry router %)))
           (d/datoms db :aevt (util/resource-id-attr type)))))))
 
-
 (defn- handler-intern [conn]
   (fn [{{:keys [type]} :path-params :keys [params] ::reitit/keys [router]}]
     (-> (search router (d/db conn) type params)
         (ring/response))))
 
-
 (s/def :handler.fhir/search fn?)
-
 
 (s/fdef handler
   :args (s/cat :conn ::ds/conn)
