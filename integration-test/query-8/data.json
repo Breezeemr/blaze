@@ -37,6 +37,32 @@
                 "method": "PUT",
                 "url": "Condition/0"
             }
+        },
+        {
+            "resource": {
+                "resourceType": "MedicationRequest",
+                "id": "0",
+                "status": "stopped",
+                "intent": "order",
+                "medicationCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+                            "code": "831533",
+                            "display": "Errin 28 Day Pack"
+                        }
+                    ],
+                    "text": "Errin 28 Day Pack"
+                },
+                "subject": {
+                    "reference": "Patient/0"
+                },
+                "authoredOn": "2010-08-11T06:09:11-05:00"
+            },
+            "request": {
+                "method": "PUT",
+                "url": "MedicationRequest/0"
+            }
         }
     ]
 }

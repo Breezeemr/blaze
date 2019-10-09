@@ -50,30 +50,64 @@
   (-> (slurp (str "integration-test/" query-name "/data.json"))
       (json/parse-string)))
 
+;;TODO check if it makes sense to store query's for these tests here.
+;;TODO generalize test data
 (def patient-with-condition (read-data "query-8"))
+(def patient patient-with-condition)
+
+;; TODO reference test plan
+;; 0. Conditions              [x]
+;; 1. MedicationRequest       [x] https://www.hl7.org/fhir/medicationrequest-examples.html
+;; 2. AllergyIntolerance       [] https://www.hl7.org/fhir/allergyintolerance-examples.html
+;; 3. UDI?                     [] https://www.hl7.org/fhir/DSTU2/device-examples.html
+;; 4. goals                    [] https://www.hl7.org/fhir/goal.html
+;; 5. procedures               [] https://www.hl7.org/fhir/procedure-examples.html
+;; 6. immunization             []  https://www.hl7.org/fhir/immunization-example.html
+;; 7. service equest/lab tests [] https://www.hl7.org/fhir/servicerequest.html
 
 (deftest search-params
   (testing "Given a Patient with Condition, when a server gets a FHIR search query"
     (testing "with a reference parameter as described https://www.hl7.org/fhir/search.html#reference"
       (testing "supporting lookup via logical id"
-        (let [resource        "Condition"
-              reference-param "subject"
-              logical-id      "0"
-              search-params   {reference-param logical-id}]
-          ;; load data into db and stub router
-          (db-with patient-with-condition)
-          (fhir-test-util/stub-instance-url ::router resource logical-id ::full-url)
-          (let [{:keys [status body]} @((handler conn)
-                                        {:path-params    {:type resource}
-                                         ::reitit/router ::router
-                                         :params         search-params})
-                returned-resource-ids (into #{}
-                                            (->> body
-                                                 :entry
-                                                 (map #(get-in % [:resource "id"]))))]
+        (testing "Condition"
+          (let [resource        "Condition"
+                reference-param "subject"
+                logical-id      "0"
+                search-params   {reference-param logical-id}]
+            ;; load data into db and stub router
+            (db-with patient-with-condition)
+            (fhir-test-util/stub-instance-url ::router resource logical-id ::full-url)
+            (let [{:keys [status body]} @((handler conn)
+                                          {:path-params    {:type resource}
+                                           ::reitit/router ::router
+                                           :params         search-params})
+                  returned-resource-ids (into #{}
+                                              (->> body
+                                                   :entry
+                                                   (map #(get-in % [:resource "id"]))))]
 
-            (is (= 200 status))
-            (is (contains? returned-resource-ids logical-id))))))
+              (is (= 200 status))
+              (is (contains? returned-resource-ids logical-id)))))
+        (testing "MedicationRequest"
+          (let [resource        "MedicationRequest"
+                reference-param "patient"
+                logical-id      "0"
+                search-params   {reference-param logical-id}]
+            ;; load data into db and stub router
+            (db-with patient)
+            (fhir-test-util/stub-instance-url ::router resource logical-id ::full-url)
+            (let [{:keys [status body]} @((handler conn)
+                                          {:path-params    {:type resource}
+                                           ::reitit/router ::router
+                                           :params         search-params})
+                  returned-resource-ids (into #{}
+                                              (->> body
+                                                   :entry
+                                                   (map #(get-in % [:resource "id"]))))]
+
+              (is (= 200 status))
+              (is (contains? returned-resource-ids logical-id)))))
+        ))
     (testing "with a token type parameter as described here https://www.hl7.org/fhir/search.html#token"
       (testing "in Condition"
         (testing "supporting `category` which is a codeable concept"

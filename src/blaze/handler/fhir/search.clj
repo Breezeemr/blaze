@@ -37,11 +37,22 @@
   [search identifier]
   (= (:Identifier/value identifier) search))
 
-(def res-type+attr->matches-fn
-  {"Condition"  {"subject"  match-reference
-                 "category" match-codeable-concept}
-   "identifier" match-identifier})
+;;NOTE this nesting `Condition` with `identifier` seems wrong,
+;; as those are separate concerns. Or maybe some separation,
+;; would organize things better
 
+(def res-type+attr->matches-fn
+  {"Condition"          {"subject"  match-reference
+                         "category" match-codeable-concept}
+   "MedicationRequest"  {"patient" match-reference}
+   "AllergyIntolerance" {"patient" match-reference}
+   "Device"             {"patient" match-reference}
+   "Goal"               {"patient" match-reference}
+   "Procedure"          {"subject" match-reference}
+   "Immunization"       {"patient" match-reference}
+   "ServiceRequest"     {"subject" match-reference}
+
+   "identifier" match-identifier})
 
 (defn get-resource-pred
   [db type query-params]
