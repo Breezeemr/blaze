@@ -26,34 +26,41 @@
   [search codeable-concept]
   ((set (codeable-concept->coding codeable-concept)) search))
 
+(def refe (atom nil))
+
+(defn match-reference
+  [search reference]
+  (reset! refe reference)
+  (= (:Patient/id reference)) search)
+
+(defn match-identifier
+  [search identifier]
+  (= (:Identifier/value identifier) search))
+
 (def res-type+attr->matches-fn
-  {"Condition" {"identity" "TODO"
-                "subject"  (fn [search resource] (= (:Patient/id resource)) search)
-                "category" match-codeable-concept}})
+  {"Condition"  {"subject"  match-reference
+                 "category" match-codeable-concept}
+   "identifier" match-identifier})
 
-(def get-valid-search-params #{"identifier" "subject" "category"})
-
-(def valid-search-params
-  (reduce-kv
-    (fn [valid? _ search-param]
-      (into valid? (keys search-param)))
-    #{}
-    res-type+attr->matches-fn))
 
 (defn get-resource-pred
   [db type query-params]
-  (if-some [valid-search-params (select-keys query-params get-valid-search-params)]
-    (let [search-info (reduce-kv
-                        (fn [coll search-param search-value]
+  (let [search-info (reduce-kv
+                      (fn [coll search-param search-value]
+                        (if-let [matches-fn (get-in res-type+attr->matches-fn [type search-param])]
                           (let [attr (keyword type search-param)]
                             (conj coll
                                   {:search-param search-param
                                    :search-value search-value
-                                   :matches-fn   (get-in res-type+attr->matches-fn [type search-param])
+                                   :matches-fn   matches-fn
                                    :attr         attr
-                                   :cardinality  (:db/cardinality (util/cached-entity db attr))})))
-                        []
-                        valid-search-params)]
+                                   :cardinality  (:db/cardinality (util/cached-entity db attr))}))
+                          coll))
+                      []
+                      query-params)]
+    ;;NOTE this is removing invalid query but not rejecting the query
+    ;; if it has invalid params
+    (when (seq search-info)
       (fn [resource]
         (every? some? (reduce
                         (fn [matches {:keys [matches-fn attr search-value cardinality]}]
