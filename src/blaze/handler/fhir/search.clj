@@ -55,8 +55,6 @@
                         []
                         valid-search-params)]
       (fn [resource]
-        ;;TODO consider making it so matches functions return true instead of match?
-        ;;TODO consider moving this functionality into the matches-fn.
         (every? some? (reduce
                         (fn [matches {:keys [matches-fn attr search-value cardinality]}]
                           (let [r (get resource attr)]
