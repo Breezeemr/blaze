@@ -55,28 +55,28 @@
 (deftest search-params
   (testing "Given a Patient with Condition, when a server gets a FHIR search query"
     (testing "with a reference parameter as described https://www.hl7.org/fhir/search.html#reference"
-      #_(testing "supporting lookup via logical id"
-          (let [resource        "Condition"
-                reference-param "subject"
-                logical-id      "0"
-                search-params   {reference-param logical-id}]
-            ;; load data into db and stub router
-            (db-with patient-with-condition)
-            (fhir-test-util/stub-instance-url ::router resource logical-id ::full-url)
-            (let [{:keys [status body]} @((handler conn)
-                                          {:path-params    {:type resource}
-                                           ::reitit/router ::router
-                                           :params         search-params})
-                  returned-resource-ids (into #{}
-                                              (->> body
-                                                   :entry
-                                                   (map #(get-in % [:resource "id"]))))]
+      (testing "supporting lookup via logical id"
+        (let [resource        "Condition"
+              reference-param "subject"
+              logical-id      "0"
+              search-params   {reference-param logical-id}]
+          ;; load data into db and stub router
+          (db-with patient-with-condition)
+          (fhir-test-util/stub-instance-url ::router resource logical-id ::full-url)
+          (let [{:keys [status body]} @((handler conn)
+                                        {:path-params    {:type resource}
+                                         ::reitit/router ::router
+                                         :params         search-params})
+                returned-resource-ids (into #{}
+                                            (->> body
+                                                 :entry
+                                                 (map #(get-in % [:resource "id"]))))]
 
-              (is (= 200 status))
-              (is (contains? returned-resource-ids logical-id))))))
+            (is (= 200 status))
+            (is (contains? returned-resource-ids logical-id))))))
     (testing "with a token type parameter as described here https://www.hl7.org/fhir/search.html#token"
       (testing "in Condition"
-        (testing "supporting `category`"
+        (testing "supporting `category` which is a codeable concept"
           (let [resource      "Condition"
                 paramater     "category"
                 category      "urgent"
@@ -99,58 +99,4 @@
                                   (get "coding")
                                   first
                                   (get "code"))))
-
-
-
-              (is (= 200 status)))))
-        #_(testing "supporting `code`"
-            (let [resource      "Condition"
-                  paramater     "code"
-                  code          "M06."
-                  search-params {paramater code}]
-              ;; load data into db and stub router
-              (db-with patient-with-condition)
-              ;;TODO get the id from the db to stub the id, which we dont have because were searching by code...
-              (fhir-test-util/stub-instance-url ::router resource "0" ::full-url)
-              (let [{:keys [status body]} @((handler conn)
-                                            {:path-params    {:type resource}
-                                             ::reitit/router ::router
-                                             :params         search-params})]
-                ;;TODO awkward nested verification step
-                ;; (map #(get-in % [:resource "code" "coding"])
-                ;;      (:entry @r))
-
-                ;;   '([{"version" "2019", "system" "http://fhir.de/CodeSystem/dimdi/icd-10-gm", "code" "M06.9"}])
-
-                (is (= 200 status)))))))))
-
-;; Example datomic query that retrieves condition given patient id "0"
-#_(d/q '[:find ?condition_id
-         :where
-         [?c :Condition/id ?condition_id]
-         [?c :Condition/subject ?p]
-         [?p :Patient/id "0"]] db)
-
-;; Example of how to query given a Conditions based on is code. Takes
-;; advantage of this ".index" which i'm not sure how its produced.
-#_(d/q '[:find ?id
-         :where
-         [?code :code/code "M06.9"]
-         [?condition :Condition.index/code ?code]
-         [?condition :Condition/id ?id]
-         ]
-       db)
-
-;; => #{["0"]}
-
-;; The query that more closely matches the raw structure presented
-;; in the search query...
-#_(d/q '[:find ?condition-id
-         :where
-         [?coding-code :code/code "M06.9"]
-         [?coding :Coding/code ?coding-code]
-         [?code :CodeableConcept/coding ?coding]
-         [?condition :Condition/code ?code]
-         [?condition :Condition/id ?condition-id]
-         ]
-       db)
+              (is (= 200 status)))))))))
