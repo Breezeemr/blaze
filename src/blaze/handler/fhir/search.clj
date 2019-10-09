@@ -74,11 +74,11 @@
       (fn [resource]
         (every? some? (reduce
                         (fn [matches {:keys [matches-fn attr search-value cardinality]}]
-                          (let [r (get resource attr)]
+                          (let [attr-instance (get resource attr)]
                             (conj matches
                                   (if (= :db.cardinality/many cardinality)
-                                    (some (partial matches-fn search-value) r)
-                                    (matches-fn search-value r)))))
+                                    (some (partial matches-fn search-value) attr-instance)
+                                    (matches-fn search-value attr-instance)))))
                         []
                         search-info))))))
 
