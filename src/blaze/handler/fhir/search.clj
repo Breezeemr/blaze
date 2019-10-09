@@ -136,7 +136,7 @@
                                     (some (partial matches-fn search-value) r)
                                     (matches-fn search-value r)))))
                         []
-                        foo))))))
+                        search-info))))))
 
 (defn- entry
   [router {type "resourceType" id "id" :as resource}]
