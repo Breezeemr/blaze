@@ -50,51 +50,79 @@
   (-> (slurp (str "integration-test/" query-name "/data.json"))
       (json/parse-string)))
 
-(def patient-with-condition (read-data "query-3"))
+(def patient-with-condition (read-data "query-8"))
 
-(deftest SearchParams
+(deftest search-params
   (testing "Given a Patient with Condition, when a server gets a FHIR search query"
     (testing "with a reference parameter as described https://www.hl7.org/fhir/search.html#reference"
-      (testing "supporting lookup via logical id"
-        (let [resource        "Condition"
-              reference-param "subject"
-              logical-id      "0"
-              search-params   {reference-param logical-id}]
-          ;; load data into db and stub router
-          (db-with patient-with-condition)
-          (fhir-test-util/stub-instance-url ::router resource logical-id ::full-url)
-          (let [{:keys [status body]} @((handler conn)
-                                        {:path-params    {:type resource}
-                                         ::reitit/router ::router
-                                         :params         search-params})
-                returned-resource-ids (into #{}
-                                            (->> body
-                                                 :entry
-                                                 (map #(get-in % [:resource "id"]))))]
+      #_(testing "supporting lookup via logical id"
+          (let [resource        "Condition"
+                reference-param "subject"
+                logical-id      "0"
+                search-params   {reference-param logical-id}]
+            ;; load data into db and stub router
+            (db-with patient-with-condition)
+            (fhir-test-util/stub-instance-url ::router resource logical-id ::full-url)
+            (let [{:keys [status body]} @((handler conn)
+                                          {:path-params    {:type resource}
+                                           ::reitit/router ::router
+                                           :params         search-params})
+                  returned-resource-ids (into #{}
+                                              (->> body
+                                                   :entry
+                                                   (map #(get-in % [:resource "id"]))))]
 
-            (is (= 200 status))
-            (is (contains? returned-resource-ids logical-id))))))
+              (is (= 200 status))
+              (is (contains? returned-resource-ids logical-id))))))
     (testing "with a token type parameter as described here https://www.hl7.org/fhir/search.html#token"
-      (testing "supporting `code`")
-      (let [resource      "Condition"
-            paramater     "code"
-            code          "M06.8"
-            search-params {paramater code}]
-        ;; load data into db and stub router
-        (db-with patient-with-condition)
-        ;;TODO get the id from the db to stub the id, which we dont have because were searching by code...
-        (fhir-test-util/stub-instance-url ::router resource "0" ::full-url)
-        (let [{:keys [status body]} @((handler conn)
-                                      {:path-params    {:type resource}
-                                       ::reitit/router ::router
-                                       :params         search-params})]
-          ;;TODO awkward nested verification step
-          ;; (map #(get-in % [:resource "code" "coding"])
-          ;;      (:entry @r))
+      (testing "in Condition"
+        (testing "supporting `category`"
+          (let [resource      "Condition"
+                paramater     "category"
+                category      "urgent"
+                search-params {paramater category}]
+            ;; load data into db and stub router
+            (db-with patient-with-condition)
+            (fhir-test-util/stub-instance-url ::router resource "0" ::full-url)
+            (let [{:keys [status body]} @((handler conn)
+                                          {:path-params    {:type resource}
+                                           ::reitit/router ::router
+                                           :params         search-params})]
 
-          ;;   '([{"version" "2019", "system" "http://fhir.de/CodeSystem/dimdi/icd-10-gm", "code" "M06.9"}])
+              ;; TODO replace first calls with some other more generic method
+              (is (= category (-> body
+                                  :entry
+                                  first
+                                  :resource
+                                  (get "category")
+                                  first
+                                  (get "coding")
+                                  first
+                                  (get "code"))))
 
-          (is (= 200 status)))))))
+
+
+              (is (= 200 status)))))
+        #_(testing "supporting `code`"
+            (let [resource      "Condition"
+                  paramater     "code"
+                  code          "M06."
+                  search-params {paramater code}]
+              ;; load data into db and stub router
+              (db-with patient-with-condition)
+              ;;TODO get the id from the db to stub the id, which we dont have because were searching by code...
+              (fhir-test-util/stub-instance-url ::router resource "0" ::full-url)
+              (let [{:keys [status body]} @((handler conn)
+                                            {:path-params    {:type resource}
+                                             ::reitit/router ::router
+                                             :params         search-params})]
+                ;;TODO awkward nested verification step
+                ;; (map #(get-in % [:resource "code" "coding"])
+                ;;      (:entry @r))
+
+                ;;   '([{"version" "2019", "system" "http://fhir.de/CodeSystem/dimdi/icd-10-gm", "code" "M06.9"}])
+
+                (is (= 200 status)))))))))
 
 ;; Example datomic query that retrieves condition given patient id "0"
 #_(d/q '[:find ?condition_id

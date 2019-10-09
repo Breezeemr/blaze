@@ -136,21 +136,66 @@
                         []
                         search-info))))))
 
+(defn coding->code
+  [coding]
+  (-> coding :Coding/code :code/code))
+
+(defn codeable-concept->coding
+  [codeable-concept]
+  (map coding->code (:CodeableConcept/coding codeable-concept)))
+
+(defn match-codeable-concept
+  [search codeable-concept]
+  ((set (codeable-concept->coding codeable-concept)) search))
+
+(def type+search-param->matches-v2?
+  {"Condition" {"subject"  (fn [search resource] (= (:Patient/id resource)) search)
+                "category" match-codeable-concept}})
+
+(def get-valid-search-params-v2 #{"identifier" "subject" "category"})
+
+(defn resource-pred-v6
+  [db type query-params]
+  (reset! d db)
+  (if-some [valid-search-params (select-keys query-params get-valid-search-params-v2)]
+    (let [search-info (reduce-kv
+                        (fn [coll search-param search-value]
+                          (let [attr (keyword type search-param)]
+                            (conj coll
+                                  {:search-param search-param
+                                   :search-value search-value
+                                   :matches-fn   (get-in type+search-param->matches-v2? [type search-param])
+                                   :attr         attr
+                                   :cardinality  (:db/cardinality (util/cached-entity db attr))})))
+                        []
+                        valid-search-params)]
+      (fn [resource]
+        ;;TODO consider making it so matches functions return true instead of match?
+        ;;TODO consider moving this functionality into the matches-fn.
+        (every? some? (reduce
+                        (fn [matches {:keys [matches-fn attr search-value cardinality]}]
+                          (let [r (get resource attr)]
+                            (reset! res r)
+                            (conj matches
+                                  (if (= :db.cardinality/many cardinality)
+                                    (some (partial matches-fn search-value) r)
+                                    (matches-fn search-value r)))))
+                        []
+                        search-info))))))
+
 (defn- entry
   [router {type "resourceType" id "id" :as resource}]
   {:fullUrl  (fhir-util/instance-url router type id)
    :resource resource
    :search   {:mode "match"}})
 
-
 (defn- summary?
   "Returns true iff a summary result is requested."
   [{summary "_summary" :as query-params}]
   (or (zero? (fhir-util/page-size query-params)) (= "count" summary)))
 
-
 (defn- search [router db type query-params]
-  (let [pred (resource-pred-v5 db type query-params)]
+  (let [pred (resource-pred-v6 db type query-params)]
     (cond->
         {:resourceType "Bundle"
          :type "searchset"}
