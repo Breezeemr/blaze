@@ -8,12 +8,28 @@
   :min-lein-version "2.0.0"
   :pedantic? :abort
 
+  ;; Added by Ben
+  :repositories [["my.datomic.com"
+                  {:url      "https://my.datomic.com/repo"
+                   :username "matwi@pgacadiana.com"
+                   :password "a1103d51-5bf9-47c0-8aa7-28668f0b63d3"}]
+                 ["snapshots" {:url "s3p://breezepackages/snapshots" :creds :gpg}]
+                 ["releases" {:url "s3p://breezepackages/releases" :creds :gpg}]]
+  ;; Added by Ben
+  :managed-dependencies [[com.google.guava/guava "27.1-jre"]
+                         ;; Logging
+                         [ch.qos.logback/logback-classic "1.2.3" :exclusions [org.slf4j/slf4j-api]]
+                         [org.slf4j/jul-to-slf4j "1.7.25"]
+                         [org.slf4j/jcl-over-slf4j "1.7.25"]
+                         [org.slf4j/log4j-over-slf4j "1.7.25"]
+                         ]
+
   :dependencies
   [[aleph "0.4.7-alpha1"]
    [camel-snake-kebab "0.4.0"]
    [cheshire "5.9.0"]
    [com.cognitect/anomalies "0.1.12"]
-   [com.datomic/datomic-free "0.9.5697"]
+   #_[com.datomic/datomic-free "0.9.5697"]
    [com.taoensso/timbre "4.10.0"]
    [info.cqframework/cql-to-elm "1.4.6"]
    [integrant "0.7.0"]
@@ -40,7 +56,13 @@
    ;; Needed to work with Java 11. Doesn't hurt Java 8.
    [javax.xml.bind/jaxb-api "2.4.0-b180830.0359"]
    [com.sun.xml.bind/jaxb-core "2.3.0.1"]
-   [com.sun.xml.bind/jaxb-impl "2.3.2"]]
+   [com.sun.xml.bind/jaxb-impl "2.3.2"]
+
+   ;; Added by Ben
+   [mysql/mysql-connector-java "5.1.47"]
+   [com.datomic/datomic-pro "0.9.5951"
+    :exclusions [org.slf4j/slf4j-nop org.slf4j/slf4j-log4j12]]
+   ]
 
   :plugins [[lein-cloverage/lein-cloverage "1.1.1"]]
 
