@@ -7,6 +7,7 @@
    [blaze.datomic.util :as util]
    [blaze.handler.fhir.util :as fhir-util]
    [blaze.middleware.fhir.metrics :refer [wrap-observe-request-duration]]
+   [blaze.middleware.cors :refer [wrap-cors]]
    [clojure.spec.alpha :as s]
    [datomic.api :as d]
    [datomic-spec.core :as ds]
@@ -134,4 +135,5 @@
   [conn]
   (-> (handler-intern conn)
       (wrap-params)
+      (wrap-cors)
       (wrap-observe-request-duration "search-type")))
