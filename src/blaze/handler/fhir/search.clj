@@ -40,6 +40,8 @@
 ;; as those are separate concerns. Or maybe some separation,
 ;; would organize things better
 
+
+;; TODO add consent
 (def res-type+attr->matches-fn
   {"Condition"          {"subject"  match-reference
                          "category" match-codeable-concept}
