@@ -31,6 +31,8 @@
 (defn match-reference
   [search reference]
   (= (:Patient/id reference)) search)
+  (= (:Patient/id reference)
+     search))
 
 (defn match-identifier
   [search identifier]
