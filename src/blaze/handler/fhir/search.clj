@@ -46,7 +46,7 @@
 (def res-type+attr->matches-fn
   {"Condition"          {"subject"  match-reference
                          "category" match-codeable-concept}
-   "MedicationRequest"  {"patient" match-reference}
+   "MedicationRequest"  {"subject" match-reference}
    "AllergyIntolerance" {"patient" match-reference}
    "Device"             {"patient" match-reference}
    "Goal"               {"patient" match-reference}
