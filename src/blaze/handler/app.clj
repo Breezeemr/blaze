@@ -22,11 +22,11 @@
       {:options (:handler/cql-evaluation handlers)
        :post (:handler/cql-evaluation handlers)}]
      ["/fhir"
-      {:middleware [wrap-json wrap-remove-context-path]
-       :handler (:handler.fhir/core handlers)}]
+      {:middleware [wrap-cors wrap-json wrap-remove-context-path]
+       :handler    (:handler.fhir/core handlers)}]
      ["/fhir/{*more}"
-      {:middleware [wrap-json wrap-remove-context-path]
-       :handler (:handler.fhir/core handlers)}]]
+      {:middleware [wrap-cors wrap-json wrap-remove-context-path]
+       :handler    (:handler.fhir/core handlers)}]]
     {:syntax :bracket
      ::reitit-ring/default-options-handler
      (fn [_]
