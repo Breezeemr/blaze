@@ -24,7 +24,9 @@
 
 (defn match-codeable-concept
   [search codeable-concept]
-  ((set (codeable-concept->coding codeable-concept)) search))
+  (contains? (set (codeable-concept->coding codeable-concept))
+             search))
+
 
 ;; NOTE this is assuming the reference id
 ;; is always Patient/id.
