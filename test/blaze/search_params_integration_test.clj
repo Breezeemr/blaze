@@ -26,7 +26,6 @@
   (st/instrument)
   (dst/instrument)
   (log/with-merged-config {:level :error} (f))
-  
   (st/unstrument))
 
 (use-fixtures :each fixture)
@@ -67,6 +66,7 @@
 
 ;; NOTE these test stub the router, which ideally they wouldn't
 ;; as that's a key component in what were testing.
+
 (deftest search-params
   (testing "Given a Patient, when a server gets a FHIR search query"
     (testing "with a reference parameter as described https://www.hl7.org/fhir/search.html#reference"
@@ -107,8 +107,7 @@
                                                    (map #(get-in % [:resource "id"]))))]
 
               (is (= 200 status))
-              (is (= #{logical-id} returned-resource-ids )))))
-        ))
+              (is (= #{logical-id} returned-resource-ids )))))))
     (testing "with a token type parameter as described here https://www.hl7.org/fhir/search.html#token"
       (testing "in Condition"
         (testing "supporting `category` which is a codeable concept"

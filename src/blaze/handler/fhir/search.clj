@@ -16,11 +16,14 @@
 
 (defn coding->code
   [coding]
-  (-> coding :Coding/code :code/code))
+  (-> coding
+      :Coding/code
+      :code/code))
 
 (defn codeable-concept->coding
   [codeable-concept]
-  (map coding->code (:CodeableConcept/coding codeable-concept)))
+  (map coding->code
+       (:CodeableConcept/coding codeable-concept)))
 
 (defn match-codeable-concept
   [search codeable-concept]
@@ -37,7 +40,8 @@
 
 (defn match-identifier
   [search identifier]
-  (= (:Identifier/value identifier) search))
+  (= (:Identifier/value identifier)
+     search))
 
 ;;NOTE this nesting `Condition` with `identifier` seems wrong,
 ;; as those are separate concerns. Or maybe some separation,
