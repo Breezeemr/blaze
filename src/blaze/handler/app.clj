@@ -1,11 +1,12 @@
 (ns blaze.handler.app
   (:require
-    [blaze.middleware.json :refer [wrap-json]]
-    [blaze.middleware.fhir.type :refer [wrap-type]]
-    [clojure.spec.alpha :as s]
-    [reitit.core :as reitit]
-    [reitit.ring :as reitit-ring]
-    [ring.util.response :as ring]))
+   [blaze.middleware.json :refer [wrap-json]]
+   [blaze.middleware.fhir.type :refer [wrap-type]]
+   [blaze.middleware.cors :refer [wrap-cors]]
+   [clojure.spec.alpha :as s]
+   [reitit.core :as reitit]
+   [reitit.ring :as reitit-ring]
+   [ring.util.response :as ring]))
 
 
 (defn- wrap-remove-context-path [handler]
