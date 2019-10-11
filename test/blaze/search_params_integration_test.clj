@@ -54,7 +54,7 @@
 (def patient-with-condition (read-data "query-8"))
 (def patient patient-with-condition)
 
-;; TODO reference test plan
+;; TODO reference test plan. it may or may make sense to test these individually.
 ;; 0. Conditions              [x]
 ;; 1. MedicationRequest       [x] https://www.hl7.org/fhir/medicationrequest-examples.html
 ;; 2. AllergyIntolerance       [] https://www.hl7.org/fhir/allergyintolerance-examples.html
@@ -63,6 +63,7 @@
 ;; 5. procedures               [] https://www.hl7.org/fhir/procedure-examples.html
 ;; 6. immunization             []  https://www.hl7.org/fhir/immunization-example.html
 ;; 7. service equest/lab tests [] https://www.hl7.org/fhir/servicerequest.html
+;; 8. Consent
 
 ;; NOTE these test stub the router, which ideally they wouldn't
 ;; as that's a key component in what were testing.
