@@ -76,7 +76,7 @@
     ;; if it has invalid params
     (when (seq search-info)
       (fn [resource]
-        (every? some? (reduce
+        (every? true? (reduce
                         (fn [matches {:keys [matches-fn attr search-value cardinality]}]
                           (let [attr-instance (get resource attr)]
                             (conj matches
