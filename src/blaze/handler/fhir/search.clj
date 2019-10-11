@@ -25,7 +25,7 @@
   (map coding->code
        (:CodeableConcept/coding codeable-concept)))
 
-(defn match-codeable-concept
+(defn match-codeable-concept?
   [search codeable-concept]
   (contains? (set (codeable-concept->coding codeable-concept))
              search))
@@ -33,12 +33,12 @@
 
 ;; NOTE this is assuming the reference id
 ;; is always Patient/id.
-(defn match-reference
+(defn match-reference?
   [search reference]
   (= (:Patient/id reference)
      search))
 
-(defn match-identifier
+(defn match-identifier?
   [search identifier]
   (= (:Identifier/value identifier)
      search))
@@ -50,17 +50,17 @@
 
 ;; TODO add consent
 (def res-type+attr->matches-fn
-  {"Condition"          {"subject"  match-reference
-                         "category" match-codeable-concept}
-   "MedicationRequest"  {"subject" match-reference}
-   "AllergyIntolerance" {"patient" match-reference}
-   "Device"             {"patient" match-reference}
-   "Goal"               {"patient" match-reference}
-   "Procedure"          {"subject" match-reference}
-   "Immunization"       {"patient" match-reference}
-   "ServiceRequest"     {"subject" match-reference}
+  {"Condition"          {"subject"  match-reference?
+                         "category" match-codeable-concept?}
+   "MedicationRequest"  {"subject" match-reference?}
+   "AllergyIntolerance" {"patient" match-reference?}
+   "Device"             {"patient" match-reference?}
+   "Goal"               {"patient" match-reference?}
+   "Procedure"          {"subject" match-reference?}
+   "Immunization"       {"patient" match-reference?}
+   "ServiceRequest"     {"subject" match-reference?}
 
-   "identifier" match-identifier})
+   "identifier" match-identifier?})
 
 (defn get-resource-pred
   [db type query-params]
