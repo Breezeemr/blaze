@@ -30,7 +30,6 @@
 ;; is always Patient/id.
 (defn match-reference
   [search reference]
-  (= (:Patient/id reference)) search)
   (= (:Patient/id reference)
      search))
 
