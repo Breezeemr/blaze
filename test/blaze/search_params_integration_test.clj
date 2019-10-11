@@ -65,8 +65,10 @@
 ;; 6. immunization             []  https://www.hl7.org/fhir/immunization-example.html
 ;; 7. service equest/lab tests [] https://www.hl7.org/fhir/servicerequest.html
 
+;; NOTE these test stub the router, which ideally they wouldn't
+;; as that's a key component in what were testing.
 (deftest search-params
-  (testing "Given a Patient with Condition, when a server gets a FHIR search query"
+  (testing "Given a Patient, when a server gets a FHIR search query"
     (testing "with a reference parameter as described https://www.hl7.org/fhir/search.html#reference"
       (testing "supporting lookup via logical id"
         (testing "Condition"
@@ -74,7 +76,6 @@
                 reference-param "subject"
                 logical-id      "0"
                 search-params   {reference-param logical-id}]
-            ;; load data into db and stub router
             (db-with patient-with-condition)
             (fhir-test-util/stub-instance-url ::router resource logical-id ::full-url)
             (let [{:keys [status body]} @((handler conn)
@@ -86,14 +87,14 @@
                                                    :entry
                                                    (map #(get-in % [:resource "id"]))))]
 
+
               (is (= 200 status))
-              (is (contains? returned-resource-ids logical-id)))))
+              (is (= #{logical-id} returned-resource-ids )))))
         (testing "MedicationRequest"
           (let [resource        "MedicationRequest"
                 reference-param "patient"
                 logical-id      "0"
                 search-params   {reference-param logical-id}]
-            ;; load data into db and stub router
             (db-with patient)
             (fhir-test-util/stub-instance-url ::router resource logical-id ::full-url)
             (let [{:keys [status body]} @((handler conn)
@@ -106,7 +107,7 @@
                                                    (map #(get-in % [:resource "id"]))))]
 
               (is (= 200 status))
-              (is (contains? returned-resource-ids logical-id)))))
+              (is (= #{logical-id} returned-resource-ids )))))
         ))
     (testing "with a token type parameter as described here https://www.hl7.org/fhir/search.html#token"
       (testing "in Condition"
@@ -115,7 +116,6 @@
                 paramater     "category"
                 category      "urgent"
                 search-params {paramater category}]
-            ;; load data into db and stub router
             (db-with patient-with-condition)
             (fhir-test-util/stub-instance-url ::router resource "0" ::full-url)
             (let [{:keys [status body]} @((handler conn)
