@@ -1,0 +1,44 @@
+{:deps
+ {blaze/spec
+  {:local/root "../spec"}
+
+  blaze/rest-util
+  {:local/root "../rest-util"}
+
+  blaze/structure-definition
+  {:local/root "../structure-definition"}
+
+  cheshire
+  {:mvn/version "5.9.0"}
+
+  com.taoensso/timbre
+  {:mvn/version "4.10.0"}
+
+  integrant
+  {:mvn/version "0.7.0"}
+
+  manifold
+  {:mvn/version "0.1.8"}
+
+  metosin/reitit-ring
+  {:mvn/version "0.3.9"}
+
+  org.clojars.akiel/datomic-spec
+  {:mvn/version "0.5.2"}
+
+  prom-metrics
+  {:mvn/version "0.5-alpha2"}}
+
+ :aliases
+ {:test
+  {:extra-paths ["test"]
+
+   :extra-deps
+   {com.datomic/datomic-free
+    {:mvn/version "0.9.5697"}
+
+    lambdaisland/kaocha
+    {:mvn/version "0.0-554"}
+
+    org.clojure/test.check
+    {:mvn/version "0.10.0"}}}}}

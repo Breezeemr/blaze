@@ -1,0 +1,102 @@
+{[:blaze/terminology-service :blaze.terminology-service/extern]
+ {:uri "http://tx.fhir.org/r4"}
+
+ :blaze.interaction.history/system
+ {:database/conn #blaze/ref :blaze.database/conn}
+
+ :blaze.interaction.history/type
+ {:database/conn #blaze/ref :blaze.database/conn}
+
+ :blaze.interaction.history/instance
+ {:database/conn #blaze/ref :blaze.database/conn}
+
+ :blaze.interaction/create
+ {:database/conn #blaze/ref :blaze.database/conn
+  :term-service #blaze/ref :blaze/terminology-service}
+
+ :blaze.interaction/delete
+ {:database/conn #blaze/ref :blaze.database/conn}
+
+ :blaze.interaction/read
+ {:database/conn #blaze/ref :blaze.database/conn}
+
+ :blaze.interaction/search-type
+ {:database/conn #blaze/ref :blaze.database/conn}
+
+ :blaze.interaction.transaction/executor
+ {}
+
+ :blaze.interaction.transaction/handler
+ {:database/conn #blaze/ref :blaze.database/conn
+  :term-service #blaze/ref :blaze/terminology-service
+  :executor #blaze/ref :blaze.interaction.transaction/executor}
+
+ :blaze.interaction/update
+ {:database/conn #blaze/ref :blaze.database/conn
+  :term-service #blaze/ref :blaze/terminology-service}
+
+ :blaze.fhir.operation.evaluate-measure/executor
+ {}
+
+ :blaze/clock
+ {}
+
+ :blaze.fhir.operation.evaluate-measure/handler
+ {:clock #blaze/ref :blaze/clock
+  :term-service #blaze/ref :blaze/terminology-service
+  :executor #blaze/ref :blaze.fhir.operation.evaluate-measure/executor
+  :database/conn #blaze/ref :blaze.database/conn}
+
+ :blaze/openid-auth
+ {:openid-provider/url #blaze/cfg ["OPENID_PROVIDER_URL" string? nil]}
+
+ :blaze/rest-api
+ {:config
+  #:blaze.rest-api
+      {:context-path "fhir"
+       :transaction-handler #blaze/ref :blaze.interaction.transaction/handler
+       :history-system-handler #blaze/ref :blaze.interaction.history/system
+       :resource-patterns
+       [#:blaze.rest-api.resource-pattern
+           {:type "Patient"
+            :interactions
+            {:read
+             #:blaze.rest-api.interaction
+                 {:handler #blaze/ref :blaze.interaction/read}
+             :vread
+             #:blaze.rest-api.interaction
+                 {:handler #blaze/ref :blaze.interaction/read}
+             :update
+             #:blaze.rest-api.interaction
+                 {:handler #blaze/ref :blaze.interaction/update}
+             :delete
+             #:blaze.rest-api.interaction
+                 {:handler #blaze/ref :blaze.interaction/delete}
+             :history-instance
+             #:blaze.rest-api.interaction
+                 {:handler #blaze/ref :blaze.interaction.history/instance}
+             :history-type
+             #:blaze.rest-api.interaction
+                 {:handler #blaze/ref :blaze.interaction.history/type}
+             :create
+             #:blaze.rest-api.interaction
+                 {:handler #blaze/ref :blaze.interaction/create}
+             :search-type
+             #:blaze.rest-api.interaction
+                 {:handler #blaze/ref :blaze.interaction/search-type}}}]
+       :operations
+       [#:blaze.rest-api.operation
+           {:code "evaluate-measure"
+            :resource-types ["Measure"]
+            :type-handler #blaze/ref :blaze.fhir.operation.evaluate-measure/handler
+            :instance-handler #blaze/ref :blaze.fhir.operation.evaluate-measure/handler}]}}
+
+ :blaze.metrics/registry
+ {:thread-pool-executors
+  {"server"
+   #blaze/ref :blaze.server/executor
+   "evaluate-measure-operation"
+   #blaze/ref :blaze.fhir.operation.evaluate-measure/executor
+   ;"transaction-interaction"
+   ;"transactor"
+   }}}
