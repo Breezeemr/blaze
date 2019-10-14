@@ -14,7 +14,7 @@
     (if (= :options (:request-method request))
       {:status 204
        :headers {"Access-Control-Allow-Origin" "*"
-                 "Access-Control-Allow-Headers" "Accept, Content-Type"
+                 "Access-Control-Allow-Headers" "Accept, Content-Type, Authorization"
                  "Access-Control-Max-Age" "3600"}}
       (md/let-flow' [response (handler request)]
         (assoc-header response)))))
