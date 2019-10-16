@@ -66,35 +66,6 @@
   (contains? (set (provision->actor-ids provision))
              search))
 
-(defn get-resource-pred
-  [db type query-params]
-  (let [search-info (reduce-kv
-                      (fn [coll search-param search-value]
-                        (if-let [matches-fn (get-in res-type+attr->matches-fn [type search-param])]
-                          (let [attr (keyword type search-param)]
-                            (conj coll
-                                  {:search-param search-param
-                                   :search-value search-value
-                                   :matches-fn   matches-fn
-                                   :attr         attr
-                                   :cardinality  (:db/cardinality (util/cached-entity db attr))}))
-                          coll))
-                      []
-                      query-params)]
-    ;;NOTE this is removing invalid query but not rejecting the query
-    ;; if it has invalid params
-    (when (seq search-info)
-      (fn [resource]
-        (every? true? (reduce
-                        (fn [matches {:keys [matches-fn attr search-value cardinality]}]
-                          (let [attr-instance (get resource attr)]
-                            (conj matches
-                                  (if (= :db.cardinality/many cardinality)
-                                    (some (partial matches-fn search-value) attr-instance)
-                                    (matches-fn search-value attr-instance)))))
-                        []
-                        search-info))))))
-
 ;;NOTE this nesting `Condition` with `identifier` seems wrong,
 ;; as those are separate concerns. Or maybe some separation,
 ;; would organize things better
@@ -103,7 +74,7 @@
   {"Condition"         {"subject"  {:matches-fn match-reference?
                                     :attr       :Condition/subject}
                         "category" {:matches-fn match-codeable-concept?
-                                    :attr       :Condtion/category}}
+                                    :attr       :Condition/category}}
    "MedicationRequest" {"subject" {:matches-fn match-reference?
                                    :attr       :MedicationRequest/subject}}
    "ServiceRequest"    {"subject" {:matches-fn match-reference?
