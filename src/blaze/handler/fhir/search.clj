@@ -43,24 +43,28 @@
   (= (:Identifier/value identifier)
      search))
 
-;;NOTE this nesting `Condition` with `identifier` seems wrong,
-;; as those are separate concerns. Or maybe some separation,
-;; would organize things better
+;; working query for actor
+;; (d/q '[:find (pull ?id [*])
+;;        :where
+;;        [?ref :Patient/id "0"]
+;;        [?actor :Consent.provision.actor/reference ?ref]
+;;        [?cp :Consent.provision/actor ?actor]
+;;        [?c :Consent/provision ?cp]
+;;        [?c :Consent/patient ?id]
+;;        ]
+;;      db)
 
-(def res-type+attr->matches-fn
-  {"Condition"         {"subject"  match-reference?
-                        "category" match-codeable-concept?}
-   "MedicationRequest" {"subject" match-reference?}
-   "ServiceRequest"    {"subject" match-reference?}
+(defn provision->actor-ids
+  [provision]
+  (map
+    (fn [m] (-> m :Consent.provision.actor/reference :Patient/id))
+    (:Consent.provision/actor provision)))
 
-   "AllergyIntolerance" {"patient" match-reference?}
-   "Device"             {"patient" match-reference?}
-   "Goal"               {"patient" match-reference?}
-   "Procedure"          {"subject" match-reference?}
-   "Immunization"       {"patient" match-reference?}
-   "Consent"            {"patient" match-reference?}
-
-   "identifier" match-identifier?})
+;;TODO is this general enough? Its not making use of types
+(defn match-actor?
+  [search provision]
+  (contains? (set (provision->actor-ids provision))
+             search))
 
 (defn get-resource-pred
   [db type query-params]
@@ -68,6 +72,68 @@
                       (fn [coll search-param search-value]
                         (if-let [matches-fn (get-in res-type+attr->matches-fn [type search-param])]
                           (let [attr (keyword type search-param)]
+                            (conj coll
+                                  {:search-param search-param
+                                   :search-value search-value
+                                   :matches-fn   matches-fn
+                                   :attr         attr
+                                   :cardinality  (:db/cardinality (util/cached-entity db attr))}))
+                          coll))
+                      []
+                      query-params)]
+    ;;NOTE this is removing invalid query but not rejecting the query
+    ;; if it has invalid params
+    (when (seq search-info)
+      (fn [resource]
+        (every? true? (reduce
+                        (fn [matches {:keys [matches-fn attr search-value cardinality]}]
+                          (let [attr-instance (get resource attr)]
+                            (conj matches
+                                  (if (= :db.cardinality/many cardinality)
+                                    (some (partial matches-fn search-value) attr-instance)
+                                    (matches-fn search-value attr-instance)))))
+                        []
+                        search-info))))))
+
+;;NOTE this nesting `Condition` with `identifier` seems wrong,
+;; as those are separate concerns. Or maybe some separation,
+;; would organize things better
+
+(def res-type+search->matches-fn
+  {"Condition"         {"subject"  {:matches-fn match-reference?
+                                    :attr       :Condition/subject}
+                        "category" {:matches-fn match-codeable-concept?
+                                    :attr       :Condtion/category}}
+   "MedicationRequest" {"subject" {:matches-fn match-reference?
+                                   :attr       :MedicationRequest/subject}}
+   "ServiceRequest"    {"subject" {:matches-fn match-reference?
+                                   :attr       :ServiceRequest/subject}}
+
+   "AllergyIntolerance" {"patient" {:matches-fn match-reference?
+                                    :attr       :AllergyIntolerance/patient}}
+   "Device"             {"patient" {:matches-fn match-reference?
+                                    :attr       :Device/patient}}
+   "Goal"               {"patient" {:matches-fn match-reference?
+                                    :attr       :Goal/patient}}
+   "Procedure"          {"subject" {:matches-fn match-reference?
+                                    :attr       :Procedure/subject}}
+   "Immunization"       {"patient" {:matches-fn match-reference?
+                                    :attr       :Immunization/patient}}
+   ;; An "actor" is the entity with some action
+   ;; over a patients information
+   ;;TODO will probably need to check "action"
+   "Consent"            {"patient" {:matches-fn match-reference?
+                                    :attr       :Consent/patient}
+                         "actor"   {:matches-fn match-actor?
+                                    :attr       :Consent/provision}}
+   "identifier"         match-identifier?})
+
+(defn get-resource-pred
+  [db type query-params]
+  (let [search-info (reduce-kv
+                      (fn [coll search-param search-value]
+                        (if-let [matches-fn (get-in res-type+search->matches-fn [type search-param :matches-fn])]
+                          (let [attr (get-in res-type+search->matches-fn [type search-param :attr])]
                             (conj coll
                                   {:search-param search-param
                                    :search-value search-value
