@@ -67,27 +67,40 @@
              search))
 
 ;;NOTE this nesting `Condition` with `identifier` seems wrong,
-;; as those are separate concerns. Or maybe some separation,
-;; would organize things better
+;;as those are separate concerns. Or maybe some separation,
+;;would organize things better
+
+;;NOTE subject can refer to more then patient. e.g organization. So
+;;To truly support it we would probably need to handle the different references
+;;It seems as if anything that supports subject supports patient (which then points to subject)
 
 (def res-type+search->matches-fn
-  {"Condition"         {"subject"  {:matches-fn match-reference?
-                                    :attr       :Condition/subject}
-                        "category" {:matches-fn match-codeable-concept?
-                                    :attr       :Condition/category}}
-   "MedicationRequest" {"subject" {:matches-fn match-reference?
-                                   :attr       :MedicationRequest/subject}}
-   "ServiceRequest"    {"subject" {:matches-fn match-reference?
-                                   :attr       :ServiceRequest/subject}}
-
+  {"Condition"          {"subject"  {:matches-fn match-reference?
+                                     :attr       :Condition/subject}
+                         "patient"  {:matches-fn match-reference?
+                                     :attr       :Condition/subject}
+                         "category" {:matches-fn match-codeable-concept?
+                                     :attr       :Condition/category}}
+   "MedicationRequest"  {"subject" {:matches-fn match-reference?
+                                    :attr       :MedicationRequest/subject}
+                         "patient" {:matches-fn match-reference?
+                                    :attr       :MedicationRequest/subject}}
+   "ServiceRequest"     {"subject" {:matches-fn match-reference?
+                                    :attr       :ServiceRequest/subject}
+                         "patient" {:matches-fn match-reference?
+                                    :attr       :ServiceRequest/subject}}
+   "Goal"               {"subject" {:matches-fn match-reference?
+                                    :attr       :Goal/subject}
+                         "patient" {:matches-fn match-reference?
+                                    :attr       :Goal/subject}}
+   "Procedure"          {"subject" {:matches-fn match-reference?
+                                    :attr       :Procedure/subject}
+                         "patient" {:matches-fn match-reference?
+                                    :attr       :Procedure/subject}}
    "AllergyIntolerance" {"patient" {:matches-fn match-reference?
                                     :attr       :AllergyIntolerance/patient}}
    "Device"             {"patient" {:matches-fn match-reference?
                                     :attr       :Device/patient}}
-   "Goal"               {"patient" {:matches-fn match-reference?
-                                    :attr       :Goal/patient}}
-   "Procedure"          {"subject" {:matches-fn match-reference?
-                                    :attr       :Procedure/subject}}
    "Immunization"       {"patient" {:matches-fn match-reference?
                                     :attr       :Immunization/patient}}
    ;; An "actor" is the entity with some action

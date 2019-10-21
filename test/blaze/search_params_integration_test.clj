@@ -73,24 +73,44 @@
     (testing "with a reference parameter as described https://www.hl7.org/fhir/search.html#reference"
       (testing "supporting lookup via logical id"
         (testing "Condition"
-          (let [resource        "Condition"
-                reference-param "subject"
-                logical-id      "0"
-                search-params   {reference-param logical-id}]
-            (db-with patient-with-condition)
-            (fhir-test-util/stub-instance-url ::router resource logical-id ::full-url)
-            (let [{:keys [status body]} @((handler conn)
-                                          {:path-params    {:type resource}
-                                           ::reitit/router ::router
-                                           :params         search-params})
-                  returned-resource-ids (into #{}
-                                              (->> body
-                                                   :entry
-                                                   (map #(get-in % [:resource "id"]))))]
+          (testing "via patient"
+            (let [resource        "Condition"
+                  reference-param "patient"
+                  logical-id      "0"
+                  search-params   {reference-param logical-id}]
+              (db-with patient-with-condition)
+              (fhir-test-util/stub-instance-url ::router resource logical-id ::full-url)
+              (let [{:keys [status body]} @((handler conn)
+                                            {:path-params    {:type resource}
+                                             ::reitit/router ::router
+                                             :params         search-params})
+                    returned-resource-ids (into #{}
+                                                (->> body
+                                                     :entry
+                                                     (map #(get-in % [:resource "id"]))))]
 
 
-              (is (= 200 status))
-              (is (= #{logical-id} returned-resource-ids )))))
+                (is (= 200 status))
+                (is (= #{logical-id} returned-resource-ids )))))
+          (testing "via subject"
+            (let [resource        "Condition"
+                  reference-param "subject"
+                  logical-id      "0"
+                  search-params   {reference-param logical-id}]
+              (db-with patient-with-condition)
+              (fhir-test-util/stub-instance-url ::router resource logical-id ::full-url)
+              (let [{:keys [status body]} @((handler conn)
+                                            {:path-params    {:type resource}
+                                             ::reitit/router ::router
+                                             :params         search-params})
+                    returned-resource-ids (into #{}
+                                                (->> body
+                                                     :entry
+                                                     (map #(get-in % [:resource "id"]))))]
+
+
+                (is (= 200 status))
+                (is (= #{logical-id} returned-resource-ids ))))))
         (testing "MedicationRequest"
           (let [resource        "MedicationRequest"
                 reference-param "patient"
