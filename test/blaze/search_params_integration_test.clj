@@ -153,4 +153,20 @@
                                   (get "coding")
                                   first
                                   (get "code"))))
+              (is (= 200 status))))))
+      (testing "in Observation"
+        (testing "supporting `patient` and `category`"
+          (let [resource      "Observation"
+                paramater     "category"
+                category      "vital-signs"
+                search-params {paramater category
+                               "patient" "0"}]
+            (db-with patient-with-condition)
+            ;;TODO is this stub useful for this test?
+            (fhir-test-util/stub-instance-url ::router resource "0" ::full-url)
+            (let [{:keys [status body] :as resp} @((handler conn)
+                                                   {:path-params    {:type resource}
+                                                    ::reitit/router ::router
+                                                    :params         search-params})]
+
               (is (= 200 status)))))))))
