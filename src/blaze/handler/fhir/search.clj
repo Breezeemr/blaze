@@ -107,6 +107,10 @@
                                      :attr       :Observation/subject}
                          "category" {:matches-fn match-codeable-concept?
                                      :attr       :Observation/category}}
+   "DiagnosticReport"   {"subject" {:matches-fn match-reference?
+                                    :attr       :Procedure/subject}
+                         "patient" {:matches-fn match-reference?
+                                    :attr       :Procedure/subject}}
    ;; An "actor" is the entity with some action
    ;; over a patients information
    ;;TODO will probably need to check "action"
