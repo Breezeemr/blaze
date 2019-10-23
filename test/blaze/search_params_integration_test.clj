@@ -65,6 +65,7 @@
 ;; 7. service equest/lab tests [] https://www.hl7.org/fhir/servicerequest.html
 ;; 8. Consent
 ;; 9. Observation
+;; 10. CarePlan
 
 ;; NOTE these test stub the router, which ideally they wouldn't
 ;; as that's a key component in what were testing.

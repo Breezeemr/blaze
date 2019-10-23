@@ -111,6 +111,10 @@
                                     :attr       :DiagnosticReport/subject}
                          "patient" {:matches-fn match-reference?
                                     :attr       :DiagnosticReport/subject}}
+   "CarePlan"           {"subject" {:matches-fn match-reference?
+                                    :attr       :CarePlan/subject}
+                         "patient" {:matches-fn match-reference?
+                                    :attr       :CarePlan/subject}}
    ;; An "actor" is the entity with some action
    ;; over a patients information
    ;;TODO will probably need to check "action"
