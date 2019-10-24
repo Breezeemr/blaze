@@ -13,37 +13,25 @@
     [blaze.datomic.schema :as schema]
     [blaze.executors :as ex]
     [blaze.handler.app :as app-handler]
-    [blaze.handler.cql-evaluation :as cql-evaluation-handler]
-    [blaze.handler.fhir.capabilities :as fhir-capabilities-handler]
-    [blaze.handler.fhir.core :as fhir-core-handler]
-    [blaze.handler.fhir.create :as fhir-create-handler]
-    [blaze.handler.fhir.delete :as fhir-delete-handler]
-    [blaze.handler.fhir.history-instance :as fhir-history-instance-handler]
-    [blaze.handler.fhir.history-type :as fhir-history-type-handler]
-    [blaze.handler.fhir.history-system :as fhir-history-system-handler]
-    [blaze.handler.fhir.read :as fhir-read-handler]
-    [blaze.handler.fhir.search :as fhir-search-handler]
-    [blaze.handler.fhir.transaction :as fhir-transaction-handler]
-    [blaze.handler.fhir.update :as fhir-update-handler]
-    [blaze.fhir.operation.evaluate-measure.handler
-     :as fhir-operation-evaluate-measure-handler]
     [blaze.handler.health :as health-handler]
     [blaze.handler.metrics :as metrics-handler]
     [blaze.metrics :as metrics]
     [blaze.middleware.fhir.metrics :as fhir-metrics]
     [blaze.middleware.json :as json]
+    [blaze.middleware.authentication :as authentication]
+    [blaze.middleware.guard :as guard]
     [blaze.server :as server]
-    [blaze.structure-definition :refer [read-structure-definitions]]
-    [blaze.terminology-service.extern :as ts]
     [datomic.api :as d]
     [datomic-tools.schema :as dts]
     [integrant.core :as ig]
-    [taoensso.timbre :as log])
-  (:import [io.prometheus.client CollectorRegistry]
-           [io.prometheus.client.hotspot StandardExports MemoryPoolsExports
-                                         GarbageCollectorExports ThreadExports
-                                         ClassLoadingExports VersionInfoExports]
-           [java.time Clock]))
+    [taoensso.timbre :as log]
+    [clojure.tools.reader.edn :as edn])
+  (:import
+    [io.prometheus.client CollectorRegistry]
+    [io.prometheus.client.hotspot StandardExports MemoryPoolsExports
+                                  GarbageCollectorExports ThreadExports
+                                  ClassLoadingExports VersionInfoExports]
+    [java.time Clock]))
 
 
 
@@ -56,6 +44,8 @@
 (s/def :config/logging (s/keys :opt [:log/level]))
 (s/def :database/uri string?)
 (s/def :config/database-conn (s/keys :opt [:database/uri]))
+(s/def :openid-provider/url string?)
+(s/def :config/authentication (s/keys :opt [:openid-provider/url]))
 (s/def :term-service/uri string?)
 (s/def :term-service/proxy-host string?)
 (s/def :term-service/proxy-port pos-int?)
@@ -84,6 +74,7 @@
     :opt-un
     [:config/logging
      :config/database-conn
+     :config/authentication
      :config/term-service
      :config/cache
      :config/fhir-capabilities-handler
@@ -95,18 +86,21 @@
 
 ;; ---- Functions -------------------------------------------------------------
 
-(def ^:private version "0.6.2")
+(def ^:private version "0.7.0-alpha3")
 
 (def ^:private base-url "http://localhost:8080")
 
 (def ^:private default-config
-  {:logging {:log/level "info"}
-
-   :structure-definitions {}
+  {:structure-definitions {}
 
    :database-conn
    {:structure-definitions (ig/ref :structure-definitions)
     :database/uri "datomic:mem://dev"}
+
+   :authentication {}
+
+   :guard
+   {:authentication (ig/ref :authentication)}
 
    :term-service
    {:uri "http://tx.fhir.org/r4"}
@@ -118,10 +112,6 @@
    :evaluate-measure-operation-executor {}
 
    :health-handler {}
-
-   :cql-evaluation-handler
-   {:database/conn (ig/ref :database-conn)
-    :cache (ig/ref :cache)}
 
    :fhir-capabilities-handler
    {:base-url base-url
@@ -180,15 +170,16 @@
      :handler.fhir/transaction (ig/ref :fhir-transaction-handler)
      :handler.fhir/update (ig/ref :fhir-update-handler)
      :handler.fhir.operation/evaluate-measure
-     (ig/ref :fhir-operation-evaluate-measure-handler)}}
+     (ig/ref :fhir-operation-evaluate-measure-handler)}
+    :middleware
+    {:middleware/guard (ig/ref :guard)}}
 
    :app-handler
-   {:base-url base-url
-    :database/conn (ig/ref :database-conn)
-    :handlers
-    {:handler/cql-evaluation (ig/ref :cql-evaluation-handler)
-     :handler/health (ig/ref :health-handler)
-     :handler.fhir/core (ig/ref :fhir-core-handler)}}
+   {:handlers
+    {:handler/health (ig/ref :health-handler)
+     :handler.fhir/core (ig/ref :fhir-core-handler)}
+    :middleware
+    {:middleware/authentication (ig/ref :authentication)}}
 
    :server-executor {}
 
@@ -212,14 +203,22 @@
     :version version}})
 
 
+(defn- read-config []
+  (edn/read-string {:readers {'ig/ref ig/ref}} (slurp "blaze.edn")))
+
+
 (s/fdef init!
-  :args (s/cat :config :system/config :keys (s/? (s/coll-of keyword?))))
+  :args (s/cat :config :system/config))
 
 (defn init!
-  ([config]
-   (ig/init (merge-with merge default-config config)))
-  ([config keys]
-   (ig/init (merge-with merge default-config config) keys)))
+  [{:log/keys [level] :or {level "info"} :as config}]
+  (log/info "Set log level to:" (str/lower-case level))
+  (log/merge-config! {:level (keyword (str/lower-case level))})
+  (let [config (merge-with merge (:config (read-config)) config)]
+    (log/info
+      "Loaded the following namespaces:"
+      (str/join ", " (ig/load-namespaces config)))
+    (ig/init config)))
 
 
 (defn shutdown! [system]
@@ -229,20 +228,6 @@
 
 ;; ---- Integrant Hooks -------------------------------------------------------
 
-(defmethod ig/init-key :logging
-  [_ {:log/keys [level]}]
-  (log/info "Set log level to:" (str/lower-case level))
-  (log/merge-config! {:level (keyword (str/lower-case level))}))
-
-
-(defmethod ig/init-key :structure-definitions
-  [_ _]
-  (let [structure-definitions (read-structure-definitions)]
-    (log/info "Read structure definitions resulting in:"
-              (count structure-definitions) "structure definitions")
-    structure-definitions))
-
-
 (defn- upsert-schema [uri structure-definitions]
   (let [conn (d/connect uri)
         _ @(d/transact-async conn (dts/schema))
@@ -250,45 +235,35 @@
     (log/info "Upsert schema in database:" uri "creating" (count tx-data) "new facts")))
 
 
-(defmethod ig/init-key :database-conn
+(defmethod ig/init-key :blaze.database/conn
   [_ {:database/keys [uri] :keys [structure-definitions]}]
   (if (d/create-database uri)
-    (log/info "Created database at:" uri)
+    (do
+      (log/info "Created database at:" uri)
+      (upsert-schema uri structure-definitions))
     (log/info "Use existing database at:" uri))
 
   (log/info "Connect with database:" uri)
-
-  (upsert-schema uri structure-definitions)
-
   (d/connect uri))
 
 
-(defmethod ig/init-key :term-service
-  [_ {:keys [uri proxy-host proxy-port proxy-user proxy-password
-             connection-timeout request-timeout]}]
-  (log/info
-    (cond->
-      (str "Init terminology server connection: " uri)
-      proxy-host
-      (str " using proxy host " proxy-host)
-      proxy-port
-      (str ", port " proxy-port)
-      proxy-user
-      (str ", user " proxy-user)
-      proxy-password
-      (str ", password ***")
-      connection-timeout
-      (str ", connection timeout " connection-timeout " ms")
-      request-timeout
-      (str ", request timeout " request-timeout " ms")))
-  (ts/term-service
-    uri
-    (cond-> {}
-      proxy-host (assoc :host proxy-host)
-      proxy-port (assoc :port proxy-port)
-      proxy-user (assoc :user proxy-user)
-      proxy-password (assoc :password proxy-password))
-    connection-timeout request-timeout))
+(defmethod ig/init-key :authentication
+  [_ {:openid-provider/keys [url]}]
+  (if (str/blank? url)
+    identity
+    (do (log/info "Enabled authentication using OpenID provider:" url)
+        (-> url
+            authentication/jwks-json
+            authentication/public-key
+            authentication/wrap-authentication))))
+
+
+(defmethod ig/init-key :guard
+  [_ {:keys [authentication]}]
+  (if (= authentication identity)
+    identity
+    (do (log/info "Enable authentication guard")
+        guard/wrap-guard)))
 
 
 (defmethod ig/init-key :cache
@@ -306,79 +281,82 @@
   (health-handler/handler))
 
 
-(defmethod ig/init-key :cql-evaluation-handler
-  [_ {:database/keys [conn] :keys [cache]}]
-  (cql-evaluation-handler/handler conn cache))
-
-
-(defmethod ig/init-key :fhir-capabilities-handler
+#_(defmethod ig/init-key :fhir-capabilities-handler
   [_ {:keys [base-url version structure-definitions]}]
+  (log/debug "Init FHIR capabilities interaction handler")
   (fhir-capabilities-handler/handler base-url version structure-definitions))
 
 
-(defmethod ig/init-key :fhir-create-handler
+#_(defmethod ig/init-key :fhir-create-handler
   [_ {:database/keys [conn] :keys [term-service]}]
+  (log/debug "Init FHIR create interaction handler")
   (fhir-create-handler/handler conn term-service))
 
 
-(defmethod ig/init-key :fhir-delete-handler
+#_(defmethod ig/init-key :fhir-delete-handler
   [_ {:database/keys [conn]}]
+  (log/debug "Init FHIR delete interaction handler")
   (fhir-delete-handler/handler conn))
 
 
-(defmethod ig/init-key :fhir-history-instance-handler
+#_(defmethod ig/init-key :fhir-history-instance-handler
   [_ {:database/keys [conn]}]
+  (log/debug "Init FHIR history instance interaction handler")
   (fhir-history-instance-handler/handler conn))
 
 
-(defmethod ig/init-key :fhir-history-type-handler
+#_(defmethod ig/init-key :fhir-history-type-handler
   [_ {:database/keys [conn]}]
+  (log/debug "Init FHIR history type interaction handler")
   (fhir-history-type-handler/handler conn))
 
 
-(defmethod ig/init-key :fhir-history-system-handler
+#_(defmethod ig/init-key :fhir-history-system-handler
   [_ {:database/keys [conn]}]
+  (log/debug "Init FHIR history system interaction handler")
   (fhir-history-system-handler/handler conn))
 
 
-(defmethod ig/init-key :fhir-read-handler
+#_(defmethod ig/init-key :fhir-search-handler
   [_ {:database/keys [conn]}]
-  (fhir-read-handler/handler conn))
-
-
-(defmethod ig/init-key :fhir-search-handler
-  [_ {:database/keys [conn]}]
+  (log/debug "Init FHIR search interaction handler")
   (fhir-search-handler/handler conn))
 
 
-(defmethod ig/init-key :fhir-transaction-handler
+#_(defmethod ig/init-key :fhir-transaction-handler
   [_ {:database/keys [conn] :keys [term-service executor]}]
+  (log/debug "Init FHIR transaction interaction handler")
   (fhir-transaction-handler/handler conn term-service executor))
 
 
-(defmethod ig/init-key :fhir-update-handler
+#_(defmethod ig/init-key :fhir-update-handler
   [_ {:database/keys [conn] :keys [term-service]}]
+  (log/debug "Init FHIR update interaction handler")
   (fhir-update-handler/handler conn term-service))
 
 
-(defmethod ig/init-key :fhir-core-handler
-  [_ {:keys [base-url handlers] :database/keys [conn]}]
-  (fhir-core-handler/handler (str base-url "/fhir") conn handlers))
+#_(defmethod ig/init-key :fhir-core-handler
+  [_ {:keys [base-url handlers middleware] :database/keys [conn]}]
+  (let [fhir-base-url (str base-url "/fhir")]
+    (log/info "Init FHIR RESTful API with base URL:" fhir-base-url)
+    (fhir-core-handler/handler fhir-base-url conn handlers middleware)))
 
 
-(defmethod ig/init-key :evaluate-measure-operation-executor
+#_(defmethod ig/init-key :evaluate-measure-operation-executor
   [_ _]
   (ex/cpu-bound-pool "evaluate-measure-operation-%d"))
 
 
-(defmethod ig/init-key :fhir-operation-evaluate-measure-handler
+#_(defmethod ig/init-key :fhir-operation-evaluate-measure-handler
   [_ {:keys [clock term-service executor] :database/keys [conn]}]
+  (log/debug "Init FHIR $evaluate-measure operation handler")
   (fhir-operation-evaluate-measure-handler/handler clock conn term-service executor))
 
 
 (defmethod ig/init-key :app-handler
-  [_ {:keys [handlers]}]
-  (app-handler/handler handlers))
+  [_ {:keys [handlers middleware]}]
+  (log/debug "Init app handler")
+  (app-handler/handler handlers middleware))
 
 
 (defmethod ig/init-key :server-executor
@@ -395,6 +373,7 @@
 (defmethod ig/init-key :metrics/registry
   [_ {:keys [server-executor transaction-interaction-executor
              evaluate-measure-operation-executor]}]
+  (log/debug "Init metrics registry")
   (doto (CollectorRegistry. true)
     (.register (StandardExports.))
     (.register (MemoryPoolsExports.))
@@ -411,9 +390,11 @@
     (.register tx/resources-total)
     (.register tx/datoms-total)
     (.register bundle/tx-data-duration-seconds)
-    (.register ts/errors-total)
-    (.register ts/request-duration-seconds)
-    (.register (metrics/thread-pool-executor-collector
+    #_(.register ts/errors-total)
+    #_(.register ts/request-duration-seconds)
+    #_(.register evaluate-measure/compile-duration-seconds)
+    #_(.register evaluate-measure/evaluate-duration-seconds)
+    #_(.register (metrics/thread-pool-executor-collector
                  [["server" server-executor]
                   ["transaction-interaction" transaction-interaction-executor]
                   ["evaluate-measure-operation" evaluate-measure-operation-executor]
@@ -422,6 +403,7 @@
 
 (defmethod ig/init-key :metrics-handler
   [_ {:keys [registry]}]
+  (log/debug "Init metrics handler")
   (metrics-handler/metrics-handler registry))
 
 

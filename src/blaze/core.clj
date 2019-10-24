@@ -6,8 +6,7 @@
     [blaze.system :as system]
     [phrase.alpha :refer [defphraser phrase-first]]
     [spec-coerce.alpha :refer [coerce]]
-    [taoensso.timbre :as log])
-  (:gen-class))
+    [taoensso.timbre :as log]))
 
 
 (defn- max-memory []
@@ -24,10 +23,12 @@
     (catch Exception e
       (log/error
         (cond->
-          {:ex-data (ex-data e)
-           :msg (ex-message e)}
+          (str "Error while initializing Blaze `" (or (ex-message e) "unknown")
+               "`")
           (ex-cause e)
-          (assoc :cause-msg (ex-message (ex-cause e)))))
+          (str " cause `" (ex-message (ex-cause e)) "`")
+          (seq config)
+          (str " config: " config)))
       (System/exit 1))))
 
 
@@ -40,11 +41,23 @@
     sys))
 
 
+(defn shutdown-system! []
+  (when-let [sys system]
+    (system/shutdown! sys)
+    (alter-var-root #'system (constantly nil))
+    nil))
+
+
+(defn- add-shutdown-hook [f]
+  (.addShutdownHook (Runtime/getRuntime) (Thread. ^Runnable f)))
+
+
 (defn -main [& _]
   (let [config (env-tools/build-config :system/config)
         coerced-config (coerce :system/config config)]
     (if (s/valid? :system/config coerced-config)
       (do
+        (add-shutdown-hook shutdown-system!)
         (init-system! coerced-config)
         (log/info "JVM version:" (System/getProperty "java.version"))
         (log/info "Maximum available memory:" (max-memory) "MiB")
