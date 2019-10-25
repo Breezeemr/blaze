@@ -6,8 +6,7 @@
 
 
 (defn- read-config []
-  (edn/read-string {:readers {'ig/ref ig/ref}} (slurp "blaze.edn")))
-
+  (-> "blaze.edn" slurp ig/read-string))
 
 (comment
   (def config (read-config))

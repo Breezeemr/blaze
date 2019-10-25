@@ -112,6 +112,11 @@
    :main-opts
    ["-m" "clj-check.check"]}
 
+  :dev
+  {:extra-deps
+   {integrant/repl
+    {:mvn/version "0.3.1"}}}
+
   :test
   {:extra-paths ["test"]
 
