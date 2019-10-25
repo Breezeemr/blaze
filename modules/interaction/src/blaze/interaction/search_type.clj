@@ -105,12 +105,16 @@
                                     :attr       :Consent/provision}}
    "identifier"         match-identifier?})
 
+(def match-key->match-fn
+  {:match-ref match-reference?})
+
+
 (defn- resource-pred
-  [db type query-params]
+  [db type query-params search-handler]
   (let [search-info (reduce-kv
                       (fn [coll search-param search-value]
-                        (if-let [matches-fn (get-in res-type+search->matches-fn [type search-param :matches-fn])]
-                          (let [attr (get-in res-type+search->matches-fn [type search-param :attr])]
+                        (if-let [matches-fn (match-key->match-fn (get-in search-handler [type search-param :matches-fn]))]
+                          (let [attr (get-in search-handler [type search-param :attr])]
                             (conj coll
                                   {:search-param search-param
                                    :search-value search-value
@@ -148,11 +152,11 @@
   (or (zero? (fhir-util/page-size query-params)) (= "count" summary)))
 
 
-(defn- search [router db type query-params]
-  (let [pred (resource-pred db type query-params)]
+(defn- search [router db type query-params search-handler]
+  (let [pred (resource-pred db type query-params search-handler)]
     (cond->
-      {:resourceType "Bundle"
-       :type "searchset"}
+        {:resourceType "Bundle"
+         :type "searchset"}
 
       (nil? pred)
       (assoc :total (util/type-total db type))
@@ -172,9 +176,11 @@
           (d/datoms db :aevt (util/resource-id-attr type)))))))
 
 
-(defn- handler-intern [conn]
-  (fn [{{:keys [type]} :path-params :keys [params] ::reitit/keys [router]}]
-    (-> (search router (d/db conn) type params)
+(defn- handler-intern [{:keys [conn search-handler]}]
+  (fn [{{:keys [type]} :path-params
+       :keys          [params]
+       ::reitit/keys  [router]}]
+    (-> (search router (d/db conn) type params search-handler)
         (ring/response))))
 
 
@@ -187,13 +193,14 @@
 
 (defn handler
   ""
-  [conn]
-  (-> (handler-intern conn)
+  [config]
+  (-> (handler-intern config)
       (wrap-params)
       (wrap-observe-request-duration "search-type")))
 
 
 (defmethod ig/init-key :blaze.interaction/search-type
-  [_ {:database/keys [conn]}]
+  [_ {:database/keys [conn] :search/keys [params]}]
   (log/info "Init FHIR search-type interaction handler")
-  (handler conn))
+  (handler {:conn            conn
+            :search-handlder params}))

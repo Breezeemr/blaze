@@ -15,6 +15,11 @@
   :blaze.interaction/search-type
   {:database/conn #ig/ref :blaze.database/conn}
 
+  :blaze.interaction.search/condition
+  {:database/conn #ig/ref :blaze.database/conn
+   :search/params {"patient" {:matches-fn :match-ref
+                              :attr       :Condition/subject}}}
+
   :blaze.fhir.operation.evaluate-measure/executor
   {}
 
@@ -26,6 +31,7 @@
    :term-service  #ig/ref :blaze/terminology-service
    :executor      #ig/ref :blaze.fhir.operation.evaluate-measure/executor
    :database/conn #ig/ref :blaze.database/conn}
+
 
   :blaze/rest-api
   {:base-url              "http://localhost:8080"
@@ -54,7 +60,7 @@
      {:type "Condition"
       :interactions
       {:search-type
-       {:handler #ig/ref :blaze.interaction/search-type}
+       {:handler #ig/ref :blaze.interaction.search/condition}
        :read
        {:handler #ig/ref :blaze.interaction/read}}}
      #:blaze.rest-api.resource-pattern
