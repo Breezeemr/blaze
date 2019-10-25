@@ -50,6 +50,76 @@
        {:handler #ig/ref :blaze.interaction/search-type}
        :read
        {:handler #ig/ref :blaze.interaction/read}}}
+     #:blaze.rest-api.resource-pattern
+     {:type "Condition"
+      :interactions
+      {:search-type
+       {:handler #ig/ref :blaze.interaction/search-type}
+       :read
+       {:handler #ig/ref :blaze.interaction/read}}}
+     #:blaze.rest-api.resource-pattern
+     {:type "ServiceRequest"
+      :interactions
+      {:search-type
+       {:handler #ig/ref :blaze.interaction/search-type}
+       :read
+       {:handler #ig/ref :blaze.interaction/read}}}
+     #:blaze.rest-api.resource-pattern
+     {:type "Goal"
+      :interactions
+      {:search-type
+       {:handler #ig/ref :blaze.interaction/search-type}
+       :read
+       {:handler #ig/ref :blaze.interaction/read}}}
+     #:blaze.rest-api.resource-pattern
+     {:type "Procedure"
+      :interactions
+      {:search-type
+       {:handler #ig/ref :blaze.interaction/search-type}
+       :read
+       {:handler #ig/ref :blaze.interaction/read}}}
+     #:blaze.rest-api.resource-pattern
+     {:type "AllergyIntolerance"
+      :interactions
+      {:search-type
+       {:handler #ig/ref :blaze.interaction/search-type}
+       :read
+       {:handler #ig/ref :blaze.interaction/read}}}
+     #:blaze.rest-api.resource-pattern
+     {:type "Device"
+      :interactions
+      {:search-type
+       {:handler #ig/ref :blaze.interaction/search-type}
+       :read
+       {:handler #ig/ref :blaze.interaction/read}}}
+     #:blaze.rest-api.resource-pattern
+     {:type "Immunization"
+      :interactions
+      {:search-type
+       {:handler #ig/ref :blaze.interaction/search-type}
+       :read
+       {:handler #ig/ref :blaze.interaction/read}}}
+     #:blaze.rest-api.resource-pattern
+     {:type "Observation"
+      :interactions
+      {:search-type
+       {:handler #ig/ref :blaze.interaction/search-type}
+       :read
+       {:handler #ig/ref :blaze.interaction/read}}}
+     #:blaze.rest-api.resource-pattern
+     {:type "DiagnosticReport"
+      :interactions
+      {:search-type
+       {:handler #ig/ref :blaze.interaction/search-type}
+       :read
+       {:handler #ig/ref :blaze.interaction/read}}}
+     #:blaze.rest-api.resource-pattern
+     {:type "CarePlan"
+      :interactions
+      {:search-type
+       {:handler #ig/ref :blaze.interaction/search-type}
+       :read
+       {:handler #ig/ref :blaze.interaction/read}}}
      ]
     :operations
     [#:blaze.rest-api.operation
