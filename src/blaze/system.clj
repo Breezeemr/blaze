@@ -203,8 +203,11 @@
     :version version}})
 
 
+#_(defn- read-config []
+    (edn/read-string {:readers {'ig/ref ig/ref}} (slurp "blaze.edn")))
+
 (defn- read-config []
-  (edn/read-string {:readers {'ig/ref ig/ref}} (slurp "blaze.edn")))
+  (-> "blaze.edn" slurp ig/read-string))
 
 
 (s/fdef init!

@@ -15,7 +15,7 @@
   :blaze.interaction/search-type
   {:database/conn #ig/ref :blaze.database/conn}
 
-  :blaze.interaction.search/condition
+  [:blaze.interaction/search-type :blaze.interaction.search/condition]
   {:database/conn #ig/ref :blaze.database/conn
    :search/params {"patient" {:matches-fn :match-ref
                               :attr       :Condition/subject}}}
@@ -42,94 +42,88 @@
    {:context-path        "fhir"
     :transaction-handler nil
     :resource-patterns
-    [#:blaze.rest-api.resource-pattern
-     {:type "Patient"
-      :interactions
-      {:search-type
-       {:handler #ig/ref :blaze.interaction/search-type}
-       :read
-       {:handler #ig/ref :blaze.interaction/read}}}
-     #:blaze.rest-api.resource-pattern
-     {:type "Consent"
-      :interactions
-      {:search-type
-       {:handler #ig/ref :blaze.interaction/search-type}
-       :read
-       {:handler #ig/ref :blaze.interaction/read}}}
-     #:blaze.rest-api.resource-pattern
-     {:type "Condition"
-      :interactions
-      {:search-type
-       {:handler #ig/ref :blaze.interaction.search/condition}
-       :read
-       {:handler #ig/ref :blaze.interaction/read}}}
-     #:blaze.rest-api.resource-pattern
-     {:type "ServiceRequest"
-      :interactions
-      {:search-type
-       {:handler #ig/ref :blaze.interaction/search-type}
-       :read
-       {:handler #ig/ref :blaze.interaction/read}}}
-     #:blaze.rest-api.resource-pattern
-     {:type "Goal"
-      :interactions
-      {:search-type
-       {:handler #ig/ref :blaze.interaction/search-type}
-       :read
-       {:handler #ig/ref :blaze.interaction/read}}}
-     #:blaze.rest-api.resource-pattern
-     {:type "Procedure"
-      :interactions
-      {:search-type
-       {:handler #ig/ref :blaze.interaction/search-type}
-       :read
-       {:handler #ig/ref :blaze.interaction/read}}}
-     #:blaze.rest-api.resource-pattern
-     {:type "AllergyIntolerance"
-      :interactions
-      {:search-type
-       {:handler #ig/ref :blaze.interaction/search-type}
-       :read
-       {:handler #ig/ref :blaze.interaction/read}}}
-     #:blaze.rest-api.resource-pattern
-     {:type "Device"
-      :interactions
-      {:search-type
-       {:handler #ig/ref :blaze.interaction/search-type}
-       :read
-       {:handler #ig/ref :blaze.interaction/read}}}
-     #:blaze.rest-api.resource-pattern
-     {:type "Immunization"
-      :interactions
-      {:search-type
-       {:handler #ig/ref :blaze.interaction/search-type}
-       :read
-       {:handler #ig/ref :blaze.interaction/read}}}
-     #:blaze.rest-api.resource-pattern
-     {:type "Observation"
-      :interactions
-      {:search-type
-       {:handler #ig/ref :blaze.interaction/search-type}
-       :read
-       {:handler #ig/ref :blaze.interaction/read}}}
-     #:blaze.rest-api.resource-pattern
-     {:type "DiagnosticReport"
-      :interactions
-      {:search-type
-       {:handler #ig/ref :blaze.interaction/search-type}
-       :read
-       {:handler #ig/ref :blaze.interaction/read}}}
-     #:blaze.rest-api.resource-pattern
-     {:type "CarePlan"
-      :interactions
-      {:search-type
-       {:handler #ig/ref :blaze.interaction/search-type}
-       :read
-       {:handler #ig/ref :blaze.interaction/read}}}
+    [
+
+     #_#:blaze.rest-api.resource-pattern {:type "Patient"
+                                          :interactions
+                                          {:search-type
+                                           {:handler #ig/ref :blaze.interaction/search-type}
+                                           :read
+                                           {:handler #ig/ref :blaze.interaction/read}}}
+
+     #_#:blaze.rest-api.resource-pattern {:type "Consent"
+                                          :interactions
+                                          {:search-type
+                                           {:handler #ig/ref :blaze.interaction/search-type}
+                                           :read
+                                           {:handler #ig/ref :blaze.interaction/read}}}
+
+     #:blaze.rest-api.resource-pattern {:type "Condition"
+                                        :interactions
+                                        {:search-type
+                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/condition]}
+                                         :read
+                                         {:handler #ig/ref :blaze.interaction/read}}}
+     #_#:blaze.rest-api.resource-pattern {:type "ServiceRequest"
+                                          :interactions
+                                          {:search-type
+                                           {:handler #ig/ref :blaze.interaction/search-type}
+                                           :read
+                                           {:handler #ig/ref :blaze.interaction/read}}}
+     #_#:blaze.rest-api.resource-pattern {:type "Goal"
+                                          :interactions
+                                          {:search-type
+                                           {:handler #ig/ref :blaze.interaction/search-type}
+                                           :read
+                                           {:handler #ig/ref :blaze.interaction/read}}}
+     #_#:blaze.rest-api.resource-pattern {:type "Procedure"
+                                          :interactions
+                                          {:search-type
+                                           {:handler #ig/ref :blaze.interaction/search-type}
+                                           :read
+                                           {:handler #ig/ref :blaze.interaction/read}}}
+     #_#:blaze.rest-api.resource-pattern {:type "AllergyIntolerance"
+                                          :interactions
+                                          {:search-type
+                                           {:handler #ig/ref :blaze.interaction/search-type}
+                                           :read
+                                           {:handler #ig/ref :blaze.interaction/read}}}
+     #_#:blaze.rest-api.resource-pattern {:type "Device"
+                                          :interactions
+                                          {:search-type
+                                           {:handler #ig/ref :blaze.interaction/search-type}
+                                           :read
+                                           {:handler #ig/ref :blaze.interaction/read}}}
+     #_#:blaze.rest-api.resource-pattern {:type "Immunization"
+                                          :interactions
+                                          {:search-type
+                                           {:handler #ig/ref :blaze.interaction/search-type}
+                                           :read
+                                           {:handler #ig/ref :blaze.interaction/read}}}
+     #_#:blaze.rest-api.resource-pattern {:type "Observation"
+                                          :interactions
+                                          {:search-type
+                                           {:handler #ig/ref :blaze.interaction/search-type}
+                                           :read
+                                           {:handler #ig/ref :blaze.interaction/read}}}
+     #_#:blaze.rest-api.resource-pattern {:type "DiagnosticReport"
+                                          :interactions
+                                          {:search-type
+                                           {:handler #ig/ref :blaze.interaction/search-type}
+                                           :read
+                                           {:handler #ig/ref :blaze.interaction/read}}}
+     #_#:blaze.rest-api.resource-pattern {:type "CarePlan"
+                                          :interactions
+                                          {:search-type
+                                           {:handler #ig/ref :blaze.interaction/search-type}
+                                           :read
+                                           {:handler #ig/ref :blaze.interaction/read}}}
+
      ]
     :operations
     [#:blaze.rest-api.operation
      {:code             "evaluate-measure"
       :resource-types   ["Measure"]
       :type-handler     #ig/ref :blaze.fhir.operation.evaluate-measure/handler
-      :instance-handler #ig/ref :blaze.fhir.operation.evaluate-measure/handler}]}}}}
+      :instance-handler #ig/ref :blaze.fhir.operation.evaluate-measure/handler}]}}
+  }}

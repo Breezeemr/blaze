@@ -202,5 +202,5 @@
 (defmethod ig/init-key :blaze.interaction/search-type
   [_ {:database/keys [conn] :search/keys [params]}]
   (log/info "Init FHIR search-type interaction handler")
-  (handler {:conn            conn
-            :search-handlder params}))
+  (handler {:conn           conn
+            :search-handler params}))
