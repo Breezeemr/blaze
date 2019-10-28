@@ -62,9 +62,8 @@
    :match-actor?            match-actor?
    :match-codeable-concept? match-codeable-concept?})
 
-;;TODO remove type param if unused
 (defn- resource-pred
-  [db type query-params search-handler]
+  [db query-params search-handler]
   (let [search-info (reduce-kv
                       (fn [coll search-param search-value]
                         (if-let [matches-fn (match-key->match-fn (get-in search-handler [search-param :matches-fn]))]
@@ -107,7 +106,7 @@
 
 
 (defn- search [router db type query-params search-handler]
-  (let [pred (resource-pred db type query-params search-handler)]
+  (let [pred (resource-pred db query-params search-handler)]
     (cond->
         {:resourceType "Bundle"
          :type "searchset"}
