@@ -18,8 +18,12 @@
 
   [:blaze.interaction/search-type :blaze.interaction.search/condition]
   {:database/conn #ig/ref :blaze.database/conn
-   :search/params {"patient" {:matches-fn :match-reference?
-                              :attr       :Condition/subject}}}
+   :search/params {"patient"  {:matches-fn :match-reference?
+                               :attr       :Condition/subject}
+                   "subject"  {:matches-fn :match-reference?
+                               :attr       :Condition/subject}
+                   "category" {:matches-fn :match-codeable-concept?
+                               :attr       :Condition/category}}}
 
   [:blaze.interaction/search-type :blaze.interaction.search/consent]
   {:database/conn #ig/ref :blaze.database/conn
