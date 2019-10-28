@@ -12,13 +12,18 @@
   :blaze.interaction/read
   {:database/conn #ig/ref :blaze.database/conn}
 
+  :blaze.interaction.search.match/reference
+  {}
+
+
+
   ;; --------------------- search types -----------------------------
   [:blaze.interaction/search-type :blaze.interaction.search/patient]
   {:database/conn #ig/ref :blaze.database/conn}
 
   [:blaze.interaction/search-type :blaze.interaction.search/condition]
   {:database/conn #ig/ref :blaze.database/conn
-   :search/params {"patient"  {:matches-fn :match-reference?
+   :search/params {"patient"  {:matches-fn #ig/ref :blaze.interaction.search.match/reference
                                :attr       :Condition/subject}
                    "subject"  {:matches-fn :match-reference?
                                :attr       :Condition/subject}
