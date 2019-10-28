@@ -127,7 +127,7 @@
 
 (defn- handler-intern [{:keys [conn search-handler]}]
   (fn [{:keys         [params uri]
-       ::reitit/keys [router] :as args}]
+       ::reitit/keys [router]}]
     ;;NOTE previously the "type" was a templated (e.g <type>/<id>)
     ;;It's not clear that will be the way to do it moving forward.
     ;;The solution here might not be robust enough either, as the uri
