@@ -127,12 +127,15 @@
 
 
 (defn- handler-intern [{:keys [conn search-handler]}]
-  (fn [{{:keys [type]} :path-params
-       :keys          [params]
-       ::reitit/keys  [router]}]
-    (-> (search router (d/db conn) type params search-handler)
-        (ring/response))))
-
+  (fn [{:keys         [params uri]
+       ::reitit/keys [router] :as args}]
+    ;;NOTE previously the "type" was a templated (e.g <type>/<id>)
+    ;;It's not clear that will be the way to do it moving forward.
+    ;;The solution here might not be robust enough either, as the uri
+    ;;might contain _more_ then the type
+    (let [type (keyword uri)]
+      (-> (search router (d/db conn) type params search-handler)
+          (ring/response)))))
 
 (s/def :handler.fhir/search fn?)
 
