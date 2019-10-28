@@ -133,9 +133,9 @@
     ;;It's not clear that will be the way to do it moving forward.
     ;;The solution here might not be robust enough either, as the uri
     ;;might contain _more_ then the type
-    (let [type (keyword uri)]
-      (-> (search router (d/db conn) type params search-handler)
-          (ring/response)))))
+
+    (-> (search router (d/db conn) uri params search-handler)
+        (ring/response))))
 
 (s/def :handler.fhir/search fn?)
 
