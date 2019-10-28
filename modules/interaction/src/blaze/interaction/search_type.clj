@@ -63,7 +63,7 @@
   [db type query-params search-handler]
   (let [search-info (reduce-kv
                       (fn [coll search-param search-value]
-                        (if-let [matches-fn (match-key->match-fn (get-in search-handler [type search-param :matches-fn]))]
+                        (if-let [matches-fn (match-key->match-fn (get-in search-handler [search-param :matches-fn]))]
                           (let [attr (get-in search-handler [type search-param :attr])]
                             (conj coll
                                   {:search-param search-param
@@ -124,7 +124,6 @@
             (take (fhir-util/page-size query-params))
             (map #(entry router %)))
           (d/datoms db :aevt (util/resource-id-attr type)))))))
-
 
 (defn- handler-intern [{:keys [conn search-handler]}]
   (fn [{:keys         [params uri]
