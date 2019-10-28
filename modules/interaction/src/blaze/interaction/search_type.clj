@@ -55,12 +55,14 @@
   (contains? (set (provision->actor-ids provision))
              search))
 
+;;TODO add identifier search back in.
+
 (def match-key->match-fn
-  {:match-reference? match-reference?
-   :match-actor?     match-actor?})
+  {:match-reference?        match-reference?
+   :match-actor?            match-actor?
+   :match-codeable-concept? match-codeable-concept?})
 
-
-
+;;TODO remove type param if unused
 (defn- resource-pred
   [db type query-params search-handler]
   (let [search-info (reduce-kv
@@ -134,7 +136,6 @@
     ;;It's not clear that will be the way to do it moving forward.
     ;;The solution here might not be robust enough either, as the uri
     ;;might contain _more_ then the type
-
     (-> (search router (d/db conn) uri params search-handler)
         (ring/response))))
 
