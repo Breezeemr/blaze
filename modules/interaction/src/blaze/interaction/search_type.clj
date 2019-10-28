@@ -56,7 +56,9 @@
              search))
 
 (def match-key->match-fn
-  {:match-ref match-reference?})
+  {:match-reference? match-reference?
+   :match-actor?     match-actor?})
+
 
 
 (defn- resource-pred

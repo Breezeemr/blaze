@@ -12,15 +12,21 @@
   :blaze.interaction/read
   {:database/conn #ig/ref :blaze.database/conn}
 
+  ;; --------------------- search types -----------------------------
   [:blaze.interaction/search-type :blaze.interaction.search/patient]
   {:database/conn #ig/ref :blaze.database/conn}
 
-  ;; --------------------- search types -----------------------------
   [:blaze.interaction/search-type :blaze.interaction.search/condition]
   {:database/conn #ig/ref :blaze.database/conn
-   :search/params {"patient" {:matches-fn :match-ref
+   :search/params {"patient" {:matches-fn :match-reference?
                               :attr       :Condition/subject}}}
 
+  [:blaze.interaction/search-type :blaze.interaction.search/consent]
+  {:database/conn #ig/ref :blaze.database/conn
+   :search/params {"patient" {:matches-fn :match-reference?
+                              :attr       :Consent/patient}
+                   "actor"   {:matches-fn :match-actor?
+                              :attr       :Consent/provision}}}
 
 
   :blaze.fhir.operation.evaluate-measure/executor
@@ -59,12 +65,12 @@
                                          :read
                                          {:handler #ig/ref :blaze.interaction/read}}}
 
-     #_#:blaze.rest-api.resource-pattern {:type "Consent"
-                                          :interactions
-                                          {:search-type
-                                           {:handler #ig/ref :blaze.interaction/search-type}
-                                           :read
-                                           {:handler #ig/ref :blaze.interaction/read}}}
+     #:blaze.rest-api.resource-pattern {:type "Consent"
+                                        :interactions
+                                        {:search-type
+                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/consent]}
+                                         :read
+                                         {:handler #ig/ref :blaze.interaction/read}}}
 
      #_#:blaze.rest-api.resource-pattern {:type "ServiceRequest"
                                           :interactions
