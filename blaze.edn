@@ -12,13 +12,16 @@
   :blaze.interaction/read
   {:database/conn #ig/ref :blaze.database/conn}
 
-  :blaze.interaction/search-type
+  [:blaze.interaction/search-type :blaze.interaction.search/patient]
   {:database/conn #ig/ref :blaze.database/conn}
 
+  ;; --------------------- search types -----------------------------
   [:blaze.interaction/search-type :blaze.interaction.search/condition]
   {:database/conn #ig/ref :blaze.database/conn
    :search/params {"patient" {:matches-fn :match-ref
                               :attr       :Condition/subject}}}
+
+
 
   :blaze.fhir.operation.evaluate-measure/executor
   {}
@@ -42,14 +45,19 @@
    {:context-path        "fhir"
     :transaction-handler nil
     :resource-patterns
-    [
+    [#:blaze.rest-api.resource-pattern {:type "Patient"
+                                        :interactions
+                                        {:search-type
+                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/patient]}
+                                         :read
+                                         {:handler #ig/ref :blaze.interaction/read}}}
 
-     #_#:blaze.rest-api.resource-pattern {:type "Patient"
-                                          :interactions
-                                          {:search-type
-                                           {:handler #ig/ref :blaze.interaction/search-type}
-                                           :read
-                                           {:handler #ig/ref :blaze.interaction/read}}}
+     #:blaze.rest-api.resource-pattern {:type "Condition"
+                                        :interactions
+                                        {:search-type
+                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/condition]}
+                                         :read
+                                         {:handler #ig/ref :blaze.interaction/read}}}
 
      #_#:blaze.rest-api.resource-pattern {:type "Consent"
                                           :interactions
@@ -58,12 +66,6 @@
                                            :read
                                            {:handler #ig/ref :blaze.interaction/read}}}
 
-     #:blaze.rest-api.resource-pattern {:type "Condition"
-                                        :interactions
-                                        {:search-type
-                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/condition]}
-                                         :read
-                                         {:handler #ig/ref :blaze.interaction/read}}}
      #_#:blaze.rest-api.resource-pattern {:type "ServiceRequest"
                                           :interactions
                                           {:search-type
