@@ -365,9 +365,9 @@
 
 
 (defmethod ig/init-key :server
-  [_ {:keys [port executor handler version]}]
+  [_ {:keys [port executor handler version context-path]}]
   (log/info "Start main server on port" port)
-  (server/init! port executor handler version))
+  (server/init! port executor handler version context-path))
 
 
 (defmethod ig/init-key :metrics/registry

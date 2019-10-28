@@ -27,13 +27,24 @@
    :executor #ig/ref :blaze.fhir.operation.evaluate-measure/executor
    :database/conn #ig/ref :blaze.database/conn}
 
+  :context-path "fhir"
+
+  :server-executor {}
+
+  :server
+  {:port 8080
+   :executor #ig/ref :server-executor
+   :handler #ig/ref :blaze/rest-api
+   :version "my-version-1"
+   :context-path #ig/ref :context-path}
+
   :blaze/rest-api
   {:base-url "http://localhost:8080"
    :database/conn #ig/ref :blaze.database/conn
    :structure-definitions #ig/ref :blaze/structure-definition
    :config
    #:blaze.rest-api
-       {:context-path "fhir"
+       {:context-path #ig/ref :context-path
         :transaction-handler nil
         :resource-patterns
         [#:blaze.rest-api.resource-pattern
