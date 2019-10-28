@@ -64,7 +64,7 @@
   (let [search-info (reduce-kv
                       (fn [coll search-param search-value]
                         (if-let [matches-fn (match-key->match-fn (get-in search-handler [search-param :matches-fn]))]
-                          (let [attr (get-in search-handler [type search-param :attr])]
+                          (let [attr (get-in search-handler [search-param :attr])]
                             (conj coll
                                   {:search-param search-param
                                    :search-value search-value
