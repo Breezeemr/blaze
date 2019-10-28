@@ -55,56 +55,6 @@
   (contains? (set (provision->actor-ids provision))
              search))
 
-(def res-type+search->matches-fn
-  {"Condition"          {"subject"  {:matches-fn match-reference?
-                                     :attr       :Condition/subject}
-                         "patient"  {:matches-fn match-reference?
-                                     :attr       :Condition/subject}
-                         "category" {:matches-fn match-codeable-concept?
-                                     :attr       :Condition/category}}
-   "MedicationRequest"  {"subject" {:matches-fn match-reference?
-                                    :attr       :MedicationRequest/subject}
-                         "patient" {:matches-fn match-reference?
-                                    :attr       :MedicationRequest/subject}}
-   "ServiceRequest"     {"subject" {:matches-fn match-reference?
-                                    :attr       :ServiceRequest/subject}
-                         "patient" {:matches-fn match-reference?
-                                    :attr       :ServiceRequest/subject}}
-   "Goal"               {"subject" {:matches-fn match-reference?
-                                    :attr       :Goal/subject}
-                         "patient" {:matches-fn match-reference?
-                                    :attr       :Goal/subject}}
-   "Procedure"          {"subject" {:matches-fn match-reference?
-                                    :attr       :Procedure/subject}
-                         "patient" {:matches-fn match-reference?
-                                    :attr       :Procedure/subject}}
-   "AllergyIntolerance" {"patient" {:matches-fn match-reference?
-                                    :attr       :AllergyIntolerance/patient}}
-   "Device"             {"patient" {:matches-fn match-reference?
-                                    :attr       :Device/patient}}
-   "Immunization"       {"patient" {:matches-fn match-reference?
-                                    :attr       :Immunization/patient}}
-   "Observation"        {"patient"  {:matches-fn match-reference?
-                                     :attr       :Observation/subject}
-                         "category" {:matches-fn match-codeable-concept?
-                                     :attr       :Observation/category}}
-   "DiagnosticReport"   {"subject" {:matches-fn match-reference?
-                                    :attr       :DiagnosticReport/subject}
-                         "patient" {:matches-fn match-reference?
-                                    :attr       :DiagnosticReport/subject}}
-   "CarePlan"           {"subject" {:matches-fn match-reference?
-                                    :attr       :CarePlan/subject}
-                         "patient" {:matches-fn match-reference?
-                                    :attr       :CarePlan/subject}}
-   ;; An "actor" is the entity with some action
-   ;; over a patients information
-   ;;TODO will probably need to check "action"
-   "Consent"            {"patient" {:matches-fn match-reference?
-                                    :attr       :Consent/patient}
-                         "actor"   {:matches-fn match-actor?
-                                    :attr       :Consent/provision}}
-   "identifier"         match-identifier?})
-
 (def match-key->match-fn
   {:match-ref match-reference?})
 
