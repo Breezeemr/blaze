@@ -29,6 +29,12 @@
                                :attr       :Condition/subject}
                    "category" {:matches-fn :match-codeable-concept?
                                :attr       :Condition/category}}}
+  ;;Example of new format
+  ;; [:blaze.interaction/search-type :blaze.interaction.search/consent]
+  ;; {:database/conn                         #ig/ref :blaze.database/conn
+  ;;  :blaze.fhir.SearchParameter/code       "actor"
+  ;;  :blaze.fhir.SearchParameter/expression [:Consent/provision :Consent.provision/actor :Consent.provision.actor/reference]}
+
 
   [:blaze.interaction/search-type :blaze.interaction.search/consent]
   {:database/conn #ig/ref :blaze.database/conn
