@@ -158,3 +158,20 @@
   (log/info "Init FHIR search-type interaction handler")
   (handler {:conn           conn
             :search-handler params}))
+(defn match?
+  [state path search]
+  (cond
+    (= search state) true
+    (vector? state)  (some (fn [s] (match? s path search)) state)
+    :else            (when (seq path)
+                       (recur ((first path) state)
+                              (rest path)
+                              search))))
+
+;; handles walking path even when some children are vectors
+#_(let [resource     {:a [{:b 1}]}
+        config       [{:code "foo" :path [:a :b]}]
+        query-params {"foo" 1}]
+    (every? (fn [[path search]] (match? resource path search))
+            (mapv (fn [[k v]] [(select-path-by-code config k) v]) query-params)))
+;; => true
