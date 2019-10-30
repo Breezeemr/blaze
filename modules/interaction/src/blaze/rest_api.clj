@@ -190,7 +190,7 @@
 
 (defn handler
   "Whole app Ring handler."
-  [base-url conn structure-definitions config]
+  [base-url structure-definitions config]
   (reitit.ring/ring-handler
     (router
       base-url
@@ -201,7 +201,7 @@
 
 
 (defmethod ig/init-key :blaze/rest-api
-  [_ {:keys [base-url structure-definitions config] :database/keys [conn]}]
+  [_ {:keys [base-url structure-definitions config]}]
   (let [fhir-base-url (str base-url "/fhir")]
     (log/info "Init FHIR RESTful API with base URL:" fhir-base-url)
-    (handler fhir-base-url conn structure-definitions config)))
+    (handler fhir-base-url structure-definitions config)))
