@@ -15,54 +15,6 @@
    [ring.middleware.params :refer [wrap-params]]
    [ring.util.response :as ring]
    [taoensso.timbre :as log]))
-
-(defn coding->code
-  [coding]
-  (-> coding
-      :Coding/code
-      :code/code))
-
-(defn codeable-concept->coding
-  [codeable-concept]
-  (map coding->code
-       (:CodeableConcept/coding codeable-concept)))
-
-(defn match-codeable-concept?
-  [search codeable-concept]
-  (contains? (set (codeable-concept->coding codeable-concept))
-             search))
-
-;;NOTE function assumes reference is always a patient.
-(defn match-reference?
-  [search reference]
-  (= (:Patient/id reference)
-     search))
-
-
-(defn match-identifier?
-  [search identifier]
-  (= (:Identifier/value identifier)
-     search))
-
-(defn provision->actor-ids
-  [provision]
-  (map
-    (fn [m] (-> m :Consent.provision.actor/reference :Patient/id))
-    (:Consent.provision/actor provision)))
-
-(defn match-actor?
-  [search provision]
-  (contains? (set (provision->actor-ids provision))
-             search))
-
-;;TODO add identifier search back in.
-
-(def match-key->match-fn
-  {:match-reference?        match-reference?
-   :match-actor?            match-actor?
-   :match-codeable-concept? match-codeable-concept?})
-
-
 (defn match?
   [state path search]
   (cond
@@ -72,33 +24,6 @@
                        (recur ((first path) state)
                               (rest path)
                               search))))
-
-#_(defn- resource-pred
-    [db query-params {:blaze.fhir.searchParameter/keys [code expression]}]
-    (let [search-info (reduce-kv
-                        (fn [coll search-param search-value]
-                          (conj coll
-                                {:search-param search-param
-                                 :search-value search-value
-                                 :matches-fn   matches-fn
-                                 :attr         attr
-                                 :cardinality  (:db/cardinality (util/cached-entity db attr))}))
-                        []
-                        query-params)]
-      ;; NOTE this is removing invalid query but not rejecting the query
-      ;; if it has invalid params
-      (when (seq search-info)
-        (fn [resource]
-          (every? true? (reduce
-                          (fn [matches {:keys [matches-fn attr search-value cardinality]}]
-                            (let [attr-instance (get resource attr)]
-                              (conj matches
-                                    (if (= :db.cardinality/many cardinality)
-                                      (some (partial matches-fn search-value) attr-instance)
-                                      (matches-fn search-value attr-instance)))))
-                          []
-                          search-info))))))
-
 
 (defn- entry
   [router {type "resourceType" id "id" :as resource}]
@@ -164,7 +89,6 @@
   :args any?
   :ret :handler.fhir/search)
 
-
 (defn handler
   ""
   [config]
@@ -172,9 +96,7 @@
       (wrap-params)
       (wrap-observe-request-duration "search-type")))
 
-
 (defmethod ig/init-key :blaze.interaction/search-type
   [_ config]
   (log/info "Init FHIR search-type interaction handler")
   (handler config))
-
