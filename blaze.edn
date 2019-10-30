@@ -15,11 +15,8 @@
   :blaze.interaction.search.match/reference
   {}
 
-  ;; --------------------- search types -----------------------------
   [:blaze.interaction/search-type :blaze.interaction.search/Patient]
   {:database/conn #ig/ref :blaze.database/conn}
-
-  
 
   [:blaze.interaction/search-type :blaze.interaction.search/Consent]
   {:database/conn                     #ig/ref :blaze.database/conn
@@ -82,16 +79,6 @@
    :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
                                         :blaze.fhir.SearchParameter/expression [:CarePlan/subject :Patient/id]}]}
 
-
-
-
-  ;; [:blaze.interaction/search-type :blaze.interaction.search/care-plan]
-  ;; {:database/conn #ig/ref :blaze.database/conn
-  ;;  :search/params {"subject" {:matches-fn :match-reference?
-  ;;                             :attr       :CarePlan/subject}
-  ;;                  "patient" {:matches-fn :match-reference?
-  ;;                             :attr       :CarePlan/subject}}}
-
   :blaze.fhir.operation.evaluate-measure/executor
   {}
 
@@ -104,6 +91,16 @@
    :executor      #ig/ref :blaze.fhir.operation.evaluate-measure/executor
    :database/conn #ig/ref :blaze.database/conn}
 
+  :context-path "fhir"
+
+  :server-executor {}
+
+  :server
+  {:port 8080
+   :executor #ig/ref :server-executor
+   :handler #ig/ref :blaze/rest-api
+   :version "my-version-1"
+   :context-path #ig/ref :context-path}
 
   :blaze/rest-api
   {:base-url              "http://localhost:8080"
@@ -198,5 +195,4 @@
      {:code             "evaluate-measure"
       :resource-types   ["Measure"]
       :type-handler     #ig/ref :blaze.fhir.operation.evaluate-measure/handler
-      :instance-handler #ig/ref :blaze.fhir.operation.evaluate-measure/handler}]}}
-  }}
+      :instance-handler #ig/ref :blaze.fhir.operation.evaluate-measure/handler}]}}}}
