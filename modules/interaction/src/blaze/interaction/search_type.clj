@@ -15,6 +15,7 @@
    [ring.middleware.params :refer [wrap-params]]
    [ring.util.response :as ring]
    [taoensso.timbre :as log]))
+
 (defn match?
   [state path search]
   (cond
