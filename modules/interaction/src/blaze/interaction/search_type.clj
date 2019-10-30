@@ -62,34 +62,42 @@
    :match-actor?            match-actor?
    :match-codeable-concept? match-codeable-concept?})
 
-(defn- resource-pred
-  [db query-params search-handler]
-  (let [search-info (reduce-kv
-                      (fn [coll search-param search-value]
-                        (if-let [matches-fn (get-in search-handler [search-param :matches-fn])]
-                          (let [attr (get-in search-handler [search-param :attr])]
-                            (conj coll
-                                  {:search-param search-param
-                                   :search-value search-value
-                                   :matches-fn   matches-fn
-                                   :attr         attr
-                                   :cardinality  (:db/cardinality (util/cached-entity db attr))}))
-                          coll))
-                      []
-                      query-params)]
-    ;; NOTE this is removing invalid query but not rejecting the query
-    ;; if it has invalid params
-    (when (seq search-info)
-      (fn [resource]
-        (every? true? (reduce
-                        (fn [matches {:keys [matches-fn attr search-value cardinality]}]
-                          (let [attr-instance (get resource attr)]
-                            (conj matches
-                                  (if (= :db.cardinality/many cardinality)
-                                    (some (partial matches-fn search-value) attr-instance)
-                                    (matches-fn search-value attr-instance)))))
+
+(defn match?
+  [state path search]
+  (cond
+    (= search state) true
+    (vector? state)  (some (fn [s] (match? s path search)) state)
+    :else            (when (seq path)
+                       (recur ((first path) state)
+                              (rest path)
+                              search))))
+
+#_(defn- resource-pred
+    [db query-params {:blaze.fhir.searchParameter/keys [code expression]}]
+    (let [search-info (reduce-kv
+                        (fn [coll search-param search-value]
+                          (conj coll
+                                {:search-param search-param
+                                 :search-value search-value
+                                 :matches-fn   matches-fn
+                                 :attr         attr
+                                 :cardinality  (:db/cardinality (util/cached-entity db attr))}))
                         []
-                        search-info))))))
+                        query-params)]
+      ;; NOTE this is removing invalid query but not rejecting the query
+      ;; if it has invalid params
+      (when (seq search-info)
+        (fn [resource]
+          (every? true? (reduce
+                          (fn [matches {:keys [matches-fn attr search-value cardinality]}]
+                            (let [attr-instance (get resource attr)]
+                              (conj matches
+                                    (if (= :db.cardinality/many cardinality)
+                                      (some (partial matches-fn search-value) attr-instance)
+                                      (matches-fn search-value attr-instance)))))
+                          []
+                          search-info))))))
 
 
 (defn- entry
@@ -104,9 +112,16 @@
   [{summary "_summary" :as query-params}]
   (or (zero? (fhir-util/page-size query-params)) (= "count" summary)))
 
-
-(defn- search [router db type query-params search-handler]
-  (let [pred (resource-pred db query-params search-handler)]
+(defn- search [router db type query-params config]
+  (let [valid-query-params  (select-keys query-params (map :blaze.fhir.SearchParameter/code config))
+        select-path-by-code (fn [config code]
+                              (->> config
+                                   (filter #(= (:blaze.fhir.SearchParameter/code %) code))
+                                   first
+                                   :blaze.fhir.SearchParameter/expression))
+        pred                (when (seq valid-query-params)
+                              (fn [resource] (every? (fn [[path search]] (match? resource path search))
+                                                    (mapv (fn [[k v]] [(select-path-by-code config k) v]) valid-query-params))))]
     (cond->
         {:resourceType "Bundle"
          :type "searchset"}
@@ -128,22 +143,27 @@
             (map #(entry router %)))
           (d/datoms db :aevt (util/resource-id-attr type)))))))
 
-(defn- handler-intern [{:keys [conn search-handler]}]
+(defn- handler-intern [{:keys [database/conn blaze.fhir.SearchParameter/config]}]
   (fn [{:keys         [params uri]
        ::reitit/keys [router]}]
     ;;NOTE previously the "type" was a templated (e.g <type>/<id>)
     ;;It's not clear that will be the way to do it moving forward.
     ;;The solution here might not be robust enough either, as the uri
     ;;might contain _more_ then the type
-    (-> (search router (d/db conn) uri params search-handler)
+    (-> (search router (d/db conn) uri params config)
         (ring/response))))
 
 (s/def :handler.fhir/search fn?)
 
+;;TODO fix this spec
+;; (s/fdef handler
+;;   :args (s/cat :conn ::ds/conn)
+;;   :ret :handler.fhir/search)
 
 (s/fdef handler
-  :args (s/cat :conn ::ds/conn)
+  :args any?
   :ret :handler.fhir/search)
+
 
 (defn handler
   ""
@@ -154,24 +174,7 @@
 
 
 (defmethod ig/init-key :blaze.interaction/search-type
-  [_ {:database/keys [conn] :search/keys [params]}]
+  [_ config]
   (log/info "Init FHIR search-type interaction handler")
-  (handler {:conn           conn
-            :search-handler params}))
-(defn match?
-  [state path search]
-  (cond
-    (= search state) true
-    (vector? state)  (some (fn [s] (match? s path search)) state)
-    :else            (when (seq path)
-                       (recur ((first path) state)
-                              (rest path)
-                              search))))
+  (handler config))
 
-;; handles walking path even when some children are vectors
-#_(let [resource     {:a [{:b 1}]}
-        config       [{:code "foo" :path [:a :b]}]
-        query-params {"foo" 1}]
-    (every? (fn [[path search]] (match? resource path search))
-            (mapv (fn [[k v]] [(select-path-by-code config k) v]) query-params)))
-;; => true
