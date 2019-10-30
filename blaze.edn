@@ -16,83 +16,74 @@
   {}
 
   ;; --------------------- search types -----------------------------
-  [:blaze.interaction/search-type :blaze.interaction.search/patient]
+  [:blaze.interaction/search-type :blaze.interaction.search/Patient]
   {:database/conn #ig/ref :blaze.database/conn}
 
   
 
-  [:blaze.interaction/search-type :blaze.interaction.search/consent]
+  [:blaze.interaction/search-type :blaze.interaction.search/Consent]
   {:database/conn                     #ig/ref :blaze.database/conn
    :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "actor"
                                         :blaze.fhir.SearchParameter/expression [:Consent/provision :Consent.provision/actor :Consent.provision.actor/reference]}
                                        {:blaze.fhir.SearchParameter/code       "patient"
                                         :blaze.fhir.SearchParameter/expression [:Consent/patient :Patient/id]}]}
 
-  [:blaze.interaction/search-type :blaze.interaction.search/condition]
+  [:blaze.interaction/search-type :blaze.interaction.search/Condition]
   {:database/conn                     #ig/ref :blaze.database/conn
    :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
-                                        :blaze.fhir.SearchParameter/expression [:Condition/subject :Patient/id]}
-                                       {:blaze.fhir.SearchParameter/code       "subject"
                                         :blaze.fhir.SearchParameter/expression [:Condition/subject :Patient/id]}
                                        {:blaze.fhir.SearchParameter/code       "category"
                                         :blaze.fhir.SearchParameter/expression [:Condition/category :CodeableConcept/coding :Coding/code :code/code]}]}
 
-  ;; [:blaze.interaction/search-type :blaze.interaction.search/consent]
-  ;; {:database/conn #ig/ref :blaze.database/conn
-  ;;  :search/params {"patient" {:matches-fn :match-reference?
-  ;;                             :attr       :Consent/patient}
-  ;;                  "actor"   {:matches-fn :match-actor?
-  ;;                             :attr       :Consent/provision}}}
+  [:blaze.interaction/search-type :blaze.interaction.search/ServiceRequest]
+  {:database/conn                     #ig/ref :blaze.database/conn
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
+                                        :blaze.fhir.SearchParameter/expression [:ServiceRequest/subject :Patient/id]}]}
 
-  ;; [:blaze.interaction/search-type :blaze.interaction.search/service-request]
-  ;; {:database/conn #ig/ref :blaze.database/conn
-  ;;  :search/params {"subject" {:matches-fn :match-reference?
-  ;;                             :attr       :ServiceRequest/subject}
-  ;;                  "patient" {:matches-fn :match-reference?
-  ;;                             :attr       :ServiceRequest/subject}}}
+  [:blaze.interaction/search-type :blaze.interaction.search/Goal]
+  {:database/conn                     #ig/ref :blaze.database/conn
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
+                                        :blaze.fhir.SearchParameter/expression [:Goal/subject :Patient/id]}]}
 
-  ;; [:blaze.interaction/search-type :blaze.interaction.search/goal]
-  ;; {:database/conn #ig/ref :blaze.database/conn
-  ;;  :search/params {"subject" {:matches-fn :match-reference?
-  ;;                             :attr       :Goal/subject}
-  ;;                  "patient" {:matches-fn :match-reference?
-  ;;                             :attr       :Goal/subject}}}
+  [:blaze.interaction/search-type :blaze.interaction.search/Procedure]
+  {:database/conn                     #ig/ref :blaze.database/conn
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
+                                        :blaze.fhir.SearchParameter/expression [:Procedure/subject :Patient/id]}]}
 
-  ;; [:blaze.interaction/search-type :blaze.interaction.search/procedure]
-  ;; {:database/conn #ig/ref :blaze.database/conn
-  ;;  :search/params {"subject" {:matches-fn :match-reference?
-  ;;                             :attr       :Procedure/subject}
-  ;;                  "patient" {:matches-fn :match-reference?
-  ;;                             :attr       :Procedure/subject}}}
+  [:blaze.interaction/search-type :blaze.interaction.search/AllergyIntolerance]
+  {:database/conn                     #ig/ref :blaze.database/conn
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
+                                        :blaze.fhir.SearchParameter/expression [:AllergyIntolerance/patient :Patient/id]}]}
 
-  ;; [:blaze.interaction/search-type :blaze.interaction.search/allergy-intolerance]
-  ;; {:database/conn #ig/ref :blaze.database/conn
-  ;;  :search/params {"patient" {:matches-fn :match-reference?
-  ;;                             :attr       :AllergyIntolerance/patient}}}
+  [:blaze.interaction/search-type :blaze.interaction.search/Device]
+  {:database/conn                     #ig/ref :blaze.database/conn
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
+                                        :blaze.fhir.SearchParameter/expression [:Device/patient :Patient/id]}]}
 
-  ;; [:blaze.interaction/search-type :blaze.interaction.search/device]
-  ;; {:database/conn #ig/ref :blaze.database/conn
-  ;;  :search/params {"patient" {:matches-fn :match-reference?
-  ;;                             :attr       :Device/patient}}}
+  [:blaze.interaction/search-type :blaze.interaction.search/Immunization]
+  {:database/conn                     #ig/ref :blaze.database/conn
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
+                                        :blaze.fhir.SearchParameter/expression [:Immunization/patient :Patient/id]}]}
 
-  ;; [:blaze.interaction/search-type :blaze.interaction.search/immunization]
-  ;; {:database/conn #ig/ref :blaze.database/conn
-  ;;  :search/params {"patient" {:matches-fn :match-reference?
-  ;;                             :attr       :Immunization/patient}}}
+  [:blaze.interaction/search-type :blaze.interaction.search/Observation]
+  {:database/conn                     #ig/ref :blaze.database/conn
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
+                                        :blaze.fhir.SearchParameter/expression [:Observation/subject :Patient/id]}
+                                       {:blaze.fhir.SearchParameter/code       "category"
+                                        :blaze.fhir.SearchParameter/expression [:Observation/Category :CodeableConcept/coding :Coding/code :code/code]}]}
 
-  ;; [:blaze.interaction/search-type :blaze.interaction.search/observation]
-  ;; {:database/conn #ig/ref :blaze.database/conn
-  ;;  :search/params {"patient"  {:matches-fn :match-reference?
-  ;;                              :attr       :Observation/subject}
-  ;;                  "category" {:matches-fn :match-codeable-concept?
-  ;;                              :attr       :Observation/category}}}
+  [:blaze.interaction/search-type :blaze.interaction.search/DiagnosticReport]
+  {:database/conn                     #ig/ref :blaze.database/conn
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
+                                        :blaze.fhir.SearchParameter/expression [:DiagnosticReport/subject :Patient/id]}]}
 
-  ;; [:blaze.interaction/search-type :blaze.interaction.search/diagnostic-report]
-  ;; {:database/conn #ig/ref :blaze.database/conn
-  ;;  :search/params {"subject" {:matches-fn :match-reference?
-  ;;                             :attr       :DiagnosticReport/subject}
-  ;;                  "patient" {:matches-fn :match-reference?
-  ;;                             :attr       :DiagnosticReport/subject}}}
+  [:blaze.interaction/search-type :blaze.interaction.search/CarePlan]
+  {:database/conn                     #ig/ref :blaze.database/conn
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
+                                        :blaze.fhir.SearchParameter/expression [:CarePlan/subject :Patient/id]}]}
+
+
+
 
   ;; [:blaze.interaction/search-type :blaze.interaction.search/care-plan]
   ;; {:database/conn #ig/ref :blaze.database/conn
@@ -126,78 +117,80 @@
     [#:blaze.rest-api.resource-pattern {:type "Patient"
                                         :interactions
                                         {:search-type
-                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/patient]}
+                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/Patient]}
                                          :read
                                          {:handler #ig/ref :blaze.interaction/read}}}
      
      #:blaze.rest-api.resource-pattern {:type "Condition"
                                         :interactions
                                         {:search-type
-                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/condition]}
+                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/Condition]}
                                          :read
                                          {:handler #ig/ref :blaze.interaction/read}}}
 
      #:blaze.rest-api.resource-pattern {:type "Consent"
                                         :interactions
                                         {:search-type
-                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/consent]}
+                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/Consent]}
                                          :read
                                          {:handler #ig/ref :blaze.interaction/read}}}
 
-     ;; #:blaze.rest-api.resource-pattern {:type "ServiceRequest"
-     ;;                                    :interactions
-     ;;                                    {:search-type
-     ;;                                     {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/service-request]}
-     ;;                                     :read
-     ;;                                     {:handler #ig/ref :blaze.interaction/read}}}
-     ;; #:blaze.rest-api.resource-pattern {:type "Goal"
-     ;;                                    :interactions
-     ;;                                    {:search-type
-     ;;                                     {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/goal]}
-     ;;                                     :read
-     ;;                                     {:handler #ig/ref :blaze.interaction/read}}}
-     ;; #:blaze.rest-api.resource-pattern {:type "Procedure"
-     ;;                                    :interactions
-     ;;                                    {:search-type
-     ;;                                     {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/procedure]}
-     ;;                                     :read
-     ;;                                     {:handler #ig/ref :blaze.interaction/read}}}
-     ;; #:blaze.rest-api.resource-pattern {:type "AllergyIntolerance"
-     ;;                                    :interactions
-     ;;                                    {:search-type
-     ;;                                     {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/allergy-intolerance]}
-     ;;                                     :read
-     ;;                                     {:handler #ig/ref :blaze.interaction/read}}}
-     ;; #:blaze.rest-api.resource-pattern {:type "Device"
-     ;;                                    :interactions
-     ;;                                    {:search-type
-     ;;                                     {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/device]}
-     ;;                                     :read
-     ;;                                     {:handler #ig/ref :blaze.interaction/read}}}
-     ;; #:blaze.rest-api.resource-pattern {:type "Immunization"
-     ;;                                    :interactions
-     ;;                                    {:search-type
-     ;;                                     {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/immunization]}
-     ;;                                     :read
-     ;;                                     {:handler #ig/ref :blaze.interaction/read}}}
-     ;; #:blaze.rest-api.resource-pattern {:type "Observation"
-     ;;                                    :interactions
-     ;;                                    {:search-type
-     ;;                                     {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/observation]}
-     ;;                                     :read
-     ;;                                     {:handler #ig/ref :blaze.interaction/read}}}
-     ;; #:blaze.rest-api.resource-pattern {:type "DiagnosticReport"
-     ;;                                    :interactions
-     ;;                                    {:search-type
-     ;;                                     {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/diagnostic-report]}
-     ;;                                     :read
-     ;;                                     {:handler #ig/ref :blaze.interaction/read}}}
-     ;; #:blaze.rest-api.resource-pattern {:type "CarePlan"
-     ;;                                    :interactions
-     ;;                                    {:search-type
-     ;;                                     {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/care-plan]}
-     ;;                                     :read
-     ;;                                     {:handler #ig/ref :blaze.interaction/read}}}
+     #:blaze.rest-api.resource-pattern {:type "ServiceRequest"
+                                        :interactions
+                                        {:search-type
+                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/ServiceRequest]}
+                                         :read
+                                         {:handler #ig/ref :blaze.interaction/read}}}
+
+     #:blaze.rest-api.resource-pattern {:type "Goal"
+                                        :interactions
+                                        {:search-type
+                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/Goal]}
+                                         :read
+                                         {:handler #ig/ref :blaze.interaction/read}}}
+
+     #:blaze.rest-api.resource-pattern {:type "Procedure"
+                                        :interactions
+                                        {:search-type
+                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/Procedure]}
+                                         :read
+                                         {:handler #ig/ref :blaze.interaction/read}}}
+     #:blaze.rest-api.resource-pattern {:type "AllergyIntolerance"
+                                        :interactions
+                                        {:search-type
+                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/AllergyIntolerance]}
+                                         :read
+                                         {:handler #ig/ref :blaze.interaction/read}}}
+     #:blaze.rest-api.resource-pattern {:type "Device"
+                                        :interactions
+                                        {:search-type
+                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/Device]}
+                                         :read
+                                         {:handler #ig/ref :blaze.interaction/read}}}
+     #:blaze.rest-api.resource-pattern {:type "Immunization"
+                                        :interactions
+                                        {:search-type
+                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/Immunization]}
+                                         :read
+                                         {:handler #ig/ref :blaze.interaction/read}}}
+     #:blaze.rest-api.resource-pattern {:type "Observation"
+                                        :interactions
+                                        {:search-type
+                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/Observation]}
+                                         :read
+                                         {:handler #ig/ref :blaze.interaction/read}}}
+     #:blaze.rest-api.resource-pattern {:type "DiagnosticReport"
+                                        :interactions
+                                        {:search-type
+                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/DiagnosticReport]}
+                                         :read
+                                         {:handler #ig/ref :blaze.interaction/read}}}
+     #:blaze.rest-api.resource-pattern {:type "CarePlan"
+                                        :interactions
+                                        {:search-type
+                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/CarePlan]}
+                                         :read
+                                         {:handler #ig/ref :blaze.interaction/read}}}
 
      ]
     :operations
