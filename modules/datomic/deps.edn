@@ -8,17 +8,12 @@
   blaze/terminology-service
   {:local/root "../terminology-service"}
 
-  com.datomic/datomic-free
-  {:mvn/version "0.9.5697"
-   :exclusions
-   [io.netty/netty-all]}
-
   com.taoensso/timbre
   {:mvn/version "4.10.0"}
 
   funcool/cuerdas
   {:mvn/version "2.2.0"
-   :exclusions [org.clojure/clojurescript]}
+   :exclusions  [org.clojure/clojurescript]}
 
   javax.measure/unit-api
   {:mvn/version "1.0"}

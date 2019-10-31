@@ -96,7 +96,19 @@
   {:mvn/version "0.9"}
 
   systems.uom/systems-quantity
-  {:mvn/version "1.0"}}
+  {:mvn/version "1.0"}
+
+  com.datomic/datomic-pro {:mvn/version "0.9.5951"
+                           :exclusions  [io.netty/netty-all]}
+
+
+  mysql/mysql-connector-java {:mvn/version "5.1.47"}
+  }
+
+
+ ;; requires a ~./m2/settings.xml file with id username and password
+ :mvn/repos {"my.datomic.com"
+             {:url "https://my.datomic.com/repo"}}
 
  :aliases
  {:depstar
