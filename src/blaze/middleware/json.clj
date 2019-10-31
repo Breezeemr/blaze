@@ -4,12 +4,12 @@
     [cheshire.core :as json]
     [cheshire.parse :refer [*use-bigdecimals?*]]
     [clojure.java.io :as io]
+    [clojure.string :as str]
     [cognitect.anomalies :as anom]
     [manifold.deferred :as md]
     [prometheus.alpha :as prom]
     [ring.util.response :as ring]
-    [taoensso.timbre :as log]
-    [clojure.string :as str]))
+    [taoensso.timbre :as log]))
 
 
 (prom/defhistogram parse-duration-seconds
