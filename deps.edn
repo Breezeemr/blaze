@@ -100,11 +100,20 @@
    {seancorfield/depstar
     {:mvn/version "0.3.3"}}}
 
+  :datomic-pro
+  ;; will need maven file
+  {}
+  :datomic-free
+  {:extra-deps {com.datomic/datomic-free
+                {:mvn/version "0.9.5697"
+                 :exclusions
+                 [io.netty/netty-all]}}}
+
   :check
   {:extra-deps
    {athos/clj-check
     {:git/url "https://github.com/athos/clj-check.git"
-     :sha "b48d4e7000586529f81c1e29069b503b57259514"}}
+     :sha     "b48d4e7000586529f81c1e29069b503b57259514"}}
    :main-opts
    ["-m" "clj-check.check"]}
 
