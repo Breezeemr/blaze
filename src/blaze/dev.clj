@@ -11,10 +11,9 @@
 (defn- read-config []
   (-> "blaze.edn" slurp ig/read-string))
 
-
-
-
 (comment
+  (def config (read-config))
+
   (ig/load-namespaces (:config (read-config)))
 
   ;; prep can do stuff like load defaults (that you made)
@@ -25,7 +24,8 @@
 
   (def system (system/init! {:log/level "debug"}))
 
-  ;;(def app (:blaze/rest-api system))
+
+  (def app (:blaze/rest-api system))
 
   ;;make a request
   ((:blaze/rest-api system)
@@ -40,10 +40,11 @@
   ;;stop
   (ir/halt)
 
-  
+  ;; check uri to see which db your pointing at.
+  (def uri (-> config :config :blaze.database/conn :database/uri))
 
   ;; connect to in memory db and query patient
-  (def conn (d/connect "datomic:mem://dev"))
+  (def conn (d/connect uri))
 
   (def db (d/db conn))
 
@@ -54,8 +55,6 @@
 
   ;; Look at routes
   (-> app (rring/get-router) (r/compiled-routes))
-
-
 
   (def router (rring/get-router app))
 
