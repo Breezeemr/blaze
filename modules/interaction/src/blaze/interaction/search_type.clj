@@ -16,15 +16,18 @@
    [ring.util.response :as ring]
    [taoensso.timbre :as log]))
 
+
 (defn match?
-  [state path search]
-  (cond
-    (= search state) true
-    (vector? state)  (some (fn [s] (match? s path search)) state)
-    :else            (when (seq path)
-                       (recur ((first path) state)
-                              (rest path)
-                              search))))
+  [tree path search]
+  (let [k       (first path)
+        subtree (get tree k)]
+    (cond
+      (nil? k)       (= search tree)
+      (nil? subtree) false
+      (set? subtree) (some (fn [st] (match? st (rest path) search))
+                           subtree)
+      :else          (match? subtree (rest path) search))))
+
 
 (defn- entry
   [router {type "resourceType" id "id" :as resource}]
