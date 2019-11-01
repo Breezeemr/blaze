@@ -21,7 +21,7 @@
   [:blaze.interaction/search-type :blaze.interaction.search/Consent]
   {:database/conn                     #ig/ref :blaze.database/conn
    :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "actor"
-                                        :blaze.fhir.SearchParameter/expression [:Consent/provision :Consent.provision/actor :Consent.provision.actor/reference]}
+                                        :blaze.fhir.SearchParameter/expression [:Consent/provision :Consent.provision/actor :Consent.provision.actor/reference :Patient/id]}
                                        {:blaze.fhir.SearchParameter/code       "patient"
                                         :blaze.fhir.SearchParameter/expression [:Consent/patient :Patient/id]}]}
 
