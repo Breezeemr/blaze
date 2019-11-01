@@ -1,13 +1,14 @@
 (ns blaze.rest-api
   (:require
-    [blaze.middleware.json :refer [wrap-json]]
-    [clojure.spec.alpha :as s]
-    [datomic-spec.core :as ds]
-    [integrant.core :as ig]
-    [reitit.ring]
-    [reitit.ring.spec]
-    [ring.util.response :as ring]
-    [taoensso.timbre :as log]))
+   [blaze.middleware.json :refer [wrap-json]]
+   [blaze.middleware.cors :refer [wrap-cors]]
+   [clojure.spec.alpha :as s]
+   [datomic-spec.core :as ds]
+   [integrant.core :as ig]
+   [reitit.ring]
+   [reitit.ring.spec]
+   [ring.util.response :as ring]
+   [taoensso.timbre :as log]))
 
 
 (defn resolve-pattern
@@ -26,7 +27,7 @@
      (resolve-pattern resource-patterns structure-definition)]
     (into
       [name
-       {:middleware [wrap-json]}
+       {:middleware [wrap-cors wrap-json]}
        [""
         (cond-> {:name (keyword name "type")}
           (contains? interactions :search-type)
