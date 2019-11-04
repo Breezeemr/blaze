@@ -46,26 +46,35 @@
     (d/db conn)))
 
 
+
+;;NOTE pulling the type from the uri isnt the right final solution
+;; If the goal is to make the handles per type, then i believe will
+;; have to stop dynamically creating them in the rest_api/resource-route
+;; e.g instead of (map #(resource-route resource-patterns %)) will
+;; need to just define them statically right there so we can pass the
+;; type here.
 (defn- handler-intern [conn]
-  (fn [{{:keys [type id vid]} :path-params}]
-    (-> (db conn vid)
-        (md/chain'
-          (fn [db]
-            (if-let [resource (pull/pull-resource db type id)]
-              (if (:deleted (meta resource))
-                (-> (handler-util/operation-outcome
-                      {:fhir/issue "deleted"})
-                    (ring/response)
-                    (ring/status 410)
-                    (ring/header "Last-Modified" (last-modified resource))
-                    (ring/header "ETag" (etag resource)))
-                (-> (ring/response resource)
-                    (ring/header "Last-Modified" (last-modified resource))
-                    (ring/header "ETag" (etag resource))))
-              (handler-util/error-response
-                {::anom/category ::anom/not-found
-                 :fhir/issue "not-found"}))))
-        (md/catch' handler-util/error-response))))
+  (fn [{{:keys [id vid]} :path-params
+       uri              :uri}]
+    (let [[type _] (str/split uri #"/")]
+      (-> (db conn vid)
+          (md/chain'
+            (fn [db]
+              (if-let [resource (pull/pull-resource db type id)]
+                (if (:deleted (meta resource))
+                  (-> (handler-util/operation-outcome
+                        {:fhir/issue "deleted"})
+                      (ring/response)
+                      (ring/status 410)
+                      (ring/header "Last-Modified" (last-modified resource))
+                      (ring/header "ETag" (etag resource)))
+                  (-> (ring/response resource)
+                      (ring/header "Last-Modified" (last-modified resource))
+                      (ring/header "ETag" (etag resource))))
+                (handler-util/error-response
+                  {::anom/category ::anom/not-found
+                   :fhir/issue     "not-found"}))))
+          (md/catch' handler-util/error-response)))))
 
 
 (defn wrap-interaction-name [handler]
