@@ -79,6 +79,13 @@
    :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
                                         :blaze.fhir.SearchParameter/expression [:CarePlan/subject :Patient/id]}]}
 
+  [:blaze.interaction/search-type :blaze.interaction.search/MedicationRequest]
+  {:database/conn                     #ig/ref :blaze.database/conn
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
+                                        :blaze.fhir.SearchParameter/expression [:MedicationRequest/subject :Patient/id]}]}
+
+
+
   :blaze.fhir.operation.evaluate-measure/executor
   {}
 
@@ -189,6 +196,12 @@
                                          :read
                                          {:handler #ig/ref :blaze.interaction/read}}}
 
+     #:blaze.rest-api.resource-pattern {:type "MedicationRequest"
+                                        :interactions
+                                        {:search-type
+                                         {:handler #ig/ref [:blaze.interaction/search-type :blaze.interaction.search/MedicationRequest]}
+                                         :read
+                                         {:handler #ig/ref :blaze.interaction/read}}}
      ]
     :operations
     [#:blaze.rest-api.operation
