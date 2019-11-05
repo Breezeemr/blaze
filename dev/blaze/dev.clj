@@ -1,11 +1,12 @@
+;; Possible deprecated
 (ns blaze.dev
   (:require
-    [blaze.spec]
-    [blaze.system :as system]
-    [clojure.repl :refer [pst]]
-    [clojure.spec.test.alpha :as st]
-    [clojure.tools.namespace.repl :refer [refresh]]
-    [datomic-spec.test :as dst]))
+   [blaze.spec]
+   [blaze.system :as system]
+   [clojure.repl :refer [pst]]
+   [clojure.spec.test.alpha :as st]
+   [clojure.tools.namespace.repl :refer [refresh]]
+   [datomic-spec.test :as dst]))
 
 
 ;; Spec Instrumentation
