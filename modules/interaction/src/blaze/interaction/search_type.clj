@@ -73,24 +73,17 @@
           (d/datoms db :aevt (util/resource-id-attr type)))))))
 
 (defn- handler-intern [{:keys [database/conn blaze.fhir.SearchParameter/config]}]
-  (fn [{:keys         [params uri]
-       ::reitit/keys [router]}]
-    ;;NOTE previously the "type" was a templated (e.g <type>/<id>)
-    ;;It's not clear that will be the way to do it moving forward.
-    ;;The solution here might not be robust enough either, as the uri
-    ;;might contain _more_ then the type
-    (-> (search router (d/db conn) uri params config)
+  (fn [{{{:fhir.resource/keys [type]} :data} ::reitit/match
+       :keys                                [params]
+       ::reitit/keys                        [router]}]
+    (-> (search router (d/db conn) type params config)
         (ring/response))))
 
 (s/def :handler.fhir/search fn?)
 
-;;TODO fix this spec
-;; (s/fdef handler
-;;   :args (s/cat :conn ::ds/conn)
-;;   :ret :handler.fhir/search)
-
+;;TODO improve spec
 (s/fdef handler
-  :args any?
+  :args (s/cat :conn ::ds/conn :config map?)
   :ret :handler.fhir/search)
 
 (defn handler
