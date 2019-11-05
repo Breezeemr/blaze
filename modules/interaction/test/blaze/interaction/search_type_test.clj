@@ -52,7 +52,7 @@
       (let [{:keys [status body]}
             @((handler ::conn)
               {::reitit/router ::router
-               :path-params {:type "Patient"}})]
+               ::reitit/match {:data {:fhir.resource/type "Patient"}}})]
 
         (is (= 200 status))
 
@@ -79,7 +79,7 @@
 
     (let [{:keys [status body]}
           @((handler ::conn)
-            {:path-params {:type "Patient"}
+            {::reitit/match {:data {:fhir.resource/type "Patient"}}
              :params {"_summary" "count"}})]
 
       (is (= 200 status))
@@ -98,7 +98,7 @@
 
     (let [{:keys [status body]}
           @((handler ::conn)
-            {:path-params {:type "Patient"}
+            {::reitit/match {:data {:fhir.resource/type "Patient"}}
              :params {"_count" "0"}})]
 
       (is (= 200 status))
@@ -131,7 +131,7 @@
       (let [{:keys [status body]}
             @((handler ::conn)
               {::reitit/router ::router
-               :path-params {:type "Patient"}})]
+               ::reitit/match {:data {:fhir.resource/type "Patient"}}})]
 
         (is (= 200 status))
 

@@ -11,10 +11,12 @@
     [clojure.spec.alpha :as s]
     [datomic.api :as d]
     [datomic-spec.core :as ds]
+    [integrant.core :as ig]
     [manifold.deferred :as md]
     [reitit.core :as reitit]
     [ring.middleware.params :refer [wrap-params]]
-    [ring.util.response :as ring]))
+    [ring.util.response :as ring]
+    [taoensso.timbre :as log]))
 
 
 (defn- total
@@ -113,3 +115,9 @@
   (-> (handler-intern conn)
       (wrap-params)
       (wrap-observe-request-duration "history-system")))
+
+
+(defmethod ig/init-key :blaze.interaction.history/system
+  [_ {:database/keys [conn]}]
+  (log/info "Init FHIR history system interaction handler")
+  (handler conn))

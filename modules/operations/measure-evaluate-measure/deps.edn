@@ -5,8 +5,14 @@
   blaze/executor
   {:local/root "../../executor"}
 
+  blaze/module-base
+  {:local/root "../../module-base"}
+
   blaze/rest-util
-  {:local/root "../../rest-util"}}
+  {:local/root "../../rest-util"}
+
+  blaze/thread-pool-executor-collector
+  {:local/root "../../thread-pool-executor-collector"}}
 
  :aliases
  {:test
@@ -26,4 +32,7 @@
     {:mvn/version "0.1"}
 
     org.clojure/test.check
-    {:mvn/version "0.10.0"}}}}}
+    {:mvn/version "0.10.0"}}
+
+   :main-opts
+   ["-m" "kaocha.runner"]}}}

@@ -6,6 +6,7 @@
     [blaze.datomic.spec]
     [blaze.datomic.value :as value]
     [blaze.datomic.util :as util]
+    [blaze.executors :refer [executor?]]
     [blaze.terminology-service :as ts :refer [term-service?]]
     [clojure.set :as set]
     [clojure.spec.alpha :as s]
@@ -23,8 +24,7 @@
     [java.time.format DateTimeFormatter]
     [java.util Base64]
     [java.util Date Map$Entry UUID]
-    [java.util.concurrent ExecutionException TimeUnit ThreadPoolExecutor
-                          ArrayBlockingQueue RejectedExecutionException]))
+    [java.util.concurrent ExecutionException RejectedExecutionException]))
 
 
 (defn- ident->path [ident]
@@ -974,10 +974,6 @@
     ::anom/fault))
 
 
-(def tx-executor
-  (ThreadPoolExecutor. 20 20 1 TimeUnit/MINUTES (ArrayBlockingQueue. 100)))
-
-
 (defhistogram execution-duration-seconds
   "Datomic transaction execution latencies in seconds."
   {:namespace "datomic"
@@ -998,7 +994,7 @@
 
 
 (s/fdef transact-async
-  :args (s/cat :conn ::ds/conn :tx-data ::ds/tx-data)
+  :args (s/cat :executor executor? :conn ::ds/conn :tx-data ::ds/tx-data)
   :ret deferred?)
 
 (defn transact-async
@@ -1007,9 +1003,9 @@
 
   Uses an executor with a maximum parallelism of 20 and times out after 10
   seconds."
-  [conn tx-data]
+  [executor conn tx-data]
   (try
-    (-> (md/future-with tx-executor
+    (-> (md/future-with executor
           (with-open [_ (prom/timer execution-duration-seconds)]
             @(d/transact-async conn tx-data)))
         (md/chain'

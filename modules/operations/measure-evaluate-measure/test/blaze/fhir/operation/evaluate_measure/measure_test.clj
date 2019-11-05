@@ -229,9 +229,13 @@
     "q10" 1
     "q11" 1
     "q12" 1
-    "q13" 1))
+    "q13" 1
+    "q14" 1
+    "q15" 1
+    "q16" 1
+    "q17" 2))
 
 (comment
-  (evaluate "q13")
+  (evaluate "q16")
   (clojure.repl/pst)
   )

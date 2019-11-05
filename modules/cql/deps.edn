@@ -52,4 +52,7 @@
     {:mvn/version "0.0.8"}
 
     org.clojure/test.check
-    {:mvn/version "0.10.0"}}}}}
+    {:mvn/version "0.10.0"}}
+
+   :main-opts
+   ["-m" "kaocha.runner"]}}}

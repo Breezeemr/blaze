@@ -12,10 +12,12 @@
     [cognitect.anomalies :as anom]
     [datomic.api :as d]
     [datomic-spec.core :as ds]
+    [integrant.core :as ig]
     [manifold.deferred :as md]
     [reitit.core :as reitit]
     [ring.middleware.params :refer [wrap-params]]
-    [ring.util.response :as ring]))
+    [ring.util.response :as ring]
+    [taoensso.timbre :as log]))
 
 
 (defn- resource-eid [db type id]
@@ -80,7 +82,8 @@
 
 (defn- handler-intern [conn]
   (fn [{::reitit/keys [router match] :keys [query-params]
-        {:keys [type id]} :path-params}]
+        {{:fhir.resource/keys [type]} :data} ::reitit/match
+        {:keys [id]} :path-params}]
     (-> (handler-util/db conn (fhir-util/t query-params))
         (md/chain' #(handle router match query-params % type id)))))
 
@@ -98,3 +101,9 @@
   (-> (handler-intern conn)
       (wrap-params)
       (wrap-observe-request-duration "history-instance")))
+
+
+(defmethod ig/init-key :blaze.interaction.history/instance
+  [_ {:database/keys [conn]}]
+  (log/info "Init FHIR history instance interaction handler")
+  (handler conn))

@@ -35,7 +35,8 @@
 
 (deftest handler-test
   (testing "Returns History with one Patient"
-    (let [tx {:db/id ::tx-eid}]
+    (let [tx {:db/id ::tx-eid}
+          match {:data {:fhir.resource/type "Patient"}}]
       (test-util/stub-t ::query-params nil?)
       (test-util/stub-db ::conn nil? ::db)
       (history-test-util/stub-page-t ::query-params nil?)
@@ -53,26 +54,26 @@
       (datomic-test-util/stub-type-version ::db "Patient" 1)
       (datomic-test-util/stub-resource-type* ::db ::patient-eid "Patient")
       (history-test-util/stub-nav-link
-        ::match ::query-params 152026 tx #{::patient-eid}
+        match ::query-params 152026 tx #{::patient-eid}
         (constantly ::self-link-url))
       (history-test-util/stub-build-entry
-        ::router ::db #{tx} #{::patient-eid} (constantly ::entry)))
+        ::router ::db #{tx} #{::patient-eid} (constantly ::entry))
 
-    (let [{:keys [status body]}
-          @((handler ::conn)
-            {::reitit/router ::router
-             ::reitit/match ::match
-             :query-params ::query-params
-             :path-params {:type "Patient"}})]
+      (let [{:keys [status body]}
+            @((handler ::conn)
+              {::reitit/router ::router
+               ::reitit/match match
+               :query-params ::query-params
+               :path-params {:type "Patient"}})]
 
-      (is (= 200 status))
+        (is (= 200 status))
 
-      (is (= "Bundle" (:resourceType body)))
+        (is (= "Bundle" (:resourceType body)))
 
-      (is (= "history" (:type body)))
+        (is (= "history" (:type body)))
 
-      (is (= 1 (:total body)))
+        (is (= 1 (:total body)))
 
-      (is (= 1 (count (:entry body))))
+        (is (= 1 (count (:entry body))))
 
-      (is (= ::entry (-> body :entry first))))))
+        (is (= ::entry (-> body :entry first)))))))

@@ -1,6 +1,6 @@
 /target
 /.lein-*
-/.nrepl-port
+.nrepl-port
 /queries
 /generate-docs.sh
 /fill-store.sh

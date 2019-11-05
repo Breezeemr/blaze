@@ -3,6 +3,7 @@
     [aleph.http :as http]
     [aleph.http.client-middleware :as client-middleware]
     [blaze.fhir-client :as client]
+    [blaze.module :refer [defcollector]]
     [blaze.terminology-service :as ts :refer [term-service?]]
     [clojure.core.cache :as cache]
     [clojure.spec.alpha :as s]
@@ -123,8 +124,12 @@
 
 
 (s/def ::proxy-options
-  (s/keys :opt-un [:proxy-options/host :proxy-options/port
-                   :proxy-options/user :proxy-options/password]))
+  (s/keys
+    :opt-un
+    [:proxy-options/host
+     :proxy-options/port
+     :proxy-options/user
+     :proxy-options/password]))
 
 
 (s/def ::milli-second
@@ -141,9 +146,41 @@
   (->TermService base (opts proxy-options connection-timeout request-timeout)))
 
 
+(s/def ::uri
+  string?)
+
+
+(s/def ::connection-timeout
+  (s/nilable ::milli-second))
+
+
+(s/def ::request-timeout
+  (s/nilable ::milli-second))
+
+
+(defmethod ig/pre-init-spec :blaze.terminology-service/extern [_]
+  (s/keys
+    :req-un
+    [::uri]
+    :opt-un
+    [:proxy-options/host
+     :proxy-options/port
+     :proxy-options/user
+     :proxy-options/password
+     ::connection-timeout
+     ::request-timeout]))
+
+
 (defmethod ig/init-key :blaze.terminology-service/extern
-  [_ {:keys [uri proxy-host proxy-port proxy-user proxy-password
-             connection-timeout request-timeout]}]
+  [_
+   {:keys
+    [uri
+     proxy-host
+     proxy-port
+     proxy-user
+     proxy-password
+     connection-timeout
+     request-timeout]}]
   (log/info
     (cond->
       (str "Init terminology server connection: " uri)
@@ -167,3 +204,14 @@
       proxy-user (assoc :user proxy-user)
       proxy-password (assoc :password proxy-password))
     connection-timeout request-timeout))
+
+
+(derive :blaze.terminology-service/extern :blaze/terminology-service)
+
+
+(defcollector errors-total [_]
+  errors-total)
+
+
+(defcollector request-duration-seconds [_]
+  request-duration-seconds)

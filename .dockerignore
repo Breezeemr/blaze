@@ -1,7 +1,7 @@
 *
+!modules
 !resources
 !src
 !Dockerfile
 !deps.edn
-!uberjar.sh
 !pom.xml

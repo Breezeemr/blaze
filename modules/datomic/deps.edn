@@ -2,6 +2,12 @@
  {blaze/anomaly
   {:local/root "../anomaly"}
 
+  blaze/executor
+  {:local/root "../executor"}
+
+  blaze/module-base
+  {:local/root "../module-base"}
+
   blaze/structure-definition
   {:local/root "../structure-definition"}
 
@@ -13,7 +19,7 @@
 
   funcool/cuerdas
   {:mvn/version "2.2.0"
-   :exclusions  [org.clojure/clojurescript]}
+   :exclusions [org.clojure/clojurescript]}
 
   javax.measure/unit-api
   {:mvn/version "1.0"}
@@ -54,4 +60,7 @@
     {:mvn/version "0.0.8"}
 
     org.clojure/test.check
-    {:mvn/version "0.10.0"}}}}}
+    {:mvn/version "0.10.0"}}
+
+   :main-opts
+   ["-m" "kaocha.runner"]}}}

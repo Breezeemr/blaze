@@ -55,7 +55,7 @@
 
 
 (defn stub-upsert-resource
-  [conn term-service db creation-mode resource tx-result]
+  [transaction-executor conn term-service db creation-mode resource tx-result]
   (st/instrument
     [`fhir-util/upsert-resource]
     {:spec
@@ -63,6 +63,7 @@
       (s/fspec
         :args
         (s/cat
+          :transaction-executor #{transaction-executor}
           :conn #{conn}
           :term-service #{term-service}
           :db #{db}

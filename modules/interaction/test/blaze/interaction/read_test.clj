@@ -11,6 +11,7 @@
     [clojure.spec.test.alpha :as st]
     [clojure.test :as test :refer [deftest is testing]]
     [datomic-spec.test :as dst]
+    [reitit.core :as reitit]
     [taoensso.timbre :as log])
   (:import
     [java.time Instant]))
@@ -39,7 +40,8 @@
 
     (let [{:keys [status body]}
           @((handler ::conn)
-             {:path-params {:type "Patient" :id "0"}})]
+             {:path-params {:id "0"}
+              ::reitit/match {:data {:fhir.resource/type "Patient"}}})]
 
       (is (= 404 status))
 
@@ -53,7 +55,8 @@
   (testing "Returns Not Found on Invalid Version ID"
     (let [{:keys [status body]}
           @((handler ::conn)
-             {:path-params {:type "Patient" :id "0" :vid "a"}})]
+             {:path-params {:id "0" :vid "a"}
+              ::reitit/match {:data {:fhir.resource/type "Patient"}}})]
 
       (is (= 404 status))
 
@@ -75,7 +78,8 @@
 
       (let [{:keys [status body headers]}
             @((handler ::conn)
-               {:path-params {:type "Patient" :id "0"}})]
+               {:path-params {:id "0"}
+                ::reitit/match {:data {:fhir.resource/type "Patient"}}})]
 
         (is (= 410 status))
 
@@ -103,7 +107,8 @@
 
       (let [{:keys [status headers body]}
             @((handler ::conn)
-               {:path-params {:type "Patient" :id "0"}})]
+               {:path-params {:id "0"}
+                ::reitit/match {:data {:fhir.resource/type "Patient"}}})]
 
         (is (= 200 status))
 
@@ -128,7 +133,8 @@
 
       (let [{:keys [status headers body]}
             @((handler ::conn)
-               {:path-params {:type "Patient" :id "0" :vid "42"}})]
+               {:path-params {:id "0" :vid "42"}
+                ::reitit/match {:data {:fhir.resource/type "Patient"}}})]
 
         (is (= 200 status))
 

@@ -25,6 +25,7 @@
         :args
         (s/cat
           :clock #(instance? Clock %)
+          :transaction-executor executor?
           :conn #{::conn}
           :term-service #{::term-service}
           :executor executor?))}})
@@ -39,6 +40,7 @@
 (def base-uri "http://localhost:8080")
 (def clock (Clock/fixed Instant/EPOCH (ZoneOffset/ofHours 0)))
 (def now (OffsetDateTime/ofInstant Instant/EPOCH (ZoneOffset/ofHours 0)))
+(defonce transaction-executor (ex/single-thread-executor))
 (defonce executor (ex/single-thread-executor))
 
 
@@ -49,9 +51,14 @@
     {:spec
      {`fhir-util/upsert-resource
       (s/fspec
-        :args (s/cat :conn #{conn} :term-service #{term-service} :db #{db}
-                     :creation-mode #{creation-mode}
-                     :resource #{resource})
+        :args
+        (s/cat
+          :transaction-executor #{transaction-executor}
+          :conn #{conn}
+          :term-service #{term-service}
+          :db #{db}
+          :creation-mode #{creation-mode}
+          :resource #{resource})
         :ret #{tx-result})}
      :stub
      #{`fhir-util/upsert-resource}}))
@@ -76,7 +83,7 @@
     (datomic-test-util/stub-resource ::db #{"Measure"} #{"0"} nil?)
 
     (let [{:keys [status body]}
-          ((handler clock ::conn ::term-service executor)
+          ((handler clock transaction-executor ::conn ::term-service executor)
            {:path-params {:type "Measure" :id "0"}})]
 
       (is (= 404 status))
@@ -93,7 +100,7 @@
     (datomic-test-util/stub-deleted? ::measure true?)
 
     (let [{:keys [status body]}
-          ((handler clock ::conn ::term-service executor)
+          ((handler clock transaction-executor ::conn ::term-service executor)
            {:path-params {:type "Measure" :id "0"}})]
 
       (is (= 410 status))
@@ -114,7 +121,7 @@
         now ::db "2014" "2015" ::measure ::measure-report)
 
       (let [{:keys [status body]}
-            @((handler clock ::conn ::term-service executor)
+            @((handler clock transaction-executor ::conn ::term-service executor)
               {::reitit/router ::router
                :request-method :get
                :path-params {:type "Measure" :id "0"}
@@ -136,7 +143,12 @@
         ::router nil? ::db-after "MeasureReport" "0" ::response)
 
       (is (= ::response
-             @((handler clock ::conn ::term-service executor)
+             @((handler
+                 clock
+                 transaction-executor
+                 ::conn
+                 ::term-service
+                 executor)
                {::reitit/router ::router
                 :request-method :post
                 :path-params {:type "Measure" :id "0"}

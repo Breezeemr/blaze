@@ -25,7 +25,11 @@
     {:spec
      {`handler
       (s/fspec
-        :args (s/cat :conn #{::conn} :term-service #{::term-service}))}})
+        :args
+        (s/cat
+          :transaction-executor #{::transaction-executor}
+          :conn #{::conn}
+          :term-service #{::term-service}))}})
   (datomic-test-util/stub-db ::conn ::db-before)
   (log/with-merged-config {:level :error} (f))
   (st/unstrument))
@@ -37,9 +41,10 @@
 (deftest handler-test
   (testing "Returns Error on type mismatch"
     (let [{:keys [status body]}
-          @((handler ::conn ::term-service)
-             {:path-params {:type "Patient" :id "0"}
-              :body {"resourceType" "Observation"}})]
+          @((handler ::transaction-executor ::conn ::term-service)
+            {:path-params {:id "0"}
+             ::reitit/match {:data {:fhir.resource/type "Patient"}}
+             :body {"resourceType" "Observation"}})]
 
       (is (= 400 status))
 
@@ -56,9 +61,10 @@
 
   (testing "Returns Error on ID mismatch"
     (let [{:keys [status body]}
-          @((handler ::conn ::term-service)
-             {:path-params {:type "Patient" :id "0"}
-              :body {"resourceType" "Patient" "id" "1"}})]
+          @((handler ::transaction-executor ::conn ::term-service)
+            {:path-params {:id "0"}
+             ::reitit/match {:data {:fhir.resource/type "Patient"}}
+             :body {"resourceType" "Patient" "id" "1"}})]
 
       (is (= 400 status))
 
@@ -77,7 +83,12 @@
     (let [resource {"resourceType" "Patient" "id" "0"}]
       (datomic-test-util/stub-resource ::db-before #{"Patient"} #{"0"} nil?)
       (test-util/stub-upsert-resource
-        ::conn ::term-service ::db-before :client-assigned-id resource
+        ::transaction-executor
+        ::conn
+        ::term-service
+        ::db-before
+        :client-assigned-id
+        resource
         (md/success-deferred {:db-after ::db-after}))
       (datomic-test-util/stub-basis-transaction
         ::db-after {:db/txInstant #inst "2019-05-14T13:58:20.060-00:00"})
@@ -88,10 +99,11 @@
 
       (testing "with no Prefer header"
         (let [{:keys [status headers body]}
-              @((handler ::conn ::term-service)
+              @((handler ::transaction-executor ::conn ::term-service)
                 {::reitit/router ::router
-                 :path-params {:type "Patient" :id "0"}
-                  :body resource})]
+                 :path-params {:id "0"}
+                 ::reitit/match {:data {:fhir.resource/type "Patient"}}
+                 :body resource})]
 
           (testing "Returns 201"
             (is (= 201 status)))
@@ -111,33 +123,36 @@
 
       (testing "with return=minimal Prefer header"
         (let [{:keys [body]}
-              @((handler ::conn ::term-service)
+              @((handler ::transaction-executor ::conn ::term-service)
                 {::reitit/router ::router
-                 :path-params {:type "Patient" :id "0"}
-                  :headers {"prefer" "return=minimal"}
-                  :body resource})]
+                 :path-params {:id "0"}
+                 ::reitit/match {:data {:fhir.resource/type "Patient"}}
+                 :headers {"prefer" "return=minimal"}
+                 :body resource})]
 
           (testing "Contains no body"
             (is (nil? body)))))
 
       (testing "with return=representation Prefer header"
         (let [{:keys [body]}
-              @((handler ::conn ::term-service)
+              @((handler ::transaction-executor ::conn ::term-service)
                 {::reitit/router ::router
-                 :path-params {:type "Patient" :id "0"}
-                  :headers {"prefer" "return=representation"}
-                  :body resource})]
+                 :path-params {:id "0"}
+                 ::reitit/match {:data {:fhir.resource/type "Patient"}}
+                 :headers {"prefer" "return=representation"}
+                 :body resource})]
 
           (testing "Contains the resource as body"
             (is (= ::resource-after body)))))
 
       (testing "with return=OperationOutcome Prefer header"
         (let [{:keys [body]}
-              @((handler ::conn ::term-service)
+              @((handler ::transaction-executor ::conn ::term-service)
                 {::reitit/router ::router
-                 :path-params {:type "Patient" :id "0"}
-                  :headers {"prefer" "return=OperationOutcome"}
-                  :body resource})]
+                 :path-params {:id "0"}
+                 ::reitit/match {:data {:fhir.resource/type "Patient"}}
+                 :headers {"prefer" "return=OperationOutcome"}
+                 :body resource})]
 
           (testing "Contains an OperationOutcome as body"
             (is (= {:resourceType "OperationOutcome"} body)))))))
@@ -147,7 +162,12 @@
     (let [resource {"resourceType" "Patient" "id" "0"}]
       (datomic-test-util/stub-resource ::db-before #{"Patient"} #{"0"} some?)
       (test-util/stub-upsert-resource
-        ::conn ::term-service ::db-before :client-assigned-id resource
+        ::transaction-executor
+        ::conn
+        ::term-service
+        ::db-before
+        :client-assigned-id
+        resource
         (md/success-deferred {:db-after ::db-after}))
       (datomic-test-util/stub-basis-transaction
         ::db-after {:db/txInstant #inst "2019-05-14T13:58:20.060-00:00"})
@@ -156,9 +176,10 @@
 
       (testing "with no Prefer header"
         (let [{:keys [status headers body]}
-              @((handler ::conn ::term-service)
-                 {:path-params {:type "Patient" :id "0"}
-                  :body resource})]
+              @((handler ::transaction-executor ::conn ::term-service)
+                {:path-params {:id "0"}
+                 ::reitit/match {:data {:fhir.resource/type "Patient"}}
+                 :body resource})]
 
           (testing "Returns 200"
             (is (= 200 status)))
@@ -175,10 +196,11 @@
 
       (testing "with return=minimal Prefer header"
         (let [{:keys [status body]}
-              @((handler ::conn ::term-service)
-                 {:path-params {:type "Patient" :id "0"}
-                  :headers {"prefer" "return=minimal"}
-                  :body resource})]
+              @((handler ::transaction-executor ::conn ::term-service)
+                {:path-params {:id "0"}
+                 ::reitit/match {:data {:fhir.resource/type "Patient"}}
+                 :headers {"prefer" "return=minimal"}
+                 :body resource})]
 
           (testing "Returns 200"
             (is (= 200 status)))
@@ -188,10 +210,11 @@
 
       (testing "with return=representation Prefer header"
         (let [{:keys [status body]}
-              @((handler ::conn ::term-service)
-                 {:path-params {:type "Patient" :id "0"}
-                  :headers {"prefer" "return=representation"}
-                  :body resource})]
+              @((handler ::transaction-executor ::conn ::term-service)
+                {:path-params {:id "0"}
+                 ::reitit/match {:data {:fhir.resource/type "Patient"}}
+                 :headers {"prefer" "return=representation"}
+                 :body resource})]
 
           (testing "Returns 200"
             (is (= 200 status)))
@@ -201,10 +224,11 @@
 
       (testing "with return=OperationOutcome Prefer header"
         (let [{:keys [status body]}
-              @((handler ::conn ::term-service)
-                 {:path-params {:type "Patient" :id "0"}
-                  :headers {"prefer" "return=OperationOutcome"}
-                  :body resource})]
+              @((handler ::transaction-executor ::conn ::term-service)
+                {:path-params {:id "0"}
+                 ::reitit/match {:data {:fhir.resource/type "Patient"}}
+                 :headers {"prefer" "return=OperationOutcome"}
+                 :body resource})]
 
           (testing "Returns 200"
             (is (= 200 status)))

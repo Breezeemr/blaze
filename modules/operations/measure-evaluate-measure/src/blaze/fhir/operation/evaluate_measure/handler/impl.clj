@@ -23,7 +23,7 @@
 
 
 (defn- handle
-  [clock conn term-service db executor
+  [clock transaction-executor conn term-service db executor
    {::reitit/keys [router] :keys [request-method headers]
     {:strs [periodStart periodEnd]} :query-params}
    measure]
@@ -42,7 +42,12 @@
                 (let [id (str (d/squuid))
                       return-preference (handler-util/preference headers "return")]
                   (-> (fhir-util/upsert-resource
-                        conn term-service db :server-assigned-id (assoc result "id" id))
+                        transaction-executor
+                        conn
+                        term-service
+                        db
+                        :server-assigned-id
+                        (assoc result "id" id))
                       (md/chain'
                         #(response/build-created-response
                            router return-preference (:db-after %) "MeasureReport" id))
@@ -53,11 +58,12 @@
   :args
   (s/cat
     :clock #(instance? Clock %)
+    :transaction-executor executor?
     :conn ::ds/conn
     :term-service term-service?
     :executor executor?))
 
-(defn handler [clock conn term-service executor]
+(defn handler [clock transaction-executor conn term-service executor]
   (fn [{{:keys [id]} :path-params :as request}]
     (let [db (d/db conn)]
       (if-let [measure (datomic-util/resource db "Measure" id)]
@@ -66,7 +72,15 @@
                 {:fhir/issue "deleted"})
               (ring/response)
               (ring/status 410))
-          (handle clock conn term-service db executor request measure))
+          (handle
+            clock
+            transaction-executor
+            conn
+            term-service
+            db
+            executor
+            request
+            measure))
         (handler-util/error-response
           {::anom/category ::anom/not-found
            :fhir/issue "not-found"})))))

@@ -6,6 +6,7 @@
      :refer [annotate-codes resource-upsert resource-deletion
              coerce-value transact-async resource-codes-creation]]
     [blaze.datomic.value :as value]
+    [blaze.executors :as ex]
     [blaze.terminology-service :as ts]
     [clojure.spec.test.alpha :as st]
     [clojure.test :refer [deftest is testing use-fixtures]]
@@ -20,6 +21,9 @@
 
 
 (defonce db (d/db (st/with-instrument-disabled (test-util/connect))))
+
+
+(defonce transaction-executor (ex/single-thread-executor))
 
 
 (defn fixture [f]
@@ -2073,7 +2077,10 @@
       @(d/transact-async conn [{:Patient/id "0" :instance/version 0}])
       @(d/transact-async conn [[:db.fn/cas [:Patient/id "0"] :instance/version 0 1]])
 
-      @(-> (transact-async conn [[:db.fn/cas [:Patient/id "0"] :instance/version 0 1]])
+      @(-> (transact-async
+             transaction-executor
+             conn
+             [[:db.fn/cas [:Patient/id "0"] :instance/version 0 1]])
            (md/catch'
              (fn [{::anom/keys [category]}]
                (is (= ::anom/conflict category))))))))

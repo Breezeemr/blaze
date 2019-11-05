@@ -7,6 +7,7 @@
   readability."
   (:require
     [blaze.middleware.fhir.metrics :refer [wrap-observe-request-duration]]
+    [blaze.spec]
     [blaze.structure-definition]
     [clojure.spec.alpha :as s]
     [ring.util.response :as ring]))
@@ -51,8 +52,11 @@
 
 
 (s/fdef handler
-  :args (s/cat :base-url string? :version string?
-               :structure-definitions (s/coll-of :fhir.un/StructureDefinition))
+  :args
+  (s/cat
+    :base-url :blaze/base-url
+    :version string?
+    :structure-definitions (s/coll-of :fhir.un/StructureDefinition))
   :ret :handler.fhir/capabilities)
 
 (defn handler

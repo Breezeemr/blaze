@@ -499,13 +499,13 @@
      #{`tx/resource-upsert}}))
 
 
-(defn stub-transact-async [conn tx-data tx-result]
+(defn stub-transact-async [executor conn tx-data tx-result]
   (st/instrument
     [`tx/transact-async]
     {:spec
      {`tx/transact-async
       (s/fspec
-        :args (s/cat :conn #{conn} :tx-data #{tx-data})
+        :args (s/cat :executor #{executor} :conn #{conn} :tx-data #{tx-data})
         :ret #{tx-result})}
      :stub
      #{`tx/transact-async}}))

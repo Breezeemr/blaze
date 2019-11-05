@@ -1,6 +1,6 @@
-(ns blaze.middleware.authentication-test
+(ns blaze.openid-auth-test
   (:require
-   [blaze.middleware.authentication :refer [public-key]]
+   [blaze.openid-auth :refer [public-key]]
    [clojure.test :refer :all])
   (:import
     [java.security PublicKey]))

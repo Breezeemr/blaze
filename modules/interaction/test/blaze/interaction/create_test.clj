@@ -26,7 +26,11 @@
     {:spec
      {`handler
       (s/fspec
-        :args (s/cat :conn #{::conn} :term-service #{::term-service}))}})
+        :args
+        (s/cat
+          :transaction-executor #{::transaction-executor}
+          :conn #{::conn}
+          :term-service #{::term-service}))}})
   (log/with-merged-config {:level :error} (f))
   (st/unstrument))
 
@@ -56,8 +60,8 @@
 (deftest handler-test
   (testing "Returns Error on type mismatch"
     (let [{:keys [status body]}
-          @((handler ::conn ::term-service)
-            {:path-params {:type "Patient"}
+          @((handler ::transaction-executor ::conn ::term-service)
+            {::reitit/match {:data {:fhir.resource/type "Patient"}}
              :body {"resourceType" "Observation"}})]
 
       (is (= 400 status))
@@ -78,7 +82,11 @@
       (datomic-test-util/stub-db ::conn ::db-before)
       (datomic-test-util/stub-squuid id)
       (test-util/stub-upsert-resource
-        ::conn ::term-service ::db-before :server-assigned-id
+        ::transaction-executor
+        ::conn
+        ::term-service
+        ::db-before
+        :server-assigned-id
         {"resourceType" "Patient" "id" (str id)}
         (md/success-deferred {:db-after ::db-after}))
 
@@ -87,9 +95,9 @@
           ::router nil? ::db-after "Patient" (str id) ::response)
 
         (is (= ::response
-               @((handler ::conn ::term-service)
+               @((handler ::transaction-executor ::conn ::term-service)
                  {::reitit/router ::router
-                  :path-params {:type "Patient"}
+                  ::reitit/match {:data {:fhir.resource/type "Patient"}}
                   :body {"resourceType" "Patient"}}))))
 
       (testing "with return=minimal Prefer header"
@@ -97,9 +105,9 @@
           ::router #{"minimal"} ::db-after "Patient" (str id) ::response)
 
         (is (= ::response
-               @((handler ::conn ::term-service)
+               @((handler ::transaction-executor ::conn ::term-service)
                  {::reitit/router ::router
-                  :path-params {:type "Patient"}
+                  ::reitit/match {:data {:fhir.resource/type "Patient"}}
                   :headers {"prefer" "return=minimal"}
                   :body {"resourceType" "Patient"}}))))
 
@@ -108,9 +116,9 @@
           ::router #{"representation"} ::db-after "Patient" (str id) ::response)
 
         (is (= ::response
-               @((handler ::conn ::term-service)
+               @((handler ::transaction-executor ::conn ::term-service)
                  {::reitit/router ::router
-                  :path-params {:type "Patient"}
+                  ::reitit/match {:data {:fhir.resource/type "Patient"}}
                   :headers {"prefer" "return=representation"}
                   :body {"resourceType" "Patient"}}))))
 
@@ -119,8 +127,8 @@
           ::router #{"OperationOutcome"} ::db-after "Patient" (str id) ::response)
 
         (is (= ::response
-               @((handler ::conn ::term-service)
+               @((handler ::transaction-executor ::conn ::term-service)
                  {::reitit/router ::router
-                  :path-params {:type "Patient"}
+                  ::reitit/match {:data {:fhir.resource/type "Patient"}}
                   :headers {"prefer" "return=OperationOutcome"}
                   :body {"resourceType" "Patient"}})))))))

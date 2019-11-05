@@ -60,8 +60,12 @@
                    :fhir.observation/valueQuantity]))
 
 
-(s/def :fhir/resourceType
+(s/def :fhir.resource/type
   string?)
+
+
+(s/def :fhir/resourceType
+  :fhir.resource/type)
 
 
 (s/def :fhir/id

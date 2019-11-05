@@ -72,7 +72,8 @@
   Expression
   (-eval [_ context resource scope]
     (let [value (-eval source context resource scope)]
-      (dv/read ((type-attr value) value)))))
+      (when-let [type-attr (type-attr value)]
+        (dv/read (type-attr value))))))
 
 
 (s/fdef source-choice-type-expr

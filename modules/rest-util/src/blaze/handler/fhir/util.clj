@@ -4,6 +4,7 @@
   (:require
     [blaze.datomic.transaction :as tx]
     [blaze.datomic.util :as datomic-util]
+    [blaze.executors :refer [executor?]]
     [blaze.terminology-service :refer [term-service?]]
     [clojure.spec.alpha :as s]
     [datomic-spec.core :as ds]
@@ -37,25 +38,32 @@
       (conj [:db/add "datomic.tx" :tx/resources (:db/id resource)]))))
 
 
-(defn- upsert-resource* [conn db creation-mode resource]
+(defn- upsert-resource* [transaction-executor conn db creation-mode resource]
   (let [[type id tempid] (tx/resource-tempid db resource)
         tempids (when tempid {type {id tempid}})
         tx-data (tx/resource-upsert db tempids creation-mode resource)]
     (if (empty? tx-data)
       {:db-after db}
       (tx/transact-async
-        conn (into tx-data (update-system-and-type-tx-data db tempid resource))))))
+        transaction-executor
+        conn
+        (into tx-data (update-system-and-type-tx-data db tempid resource))))))
 
 
 (s/fdef upsert-resource
-  :args (s/cat :conn ::ds/conn :term-service term-service? :db ::ds/db
-               :creation-mode ::tx/creation-mode
-               :resource ::tx/resource)
+  :args
+  (s/cat
+    :transaction-executor executor?
+    :conn ::ds/conn
+    :term-service term-service?
+    :db ::ds/db
+    :creation-mode ::tx/creation-mode
+    :resource ::tx/resource)
   :ret deferrable?)
 
 (defn upsert-resource
   "Upserts `resource` and returns the deferred transaction result."
-  [conn term-service db creation-mode resource]
+  [transaction-executor conn term-service db creation-mode resource]
   (-> (tx/annotate-codes term-service db resource)
       (md/chain'
         (fn [resource]
@@ -63,11 +71,21 @@
               (md/chain'
                 (fn [tx-data]
                   (if (empty? tx-data)
-                    (upsert-resource* conn db creation-mode resource)
-                    (-> (tx/transact-async conn tx-data)
+                    (upsert-resource*
+                      transaction-executor
+                      conn
+                      db
+                      creation-mode
+                      resource)
+                    (-> (tx/transact-async transaction-executor conn tx-data)
                         (md/chain'
                           (fn [{db :db-after}]
-                            (upsert-resource* conn db creation-mode resource))))))))))))
+                            (upsert-resource*
+                              transaction-executor
+                              conn
+                              db
+                              creation-mode
+                              resource))))))))))))
 
 
 (defn- decrement-total [type]
@@ -83,17 +101,25 @@
 
 
 (s/fdef delete-resource
-  :args (s/cat :conn ::ds/conn :db ::ds/db :type string? :id string?))
+  :args
+  (s/cat
+    :transaction-executor executor?
+    :conn ::ds/conn
+    :db ::ds/db
+    :type string?
+    :id string?))
 
 (defn delete-resource
-  [conn db type id]
+  [transaction-executor conn db type id]
   (-> (md/future (tx/resource-deletion db type id))
       (md/chain'
         (fn [tx-data]
           (if (empty? tx-data)
             {:db-after db}
             (tx/transact-async
-              conn (into tx-data (delete-system-and-type-tx-data db type id))))))))
+              transaction-executor
+              conn
+              (into tx-data (delete-system-and-type-tx-data db type id))))))))
 
 
 (s/fdef t

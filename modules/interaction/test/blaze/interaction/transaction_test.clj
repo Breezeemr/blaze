@@ -34,6 +34,7 @@
       (s/fspec
         :args
         (s/cat
+          :transaction-executor #{::transaction-executor}
           :conn #{::conn}
           :term-service #{::term-service}
           :executor executor?))}})
@@ -104,7 +105,7 @@
 (deftest handler-test
   (testing "Returns Error on missing request"
     (let [{:keys [status body]}
-          @((handler ::conn ::term-service executor)
+          @((handler ::transaction-executor ::conn ::term-service executor)
             {:body
              {"resourceType" "Bundle"
               "type" "transaction"
@@ -123,7 +124,7 @@
 
   (testing "Returns Error on missing request url"
     (let [{:keys [status body]}
-          @((handler ::conn ::term-service executor)
+          @((handler ::transaction-executor ::conn ::term-service executor)
             {:body
              {"resourceType" "Bundle"
               "type" "transaction"
@@ -143,7 +144,7 @@
 
   (testing "Returns Error on missing request method"
     (let [{:keys [status body]}
-          @((handler ::conn ::term-service executor)
+          @((handler ::transaction-executor ::conn ::term-service executor)
             {:body
              {"resourceType" "Bundle"
               "type" "transaction"
@@ -164,7 +165,7 @@
 
   (testing "Returns Error on unknown method"
     (let [{:keys [status body]}
-          @((handler ::conn ::term-service executor)
+          @((handler ::transaction-executor ::conn ::term-service executor)
             {:body
              {"resourceType" "Bundle"
               "type" "transaction"
@@ -187,7 +188,7 @@
 
   (testing "Returns Error on unsupported method"
     (let [{:keys [status body]}
-          @((handler ::conn ::term-service executor)
+          @((handler ::transaction-executor ::conn ::term-service executor)
             {:body
              {"resourceType" "Bundle"
               "type" "transaction"
@@ -210,7 +211,7 @@
 
   (testing "Returns Error on missing type"
     (let [{:keys [status body]}
-          @((handler ::conn ::term-service executor)
+          @((handler ::transaction-executor ::conn ::term-service executor)
             {:body
              {"resourceType" "Bundle"
               "type" "transaction"
@@ -235,7 +236,7 @@
     (datomic-test-util/stub-cached-entity ::db-before #{:Foo} nil?)
 
     (let [{:keys [status body]}
-          @((handler ::conn ::term-service executor)
+          @((handler ::transaction-executor ::conn ::term-service executor)
             {:body
              {"resourceType" "Bundle"
               "type" "transaction"
@@ -260,7 +261,7 @@
     (given-types-available "Patient")
 
     (let [{:keys [status body]}
-          @((handler ::conn ::term-service executor)
+          @((handler ::transaction-executor ::conn ::term-service executor)
             {:body
              {"resourceType" "Bundle"
               "type" "transaction"
@@ -287,7 +288,7 @@
     (given-types-available "Patient")
 
     (let [{:keys [status body]}
-          @((handler ::conn ::term-service executor)
+          @((handler ::transaction-executor ::conn ::term-service executor)
             {:body
              {"resourceType" "Bundle"
               "type" "transaction"
@@ -321,7 +322,7 @@
     (given-types-available "Patient")
 
     (let [{:keys [status body]}
-          @((handler ::conn ::term-service executor)
+          @((handler ::transaction-executor ::conn ::term-service executor)
             {:body
              {"resourceType" "Bundle"
               "type" "transaction"
@@ -368,14 +369,15 @@
       (stub-annotate-codes ::term-service ::db-before)
       (stub-code-tx-data ::db-before coll? [])
       (stub-tx-data ::db-before coll? ::tx-data)
-      (datomic-test-util/stub-transact-async ::conn ::tx-data {:db-after ::db-after})
+      (datomic-test-util/stub-transact-async
+        ::transaction-executor ::conn ::tx-data {:db-after ::db-after})
       (datomic-test-util/stub-basis-transaction ::db-after ::transaction)
       (stub-tx-instant ::transaction (Instant/ofEpochMilli 0))
       (datomic-test-util/stub-basis-t ::db-after 42)
       (test-util/stub-versioned-instance-url ::router "Patient" "0" "42" ::location)
 
       (let [{:keys [status body]}
-            @((handler ::conn ::term-service executor)
+            @((handler ::transaction-executor ::conn ::term-service executor)
               {::reitit/router ::router
                :body
                {"resourceType" "Bundle"
@@ -416,14 +418,17 @@
       (stub-code-tx-data ::db-before coll? [])
       (stub-tx-data ::db-before coll? ::tx-data)
       (datomic-test-util/stub-transact-async
-        ::conn ::tx-data (md/success-deferred {:db-after ::db-after}))
+        ::transaction-executor
+        ::conn
+        ::tx-data
+        (md/success-deferred {:db-after ::db-after}))
       (datomic-test-util/stub-basis-transaction ::db-after ::transaction)
       (stub-tx-instant ::transaction (Instant/ofEpochMilli 0))
       (datomic-test-util/stub-basis-t ::db-after 42)
 
       (testing "with no Prefer header"
         (let [{:keys [status body]}
-              @((handler ::conn ::term-service executor)
+              @((handler ::transaction-executor ::conn ::term-service executor)
                 {:body
                  {"resourceType" "Bundle"
                   "type" "transaction"
@@ -468,13 +473,16 @@
       (stub-annotate-codes ::term-service ::db-before)
       (stub-code-tx-data ::db-before coll? [])
       (stub-tx-data ::db-before coll? ::tx-data)
-      (datomic-test-util/stub-transact-async ::conn ::tx-data {:db-after ::db-after})
+      (datomic-test-util/stub-transact-async
+        ::transaction-executor ::conn ::tx-data {:db-after ::db-after})
       (datomic-test-util/stub-resource
-        ::db-after #{"Patient" "Observation"} #{(str id)} #{{:instance/version 0}})
+        ::db-after #{"Patient" "Observation"} #{(str id)}
+        #{{:instance/version 0}})
       (datomic-test-util/stub-basis-transaction ::db-after ::transaction)
       (stub-tx-instant ::transaction (Instant/ofEpochMilli 0))
       (datomic-test-util/stub-basis-t ::db-after 42)
-      (test-util/stub-versioned-instance-url ::router "Patient" (str id) "42" ::location)
+      (test-util/stub-versioned-instance-url
+        ::router "Patient" (str id) "42" ::location)
       (st/instrument
         [`fhir-util/versioned-instance-url]
         {:spec
@@ -488,7 +496,7 @@
             (keyword "location" type))}})
 
       (let [{:keys [status body]}
-            @((handler ::conn ::term-service executor)
+            @((handler ::transaction-executor ::conn ::term-service executor)
               {::reitit/router ::router
                :body
                {"resourceType" "Bundle"
@@ -547,7 +555,7 @@
         ::router "Patient" {:result {:post {:handler handler}}}))
 
     (let [{:keys [status body]}
-          @((handler ::conn ::term-service executor)
+          @((handler ::transaction-executor ::conn ::term-service executor)
             {::reitit/router ::router
              :body
              {"resourceType" "Bundle"
@@ -584,7 +592,7 @@
         ::router "Patient" {:result {:post {:handler handler}}}))
 
     (let [{:keys [status body]}
-          @((handler ::conn ::term-service executor)
+          @((handler ::transaction-executor ::conn ::term-service executor)
             {::reitit/router ::router
              :body
              {"resourceType" "Bundle"
@@ -621,7 +629,7 @@
         ::router "Patient/0" {:result {:get {:handler handler}}}))
 
     (let [{:keys [status body]}
-          @((handler ::conn ::term-service executor)
+          @((handler ::transaction-executor ::conn ::term-service executor)
             {::reitit/router ::router
              :body
              {"resourceType" "Bundle"
@@ -654,7 +662,7 @@
         ::router "Patient/0" {:result {:get {:handler handler}}}))
 
     (let [{:keys [status body]}
-          @((handler ::conn ::term-service executor)
+          @((handler ::transaction-executor ::conn ::term-service executor)
             {::reitit/router ::router
              :body
              {"resourceType" "Bundle"
@@ -687,7 +695,7 @@
         ::router "Patient" {:result {:get {:handler handler}}}))
 
     (let [{:keys [status body]}
-          @((handler ::conn ::term-service executor)
+          @((handler ::transaction-executor ::conn ::term-service executor)
             {::reitit/router ::router
              :body
              {"resourceType" "Bundle"
@@ -723,7 +731,7 @@
         ::router "Patient/0" {:result {:put {:handler handler}}}))
 
     (let [{:keys [status body]}
-          @((handler ::conn ::term-service executor)
+          @((handler ::transaction-executor ::conn ::term-service executor)
             {::reitit/router ::router
              :body
              {"resourceType" "Bundle"

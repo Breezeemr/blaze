@@ -11,6 +11,7 @@
     [clojure.test :as test :refer [deftest is testing]]
     [datomic-spec.test :as dst]
     [manifold.deferred :as md]
+    [reitit.core :as reitit]
     [taoensso.timbre :as log]))
 
 
@@ -22,7 +23,10 @@
     {:spec
      {`handler
       (s/fspec
-        :args (s/cat :conn #{::conn}))}})
+        :args
+        (s/cat
+          :transaction-executor #{::transaction-executor}
+          :conn #{::conn}))}})
   (datomic-test-util/stub-db ::conn ::db)
   (log/with-merged-config {:level :error} (f))
   (st/unstrument))
@@ -31,13 +35,19 @@
 (test/use-fixtures :each fixture)
 
 
-(defn stub-delete-resource [conn db type id tx-result]
+(defn stub-delete-resource [transaction-executor conn db type id tx-result]
   (st/instrument
     [`fhir-util/delete-resource]
     {:spec
      {`fhir-util/delete-resource
       (s/fspec
-        :args (s/cat :conn #{conn} :db #{db} :type #{type} :id #{id})
+        :args
+        (s/cat
+          :transaction-executor #{transaction-executor}
+          :conn #{conn}
+          :db #{db}
+          :type #{type}
+          :id #{id})
         :ret #{tx-result})}
      :stub
      #{`fhir-util/delete-resource}}))
@@ -48,8 +58,9 @@
     (datomic-test-util/stub-resource ::db #{"Patient"} #{"0"} nil?)
 
     (let [{:keys [status body]}
-          @((handler ::conn)
-            {:path-params {:type "Patient" :id "0"}})]
+          @((handler ::transaction-executor ::conn)
+            {:path-params {:id "0"}
+             ::reitit/match {:data {:fhir.resource/type "Patient"}}})]
 
       (is (= 404 status))
 
@@ -63,14 +74,20 @@
   (testing "Returns No Content on successful deletion"
     (datomic-test-util/stub-resource ::db #{"Patient"} #{"0"} #{::patient})
     (stub-delete-resource
-      ::conn ::db "Patient" "0" (md/success-deferred {:db-after ::db-after}))
+      ::transaction-executor
+      ::conn
+      ::db
+      "Patient"
+      "0"
+      (md/success-deferred {:db-after ::db-after}))
     (datomic-test-util/stub-basis-transaction
       ::db-after {:db/txInstant #inst "2019-05-14T13:58:20.060-00:00"})
     (datomic-test-util/stub-basis-t ::db-after 42)
 
     (let [{:keys [status headers body]}
-          @((handler ::conn)
-             {:path-params {:type "Patient" :id "0"}})]
+          @((handler ::transaction-executor ::conn)
+             {:path-params {:id "0"}
+              ::reitit/match {:data {:fhir.resource/type "Patient"}}})]
 
       (is (= 204 status))
 
@@ -87,14 +104,20 @@
   (testing "Returns No Content on already deleted resource"
     (datomic-test-util/stub-resource ::db #{"Patient"} #{"0"} #{::patient})
     (stub-delete-resource
-      ::conn ::db "Patient" "0" (md/success-deferred {:db-after ::db}))
+      ::transaction-executor
+      ::conn
+      ::db
+      "Patient"
+      "0"
+      (md/success-deferred {:db-after ::db}))
     (datomic-test-util/stub-basis-transaction
       ::db {:db/txInstant #inst "2019-05-14T13:58:20.060-00:00"})
     (datomic-test-util/stub-basis-t ::db 42)
 
     (let [{:keys [status headers body]}
-          @((handler ::conn)
-             {:path-params {:type "Patient" :id "0"}})]
+          @((handler ::transaction-executor ::conn)
+             {:path-params {:id "0"}
+              ::reitit/match {:data {:fhir.resource/type "Patient"}}})]
 
       (is (= 204 status))
 

@@ -7,20 +7,22 @@
     [blaze.datomic.pull :as pull]
     [blaze.datomic.transaction :as tx]
     [blaze.datomic.util :as util]
-    [blaze.executors :refer [executor?]]
+    [blaze.executors :as ex :refer [executor?]]
     [blaze.handler.fhir.util :as fhir-util]
     [blaze.handler.util :as handler-util]
     [blaze.middleware.fhir.metrics :refer [wrap-observe-request-duration]]
     [blaze.terminology-service :refer [term-service?]]
     [clojure.spec.alpha :as s]
+    [clojure.string :as str]
     [cognitect.anomalies :as anom]
     [datomic.api :as d]
     [datomic-spec.core :as ds]
+    [integrant.core :as ig]
     [manifold.deferred :as md]
     [reitit.core :as reitit]
-    [reitit.ring :as reitit-ring]
+    [reitit.ring]
     [ring.util.response :as ring]
-    [clojure.string :as str])
+    [taoensso.timbre :as log])
   (:import
     [java.time.format DateTimeFormatter]))
 
@@ -304,8 +306,8 @@
 
 
 (defn- transact-resources
-  [{:keys [conn db] :as context} request-entries]
-  (-> (tx/transact-async conn (bundle/tx-data db request-entries))
+  [{:keys [executor conn db] :as context} request-entries]
+  (-> (tx/transact-async executor conn (bundle/tx-data db request-entries))
       (md/chain'
         (fn [tx-result]
           (mapv
@@ -314,20 +316,20 @@
 
 
 (defmethod process "transaction"
-  [{:keys [conn term-service db] :as context} _ request-entries]
+  [{:keys [executor conn term-service db] :as context} _ request-entries]
   (-> (bundle/annotate-codes term-service db request-entries)
       (md/chain'
         (fn [request-entries]
           (let [code-tx-data (bundle/code-tx-data db request-entries)]
             (if (empty? code-tx-data)
               (transact-resources context request-entries)
-              (-> (tx/transact-async conn code-tx-data)
+              (-> (tx/transact-async executor conn code-tx-data)
                   (md/chain'
                     (fn [{db :db-after}]
                       (transact-resources (assoc context :db db) request-entries))))))))))
 
 
-(defn- handler-intern [conn term-service executor]
+(defn- handler-intern [transaction-executor conn term-service executor]
   (fn [{{:strs [type] :as bundle} :body :keys [headers] ::reitit/keys [router]}]
     (let [db (d/db conn)]
       (-> (md/future-with executor
@@ -335,7 +337,8 @@
           (md/chain'
             (let [context
                   {:router router
-                   :handler (reitit-ring/ring-handler router)
+                   :handler (reitit.ring/ring-handler router)
+                   :executor transaction-executor
                    :conn conn
                    :term-service term-service
                    :db db
@@ -362,12 +365,32 @@
 
 
 (s/fdef handler
-  :args (s/cat :conn ::ds/conn :term-service term-service? :executor executor?)
+  :args
+  (s/cat
+    :transaction-executor executor?
+    :conn ::ds/conn
+    :term-service term-service?
+    :executor executor?)
   :ret :handler.fhir/transaction)
 
 (defn handler
   ""
-  [conn term-service executor]
-  (-> (handler-intern conn term-service executor)
+  [transaction-executor conn term-service executor]
+  (-> (handler-intern transaction-executor conn term-service executor)
       (wrap-interaction-name)
       (wrap-observe-request-duration)))
+
+
+(defmethod ig/init-key :blaze.interaction.transaction/handler
+  [_ {:database/keys [transaction-executor conn] :keys [term-service executor]}]
+  (log/info "Init FHIR transaction interaction handler")
+  (handler transaction-executor conn term-service executor))
+
+
+(defmethod ig/init-key ::executor
+  [_ _]
+  (log/info "Init FHIR transaction interaction executor")
+  (ex/cpu-bound-pool "transaction-interaction-%d"))
+
+
+(derive ::executor :blaze.metrics/thread-pool-executor)

@@ -42,7 +42,8 @@
     (let [{:keys [status body]}
           @((handler ::conn)
             {:query-params ::query-params
-             :path-params {:type "Patient" :id "0"}})]
+             :path-params {:id "0"}
+             ::reitit/match {:data {:fhir.resource/type "Patient"}}})]
 
       (is (= 404 status))
 
@@ -53,7 +54,8 @@
       (is (= "not-found" (-> body :issue first :code)))))
 
   (testing "Returns History with one Patient"
-    (let [patient {:instance/version ::foo}]
+    (let [patient {:instance/version ::foo}
+          match {:data {:fhir.resource/type "Patient"}}]
       (test-util/stub-t ::query-params nil?)
       (test-util/stub-db ::conn nil? ::db)
       (datomic-test-util/stub-resource ::db #{"Patient"} #{"0"} #{{:db/id 0}})
@@ -67,30 +69,30 @@
       (datomic-test-util/stub-entity ::db #{0} #{patient})
       (datomic-test-util/stub-ordinal-version patient 1)
       (history-test-util/stub-nav-link
-        ::match ::query-params 173105 ::tx nil?
+        match ::query-params 173105 ::tx nil?
         (constantly ::self-link-url))
       (history-test-util/stub-build-entry
-        ::router ::db #{::tx} #{0} (constantly ::entry)))
+        ::router ::db #{::tx} #{0} (constantly ::entry))
 
-    (let [{:keys [status body]}
-          @((handler ::conn)
-            {::reitit/router ::router
-             ::reitit/match ::match
-             :query-params ::query-params
-             :path-params {:type "Patient" :id "0"}})]
+      (let [{:keys [status body]}
+            @((handler ::conn)
+              {::reitit/router ::router
+               ::reitit/match match
+               :query-params ::query-params
+               :path-params {:id "0"}})]
 
-      (is (= 200 status))
+        (is (= 200 status))
 
-      (is (= "Bundle" (:resourceType body)))
+        (is (= "Bundle" (:resourceType body)))
 
-      (is (= "history" (:type body)))
+        (is (= "history" (:type body)))
 
-      (is (= 1 (:total body)))
+        (is (= 1 (:total body)))
 
-      (is (= 1 (count (:entry body))))
+        (is (= 1 (count (:entry body))))
 
-      (is (= "self" (-> body :link first :relation)))
+        (is (= "self" (-> body :link first :relation)))
 
-      (is (= ::self-link-url (-> body :link first :url)))
+        (is (= ::self-link-url (-> body :link first :url)))
 
-      (is (= ::entry (-> body :entry first))))))
+        (is (= ::entry (-> body :entry first)))))))

@@ -798,7 +798,6 @@
 ;; The With clause restricts the elements of a given source to only those
 ;; elements that have elements in the related source that satisfy the suchThat
 ;; condition. This operation is known as a semi-join in database languages.
-;; condition. This operation is known as a semi-join in database languages.
 (defn- find-operand-with-alias
   "Finds the operand in `expression` that accesses entities with `alias`."
   [operands alias]

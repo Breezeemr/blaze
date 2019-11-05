@@ -88,7 +88,13 @@
       (stub-resource-upsert ::db nil? ::creation-mode resource [])
 
       (given
-        @(upsert-resource ::conn ::term-service ::db ::creation-mode resource)
+        @(upsert-resource
+           ::transaction-executor
+           ::conn
+           ::term-service
+           ::db
+           ::creation-mode
+           resource)
         :db-after := ::db))))
 
 

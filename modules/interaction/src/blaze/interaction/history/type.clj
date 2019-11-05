@@ -1,5 +1,5 @@
 (ns blaze.interaction.history.type
-  "FHIR history interaction on thw whole system.
+  "FHIR history interaction on the whole system.
 
   https://www.hl7.org/fhir/http.html#history"
   (:require
@@ -11,10 +11,12 @@
     [clojure.spec.alpha :as s]
     [datomic.api :as d]
     [datomic-spec.core :as ds]
+    [integrant.core :as ig]
+    [manifold.deferred :as md]
     [reitit.core :as reitit]
     [ring.middleware.params :refer [wrap-params]]
     [ring.util.response :as ring]
-    [manifold.deferred :as md]))
+    [taoensso.timbre :as log]))
 
 
 (defn- total
@@ -98,7 +100,7 @@
 
 (defn- handler-intern [conn]
   (fn [{::reitit/keys [router match] :keys [query-params]
-        {:keys [type]} :path-params}]
+        {{:fhir.resource/keys [type]} :data} ::reitit/match}]
     (-> (util/db conn (fhir-util/t query-params))
         (md/chain' #(handle router match query-params % type)))))
 
@@ -116,3 +118,9 @@
   (-> (handler-intern conn)
       (wrap-params)
       (wrap-observe-request-duration "history-type")))
+
+
+(defmethod ig/init-key :blaze.interaction.history/type
+  [_ {:database/keys [conn]}]
+  (log/info "Init FHIR history type interaction handler")
+  (handler conn))
