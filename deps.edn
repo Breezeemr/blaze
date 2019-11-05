@@ -74,18 +74,11 @@
   prom-metrics
   {:mvn/version "0.5-alpha2"}
 
-  systems.uom/systems-ucum
-  {:mvn/version "0.9"}
-
-  systems.uom/systems-quantity
-  {:mvn/version "1.0"}
-
   com.datomic/datomic-pro {:mvn/version "0.9.5951"
                            :exclusions  [io.netty/netty-all]}
 
 
-  mysql/mysql-connector-java {:mvn/version "5.1.47"}
-  }
+  mysql/mysql-connector-java {:mvn/version "5.1.47"}}
 
 
  ;; requires a ~./m2/settings.xml file with id username and password
@@ -131,14 +124,14 @@
     {:mvn/version "0.10.0"}
 
     org.clojure/tools.namespace
-    {:mvn/version "0.3.1"}
+    {:mvn/version "0.3.1"}}
 
-    :pack
-    {:extra-deps
-     {pack/pack.alpha
-      {:git/url "https://github.com/juxt/pack.alpha.git"
-       :sha     "2769a6224bfb938e777906ea311b3daf7d2220f5"}}
-     :main-opts ["-m"]}
+   :main-opts
+   ["-m" "kaocha.runner"]}
 
-    :main-opts
-    ["-m" "kaocha.runner"]}}}}
+  :pack
+  {:extra-deps
+   {pack/pack.alpha
+    {:git/url "https://github.com/juxt/pack.alpha.git"
+     :sha     "2769a6224bfb938e777906ea311b3daf7d2220f5"}}
+   :main-opts ["-m"]}}}
