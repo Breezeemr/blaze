@@ -17,20 +17,27 @@
     [taoensso.timbre :as log]))
 
 
-;; TODO: improve quick hack
-(defn- resource-pred [db type {:strs [identifier]}]
-  (when identifier
-    (let [attr (keyword type "identifier")
-          {:db/keys [cardinality]} (util/cached-entity db attr)
-          matches?
-          (fn [{:Identifier/keys [value]}]
-            (= identifier value))]
-      (fn [resource]
-        (let [value (get resource attr)]
-          (if (= :db.cardinality/many cardinality)
-            (some matches? value)
-            (matches? value)))))))
+(defn- match?
+  [tree path search]
+  (let [k       (first path)
+        subtree (get tree k)]
+    (cond
+      (nil? k)       (= search tree)
+      (nil? subtree) false
+      (set? subtree) (some (fn [st] (match? st (rest path) search))
+                           subtree)
+      :else          (match? subtree (rest path) search))))
 
+(defn- resource-pred [query-params config]
+  (let [valid-query-params  (select-keys query-params (map :blaze.fhir.SearchParameter/code config))
+        select-path-by-code (fn [config code]
+                              (->> config
+                                   (filter #(= (:blaze.fhir.SearchParameter/code %) code))
+                                   first
+                                   :blaze.fhir.SearchParameter/expression))]
+    (when (seq valid-query-params)
+      (fn [resource] (every? (fn [[path search]] (match? resource path search))
+                            (mapv (fn [[k v]] [(select-path-by-code config k) v]) valid-query-params))))))
 
 (defn- entry
   [router {type "resourceType" id "id" :as resource}]
@@ -45,54 +52,54 @@
   (or (zero? (fhir-util/page-size query-params)) (= "count" summary)))
 
 
-(defn- search [router db type query-params]
-  (let [pred (resource-pred db type query-params)]
+(defn- search [router db type query-params config]
+  (let [pred (resource-pred query-params config)]
     (cond->
-      {:resourceType "Bundle"
-       :type "searchset"}
+        {:resourceType "Bundle"
+         :type "searchset"}
 
       (nil? pred)
       (assoc :total (util/type-total db type))
 
       (not (summary? query-params))
       (assoc
-        :entry
-        (into
-          []
-          (comp
-            (map #(d/entity db (:e %)))
-            (filter (or pred (fn [_] true)))
-            (map #(pull/pull-resource* db type %))
-            (filter #(not (:deleted (meta %))))
-            (take (fhir-util/page-size query-params))
-            (map #(entry router %)))
-          (d/datoms db :aevt (util/resource-id-attr type)))))))
+       :entry
+       (into
+        []
+        (comp
+         (map #(d/entity db (:e %)))
+         (filter (or pred (fn [_] true)))
+         (map #(pull/pull-resource* db type %))
+         (filter #(not (:deleted (meta %))))
+         (take (fhir-util/page-size query-params))
+         (map #(entry router %)))
+        (d/datoms db :aevt (util/resource-id-attr type)))))))
 
 
-(defn- handler-intern [conn]
+(defn- handler-intern [{:keys [database/conn blaze.fhir.SearchParameter/config]}]
   (fn [{{{:fhir.resource/keys [type]} :data} ::reitit/match
-        :keys [params]
-        ::reitit/keys [router]}]
-    (-> (search router (d/db conn) type params)
+       :keys [params]
+       ::reitit/keys [router]}]
+    (-> (search router (d/db conn) type params config)
         (ring/response))))
 
 
 (s/def :handler.fhir/search fn?)
 
-
+;;TODO improve spec
 (s/fdef handler
-  :args (s/cat :conn ::ds/conn)
+  :args (s/keys :config map?)
   :ret :handler.fhir/search)
 
 (defn handler
   ""
-  [conn]
-  (-> (handler-intern conn)
+  [config]
+  (-> (handler-intern config)
       (wrap-params)
       (wrap-observe-request-duration "search-type")))
 
 
 (defmethod ig/init-key :blaze.interaction/search-type
-  [_ {:database/keys [conn]}]
+  [_ config]
   (log/info "Init FHIR search-type interaction handler")
-  (handler conn))
+  (handler config))
