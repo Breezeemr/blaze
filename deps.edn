@@ -28,10 +28,20 @@
   com.cognitect/anomalies
   {:mvn/version "0.1.12"}
 
-  com.datomic/datomic-free
-  {:mvn/version "0.9.5697"
+  ;; breeze specific changes start
+  com.datomic/datomic-pro
+  {:mvn/version "0.9.5951"
    :exclusions
    [io.netty/netty-all]}
+
+  :mysql/mysql-connector-java
+  {:mvn/version "5.1.47"}
+
+  ;; requires a ~./m2/settings.xml file with id and username and password
+  :mvn/repos {"my.datomic.com"
+              {:url "https://my.datomic.com/repo"}}
+
+  ;; breeze specific changes end
 
   com.h2database/h2
   {:mvn/version "1.4.199"}
