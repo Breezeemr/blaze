@@ -10,3 +10,6 @@
 /nginx.conf
 .cpcache
 .dir-locals.el
+
+;; breeze specific
+git-describe-branch.sh
