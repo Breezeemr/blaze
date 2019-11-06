@@ -32,7 +32,7 @@
   :blaze.interaction/read
   {:database/conn #blaze/ref :blaze.datomic/conn}
 
-  :blaze.interaction/search-type
+  [:blaze.interaction/search-type :blaze.interaction.search/default]
   {:database/conn #blaze/ref :blaze.datomic/conn}
 
   :blaze.interaction.transaction/executor {}
@@ -59,6 +59,17 @@
 
   :blaze.fhir.operation.evaluate-measure/compile-duration-seconds {}
   :blaze.fhir.operation.evaluate-measure/evaluate-duration-seconds {}
+
+
+  ;; breeze api start
+  [:blaze.interaction/search-type :blaze.interaction.search/Condition]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
+                                        :blaze.fhir.SearchParameter/expression [:Condition/subject :Patient/id]}
+                                       {:blaze.fhir.SearchParameter/code       "category"
+                                        :blaze.fhir.SearchParameter/expression [:Condition/category :CodeableConcept/coding :Coding/code :code/code]}]}
+
+  ;; breeze api end
 
   :blaze/rest-api
   {:transaction-handler #blaze/ref :blaze.interaction.transaction/handler
@@ -91,6 +102,18 @@
          :search-type
          #:blaze.rest-api.interaction
              {:handler #blaze/ref :blaze.interaction/search-type}}}]
+    ;;breeze api
+    #:blaze.rest-api.resource-pattern
+    {:type "Condition"
+     :interactions
+     {:search-type
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Condition]}
+      :read
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction/read}}}
+
+    ]
    :operations
    [#:blaze.rest-api.operation
        {:code "evaluate-measure"
