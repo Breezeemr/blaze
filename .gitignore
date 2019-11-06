@@ -9,6 +9,8 @@
 /kube*
 /nginx.conf
 .cpcache
+cpcache
+.cpcache/*
 .dir-locals.el
 
 ;; breeze specific
