@@ -107,4 +107,13 @@
    {clj-kondo
     {:mvn/version "2019.11.07"}}
 
-   :main-opts ["-m" "clj-kondo.main"]}}}
+   :main-opts ["-m" "clj-kondo.main"]}
+
+  :dev
+  {:extra-deps
+   {integrant/repl
+    {:mvn/version "0.3.1"}}}}}
+
+
+
+
