@@ -10,3 +10,4 @@
 /nginx.conf
 .cpcache
 /.clj-kondo/.cache
+.dir-locals.el
