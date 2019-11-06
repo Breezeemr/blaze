@@ -91,7 +91,7 @@
    ["-m" "clj-check.check"]}
 
   :dev
-  {:extra-paths ["dev" "test"]
+  {:extra-paths ["dev"]
    :extra-deps
    {org.clojure/tools.namespace
     {:mvn/version "0.3.1"}}}
