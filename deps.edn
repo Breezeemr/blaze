@@ -77,6 +77,12 @@
    :main-opts
    ["-m" "clj-check.check"]}
 
+  :dev
+  {:extra-paths ["dev" "test"]
+   :extra-deps
+   {org.clojure/tools.namespace
+    {:mvn/version "0.3.1"}}}
+
   :test
   {:extra-paths ["dev" "test"]
 
@@ -113,7 +119,4 @@
   {:extra-deps
    {integrant/repl
     {:mvn/version "0.3.1"}}}}}
-
-
-
 
