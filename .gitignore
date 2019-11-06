@@ -10,6 +10,8 @@
 /nginx.conf
 .cpcache
 .cache
+/.clj-kondo/.cache
+.cpcache/*
 .dir-locals.el
 
 ;; breeze specific
