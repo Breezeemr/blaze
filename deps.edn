@@ -116,4 +116,8 @@
     {:mvn/version "0.3.1"}}
 
    :main-opts
-   ["-m" "kaocha.runner"]}}}
+   ["-m" "kaocha.runner"]}
+  :dev
+  {:extra-deps
+   {integrant/repl
+    {:mvn/version "0.3.1"}}}}}
