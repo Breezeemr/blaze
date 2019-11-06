@@ -76,32 +76,32 @@
    :history-system-handler #blaze/ref :blaze.interaction.history/system
    :resource-patterns
    [#:blaze.rest-api.resource-pattern
-       {:type :default
-        :interactions
-        {:read
-         #:blaze.rest-api.interaction
-             {:handler #blaze/ref :blaze.interaction/read}
-         :vread
-         #:blaze.rest-api.interaction
-             {:handler #blaze/ref :blaze.interaction/read}
-         :update
-         #:blaze.rest-api.interaction
-             {:handler #blaze/ref :blaze.interaction/update}
-         :delete
-         #:blaze.rest-api.interaction
-             {:handler #blaze/ref :blaze.interaction/delete}
-         :history-instance
-         #:blaze.rest-api.interaction
-             {:handler #blaze/ref :blaze.interaction.history/instance}
-         :history-type
-         #:blaze.rest-api.interaction
-             {:handler #blaze/ref :blaze.interaction.history/type}
-         :create
-         #:blaze.rest-api.interaction
-             {:handler #blaze/ref :blaze.interaction/create}
-         :search-type
-         #:blaze.rest-api.interaction
-             {:handler #blaze/ref :blaze.interaction/search-type}}}]
+    {:type :default
+     :interactions
+     {:read
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction/read}
+      :vread
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction/read}
+      :update
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction/update}
+      :delete
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction/delete}
+      :history-instance
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction.history/instance}
+      :history-type
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction.history/type}
+      :create
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction/create}
+      :search-type
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction/search-type}}}
     ;;breeze api
     #:blaze.rest-api.resource-pattern
     {:type "Condition"
@@ -111,18 +111,16 @@
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Condition]}
       :read
       #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}
-
-    ]
+      {:handler #blaze/ref :blaze.interaction/read}}}]
    :operations
    [#:blaze.rest-api.operation
-       {:code "evaluate-measure"
-        :def-uri "http://hl7.org/fhir/OperationDefinition/Measure-evaluate-measure"
-        :resource-types ["Measure"]
-        :type-handler #blaze/ref :blaze.fhir.operation.evaluate-measure/handler
-        :instance-handler #blaze/ref :blaze.fhir.operation.evaluate-measure/handler}]}}
+    {:code "evaluate-measure"
+     :def-uri "http://hl7.org/fhir/OperationDefinition/Measure-evaluate-measure"
+     :resource-types ["Measure"]
+     :type-handler #blaze/ref :blaze.fhir.operation.evaluate-measure/handler
+     :instance-handler #blaze/ref :blaze.fhir.operation.evaluate-measure/handler}]}}
 
-  :features
+ :features
  [{:name "OpenID Authentication"
    :toggle "OPENID_PROVIDER_URL"
    :config
