@@ -10,3 +10,4 @@
 /nginx.conf
 .cpcache
 .cache
+.dir-locals.el
