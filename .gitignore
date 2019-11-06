@@ -11,3 +11,6 @@
 .cpcache
 /.clj-kondo/.cache
 .dir-locals.el
+
+;; breeze specific
+git-describe-branch.sh
