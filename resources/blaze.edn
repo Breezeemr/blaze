@@ -101,7 +101,7 @@
       {:handler #blaze/ref :blaze.interaction/create}
       :search-type
       #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/search-type}}}
+      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/default]}}}
     ;;breeze api
     #:blaze.rest-api.resource-pattern
     {:type "Condition"
