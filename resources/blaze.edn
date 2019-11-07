@@ -69,6 +69,14 @@
                                        {:blaze.fhir.SearchParameter/code       "category"
                                         :blaze.fhir.SearchParameter/expression [:Condition/category :CodeableConcept/coding :Coding/code :code/code]}]}
 
+  [:blaze.interaction/search-type :blaze.interaction.search/Consent]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "actor"
+                                        :blaze.fhir.SearchParameter/expression [:Consent/provision :Consent.provision/actor :Consent.provision.actor/reference :Patient/id]}
+                                       {:blaze.fhir.SearchParameter/code       "patient"
+                                        :blaze.fhir.SearchParameter/expression [:Consent/patient :Patient/id]}]}
+
+
   ;; breeze api end
 
   :blaze/rest-api
@@ -111,7 +119,17 @@
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Condition]}
       :read
       #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}]
+      {:handler #blaze/ref :blaze.interaction/read}}}
+    #:blaze.rest-api.resource-pattern
+    {:type "Consent"
+     :interactions
+     {:search-type
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Consent]}
+      :read
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction/read}}}
+    ]
    :operations
    [#:blaze.rest-api.operation
     {:code "evaluate-measure"
