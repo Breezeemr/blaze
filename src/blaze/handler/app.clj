@@ -1,10 +1,11 @@
 (ns blaze.handler.app
   (:require
-    [clojure.spec.alpha :as s]
-    [integrant.core :as ig]
-    [reitit.ring]
-    [ring.util.response :as ring]
-    [taoensso.timbre :as log]))
+   [clojure.spec.alpha :as s]
+   [integrant.core :as ig]
+   [reitit.ring]
+   [blaze.rest-api.middleware.cors :refer [wrap-cors]]
+   [ring.util.response :as ring]
+   [taoensso.timbre :as log]))
 
 
 (defn router [health-handler]
@@ -25,9 +26,10 @@
 (defn handler
   "Whole app Ring handler."
   [rest-api health-handler]
-  (reitit.ring/ring-handler
-    (router health-handler)
-    rest-api))
+  (-> (reitit.ring/ring-handler
+       (router health-handler)
+       rest-api)
+      (wrap-cors)))
 
 
 (defmethod ig/init-key :blaze.handler/app
