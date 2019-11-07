@@ -128,8 +128,18 @@
 
    :main-opts ["-m" "clj-kondo.main"]}
 
-  :dev
+  ;;breeze specific uses integrant which
+  ;;allows for an easier workflow. Though if its
+  ;; not what upstream is doing it might be to much effort.
+  :dev-breeze
   {:extra-deps
    {integrant/repl
-    {:mvn/version "0.3.1"}}}}}
+    {:mvn/version "0.3.1"}}}
 
+  ;;breeze specific
+  :pack
+  {:extra-deps
+   {pack/pack.alpha
+    {:git/url "https://github.com/juxt/pack.alpha.git"
+     :sha     "2769a6224bfb938e777906ea311b3daf7d2220f5"}}
+   :main-opts ["-m"]}}}
