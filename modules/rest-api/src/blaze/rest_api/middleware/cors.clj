@@ -7,4 +7,7 @@
   [handler]
   (fn [request]
     (-> (handler request)
-        (md/chain' #(ring/header % "Access-Control-Allow-Origin" "*")))))
+        (md/chain' #(-> %
+                        (assoc-in [:headers "Access-Control-Allow-Origin"] "*")
+                        (assoc-in [:headers "Access-Control-Allow-Headers"] "Accept, Content-Type, Authorization")
+                        (assoc-in [:headers "Access-Control-Max-Age"] "3600"))))))
