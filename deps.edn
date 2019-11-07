@@ -9,6 +9,9 @@
  {blaze/datomic
   {:local/root "modules/datomic"}
 
+  blaze/module-base
+  {:local/root "modules/module-base"}
+
   blaze/extern-terminology-service
   {:local/root "modules/extern-terminology-service"}
 
