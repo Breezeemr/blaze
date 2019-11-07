@@ -132,4 +132,12 @@
     {:mvn/version "0.3.1"}}
 
    :main-opts
-   ["-m" "kaocha.runner"]}}}
+   ["-m" "kaocha.runner"]}
+
+  ;;breeze specific
+  :pack
+  {:extra-deps
+   {pack/pack.alpha
+    {:git/url "https://github.com/juxt/pack.alpha.git"
+     :sha     "2769a6224bfb938e777906ea311b3daf7d2220f5"}}
+   :main-opts ["-m"]}}}
