@@ -49,6 +49,12 @@
   com.h2database/h2
   {:mvn/version "1.4.200"}
 
+  com.taoensso/timbre
+  {:mvn/version "4.10.0"}
+
+  integrant
+  {:mvn/version "0.7.0"}
+
   io.netty/netty-codec-http
   {:mvn/version "4.1.43.Final"}
 
