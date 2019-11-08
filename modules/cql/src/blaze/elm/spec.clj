@@ -1,10 +1,10 @@
 (ns blaze.elm.spec
   (:require
-    [camel-snake-kebab.core :refer [->kebab-case-string]]
+    [blaze.elm.quantity :refer [print-unit]]
     [clojure.set :as set]
     [clojure.spec.alpha :as s]
     [clojure.spec.gen.alpha :as gen]
-    [blaze.elm.quantity :refer [print-unit]])
+    [cuerdas.core :as str])
   (:import
     [java.time LocalDate]
     [javax.measure.spi ServiceProvider SystemOfUnits]
@@ -92,7 +92,7 @@
 
 (defn expression-dispatch [{:keys [type]}]
   (when type
-    (keyword "elm.spec.type" (->kebab-case-string type))))
+    (keyword "elm.spec.type" (str/kebab type))))
 
 
 (defmulti expression expression-dispatch)
@@ -444,7 +444,36 @@
 
 ;; 5. Libraries
 
+;; 5.3. VersionedIdentifier
+(s/def :elm.versioned-identifier/id
+  string?)
+
+
+(s/def :elm.versioned-identifier/system
+  string?)
+
+
+(s/def :elm.versioned-identifier/version
+  string?)
+
+
+(s/def :elm/versioned-identifier
+  (s/keys
+    :opt-un
+    [:elm.versioned-identifier/id
+     :elm.versioned-identifier/system
+     :elm.versioned-identifier/version]))
+
+
 ;; 5.1. Library
+(s/def :elm.library/identifier
+  :elm/versioned-identifier)
+
+
+(s/def :elm.library/schemaIdentifier
+  :elm/versioned-identifier)
+
+
 (s/def :elm.library.code-systems/def
   (s/coll-of :elm/code-system-def))
 
@@ -470,7 +499,7 @@
 
 
 (s/def :elm/library
-  (s/keys :req-un [:elm/identifier :elm/schemaIdentifier]
+  (s/keys :req-un [:elm.library/identifier :elm.library/schemaIdentifier]
           :opt-un [:elm.library/code-systems
                    :elm.library/codes
                    :elm.library/statements]))
