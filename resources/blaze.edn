@@ -74,6 +74,16 @@
   ;; he will probably want to point to a function that transforms the fhir json files during startup
   ;; would be nice to be able to handle 2 versions at the same time for a given resource
   ;; the search parameters are incomplete
+  ;; consider the invariants https://www.hl7.org/fhir/condition.html#invs
+  ;; consider using clojure spec, don't try to prevent all possible errors. use it for information, mainly as documentation,
+  ;;  can also use to generate things that make sense
+  ;; we'll need to be able to reference custom functions as well (like handle the merging of identifier and identifier$id)
+  ;; later we'll need to optimize the searching handler but not yet
+  ;;
+  ;; get to a concrete implementation fairly quickly. focus on condition and have it work on our database
+  ;; don't do edn generation, manually edit it
+  ;; do modify the interaction module handlers
+  ;; writing is a lower priority. All Drew needs is reading and searching
   {:database/conn                     #blaze/ref :blaze.datomic/conn
    :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
                                         :blaze.fhir.SearchParameter/expression [:Condition/subject :Patient/id]}
