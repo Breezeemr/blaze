@@ -67,6 +67,13 @@
   {:database/conn #blaze/ref :blaze.datomic/conn}
 
   [:blaze.interaction/search-type :blaze.interaction.search/Condition]
+  ;; TODO: May want to add a new key that specifies the mapping between fhir and our datomic schema
+  ;; It should be a ref that points to another part of this edn file with the (data) description of the mapping
+  ;; Try to make it so Alex will like it. We will want our mapping descriptions to happen previously,
+  ;; Alex probably prefers them to happen in real time. The difference is we want to point to some data,
+  ;; he will probably want to point to a function that transforms the fhir json files during startup
+  ;; would be nice to be able to handle 2 versions at the same time for a given resource
+  ;; the search parameters are incomplete
   {:database/conn                     #blaze/ref :blaze.datomic/conn
    :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
                                         :blaze.fhir.SearchParameter/expression [:Condition/subject :Patient/id]}
