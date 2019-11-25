@@ -63,20 +63,18 @@
 
   ;; breeze api start
 
-  [:blaze.interaction/search-type :blaze.interaction.search/Patient]
-  {:database/conn #blaze/ref :blaze.datomic/conn}
-
-  [:blaze.interaction/search-type :blaze.interaction.search/Condition]
   ;; TODO: May want to add a new key that specifies the mapping between fhir and our datomic schema
   ;; It should be a ref that points to another part of this edn file with the (data) description of the mapping
   ;; Try to make it so Alex will like it. We will want our mapping descriptions to happen previously,
   ;; Alex probably prefers them to happen in real time. The difference is we want to point to some data,
   ;; he will probably want to point to a function that transforms the fhir json files during startup
-  ;; would be nice to be able to handle 2 versions at the same time for a given resource
+  ;; would be nice to be able to handle 2 versions at the same time for a given resource. Probably the simplest way to do this is to
+  ;; point to a ref where that ref may be a function that resolves the mapping or already raw mapping
+  ;;
   ;; the search parameters are incomplete
   ;; consider the invariants https://www.hl7.org/fhir/condition.html#invs
   ;; consider using clojure spec, don't try to prevent all possible errors. use it for information, mainly as documentation,
-  ;;  can also use to generate things that make sense
+  ;;  can also use to generate things (docs?) that make sense
   ;; we'll need to be able to reference custom functions as well (like handle the merging of identifier and identifier$id)
   ;; later we'll need to optimize the searching handler but not yet
   ;;
@@ -84,73 +82,96 @@
   ;; don't do edn generation, manually edit it
   ;; do modify the interaction module handlers
   ;; writing is a lower priority. All Drew needs is reading and searching
+
+  [:blaze.interaction/search-type :blaze.interaction.search/Condition]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/mapping                    #blaze/ref :blaze.schema.mapping/Condition
    :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
                                         :blaze.fhir.SearchParameter/expression [:Condition/subject :Patient/id]}
                                        {:blaze.fhir.SearchParameter/code       "category"
                                         :blaze.fhir.SearchParameter/expression [:Condition/category :CodeableConcept/coding :Coding/code :code/code]}]}
 
-  [:blaze.interaction/search-type :blaze.interaction.search/Consent]
-  {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "actor"
-                                        :blaze.fhir.SearchParameter/expression [:Consent/provision :Consent.provision/actor :Consent.provision.actor/reference :Patient/id]}
-                                       {:blaze.fhir.SearchParameter/code       "patient"
-                                        :blaze.fhir.SearchParameter/expression [:Consent/patient :Patient/id]}]}
-
-
-  [:blaze.interaction/search-type :blaze.interaction.search/ServiceRequest]
-  {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/confblaze [{:blaze.fhir.SearchParameter/code       "patient"
-                                           :blaze.fhir.SearchParameter/expression [:ServiceRequest/subject :Patient/id]}]}
-
-  [:blaze.interaction/search-type :blaze.interaction.search/Goal]
-  {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/confblaze [{:blaze.fhir.SearchParameter/code       "patient"
-                                           :blaze.fhir.SearchParameter/expression [:Goal/subject :Patient/id]}]}
-
-  [:blaze.interaction/search-type :blaze.interaction.search/Procedure]
-  {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/confblaze [{:blaze.fhir.SearchParameter/code       "patient"
-                                           :blaze.fhir.SearchParameter/expression [:Procedure/subject :Patient/id]}]}
-
-  [:blaze.interaction/search-type :blaze.interaction.search/AllergyIntolerance]
-  {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/confblaze [{:blaze.fhir.SearchParameter/code       "patient"
-                                           :blaze.fhir.SearchParameter/expression [:AllergyIntolerance/patient :Patient/id]}]}
-
-  [:blaze.interaction/search-type :blaze.interaction.search/Device]
-  {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/confblaze [{:blaze.fhir.SearchParameter/code       "patient"
-                                           :blaze.fhir.SearchParameter/expression [:Device/patient :Patient/id]}]}
-
-  [:blaze.interaction/search-type :blaze.interaction.search/Immunization]
-  {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/confblaze [{:blaze.fhir.SearchParameter/code       "patient"
-                                           :blaze.fhir.SearchParameter/expression [:Immunization/patient :Patient/id]}]}
-
-  [:blaze.interaction/search-type :blaze.interaction.search/Observation]
-  {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/confblaze [{:blaze.fhir.SearchParameter/code       "patient"
-                                           :blaze.fhir.SearchParameter/expression [:Observation/subject :Patient/id]}
-                                          {:blaze.fhir.SearchParameter/code       "category"
-                                           :blaze.fhir.SearchParameter/expression [:Observation/Category :CodeableConcept/coding :Coding/code :code/code]}]}
-
-  [:blaze.interaction/search-type :blaze.interaction.search/DiagnosticReport]
-  {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/confblaze [{:blaze.fhir.SearchParameter/code       "patient"
-                                           :blaze.fhir.SearchParameter/expression [:DiagnosticReport/subject :Patient/id]}]}
-
-  [:blaze.interaction/search-type :blaze.interaction.search/CarePlan]
-  {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/confblaze [{:blaze.fhir.SearchParameter/code       "patient"
-                                           :blaze.fhir.SearchParameter/expression [:CarePlan/subject :Patient/id]}]}
-
-  [:blaze.interaction/search-type :blaze.interaction.search/MedicationRequest]
-  {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/confblaze [{:blaze.fhir.SearchParameter/code       "patient"
-                                           :blaze.fhir.SearchParameter/expression [:MedicationRequest/subject :Patient/id]}]}
-
-
+  :blaze.schema.mapping/Condition
+  {:fn      nil
+   :mapping {:Condition/identifier         {:ident :fhir.Condition/identifier,:cardinality :db.cardinality/many,:valueType :db.type/ref}
+             :Condition/clinicalStatus     {:ident :fhir.Condition/clinicalStatus :cardinality :db.cardinality/one :valueType :db.type/string}
+             :Condition/verificationStatus {:ident :fhir.Condition/verificationStatus :cardinality :db.cardinality/one :valueType :db.type/string}
+             :Condition/category           {:ident :fhir.Condition/category :cardinality :db.cardinality/many :valueType :db.type/ref}
+             :Condition/severity           {:ident       :fhir.Condition/severity,
+                                            :cardinality :db.cardinality/one,
+                                            :valueType   :db.type/ref}
+             :Condition/code               {:ident       :fhir.Condition/code,
+                                            :cardinality :db.cardinality/one,
+                                            :valueType   :db.type/ref}
+             :Condition/bodySite           {:ident       :fhir.Condition/bodySite,
+                                            :cardinality :db.cardinality/many,
+                                            :valueType   :db.type/ref}
+             :Condition/subject            {:ident       :fhir.Condition/patient,
+                                            :cardinality :db.cardinality/one,
+                                            :valueType   :db.type/ref}
+             :Condition/encouter           {:ident       :fhir.Condition/encounter,
+                                            :cardinality :db.cardinality/one,
+                                            :valueType   :db.type/ref}
+             :Condition/onsetDateTime      {:ident       :fhir.Condition/onsetDateTime,
+                                            :cardinality :db.cardinality/one,
+                                            :valueType   :db.type/instant}
+             :Condition/onsetAge           {:ident       :fhir.Condition/onsetQuantity,
+                                            :cardinality :db.cardinality/one,
+                                            :valueType   :db.type/ref}
+             :Condition/onsetPeriod        {:ident       :fhir.Condition/onsetPeriod,
+                                            :cardinality :db.cardinality/one,
+                                            :valueType   :db.type/ref}
+             :Condition/onsetRange         {:ident       :fhir.Condition/onsetRange,
+                                            :cardinality :db.cardinality/one,
+                                            :valueType   :db.type/ref}
+             :Condition/onsetString        {:ident       :fhir.Condition/onsetString,
+                                            :cardinality :db.cardinality/one,
+                                            :valueType   :db.type/string}
+             :Condition/abatementDateTime  {:ident       :fhir.Condition/abatementDateTime,
+                                            :cardinality :db.cardinality/one,
+                                            :valueType   :db.type/instant}
+             :Condition/abatementAge       {:ident       :fhir.Condition/abatementAge,
+                                            :cardinality :db.cardinality/one,
+                                            :valueType   :db.type/ref}
+             :Condition/abatementPeriod    {:ident       :fhir.Condition/abatementPeriod,
+                                            :cardinality :db.cardinality/one,
+                                            :valueType   :db.type/ref}
+             :Condition/abatementRange     {:ident       :fhir.Condition/abatementRange,
+                                            :cardinality :db.cardinality/one,
+                                            :valueType   :db.type/ref}
+             :Condition/abatementString    {:ident       :fhir.Condition/abatementString,
+                                            :cardinality :db.cardinality/one,
+                                            :valueType   :db.type/string}
+             :Condition/recordedDate       {:ident       :fhir.Condition/dateRecorded,
+                                            :cardinality :db.cardinality/one,
+                                            :valueType   :db.type/instant}
+             :Condition/recorder           nil
+             :Condition/asserter           {:ident       :fhir.Condition/asserter,
+                                            :cardinality :db.cardinality/one,
+                                            :valueType   :db.type/ref}
+             :Condition/stage              {:ident       :fhir.Condition/stage,
+                                            :cardinality :db.cardinality/many,
+                                            :valueType   :db.type/ref}
+             :Condition.stage/summary      {:ident       :fhir.Condition.stage/summary,
+                                            :cardinality :db.cardinality/one,
+                                            :valueType   :db.type/ref}
+             :Condition.stage/assessment   {:ident       :fhir.Condition.stage/assessment,
+                                            :cardinality :db.cardinality/many,
+                                            :valueType   :db.type/ref}
+             :Condition.stage/type         nil
+             :Condition/evidence           {:ident       :fhir.Condition/evidence,
+                                            :cardinality :db.cardinality/many,
+                                            :valueType   :db.type/ref}
+             :Condition.evidence/code      {:ident       :fhir.Condition.evidence/code,
+                                            :cardinality :db.cardinality/many,
+                                            :valueType   :db.type/ref}
+             :Condition.evidence/detail    {:ident       :fhir.Condition.evidence/detail,
+                                            :cardinality :db.cardinality/many,
+                                            :valueType   :db.type/ref}
+             :Condition/note               {:ident       :fhir.Condition/notes,
+                                            :cardinality :db.cardinality/one,
+                                            :valueType   :db.type/string}
+             }}
 
   ;; breeze api end
 
@@ -185,121 +206,13 @@
       :search-type
       #:blaze.rest-api.interaction
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/default]}}}
-    ;;breeze api
+    ;; breeze api
     #:blaze.rest-api.resource-pattern
     {:type "Condition"
      :interactions
      {:search-type
       #:blaze.rest-api.interaction
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Condition]}
-      :read
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}
-    #:blaze.rest-api.resource-pattern
-    {:type "Consent"
-     :interactions
-     {:search-type
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Consent]}
-      :read
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}
-    #:blaze.rest-api.resource-pattern
-    {:type "Patient"
-     :interactions
-     {:search-type
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Patient]}
-      :read
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}
-    #:blaze.rest-api.resource-pattern
-    {:type "ServiceRequest"
-     :interactions
-     {:search-type
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/ServiceRequest]}
-      :read
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}
-    #:blaze.rest-api.resource-pattern
-    {:type "Goal"
-     :interactions
-     {:search-type
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Goal]}
-      :read
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}
-    #:blaze.rest-api.resource-pattern
-    {:type "Procedure"
-     :interactions
-     {:search-type
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Procedure]}
-      :read
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}
-    #:blaze.rest-api.resource-pattern
-    {:type "AllergyIntolerance"
-     :interactions
-     {:search-type
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/AllergyIntolerance]}
-      :read
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}
-    #:blaze.rest-api.resource-pattern
-    {:type "Device"
-     :interactions
-     {:search-type
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Device]}
-      :read
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}
-    #:blaze.rest-api.resource-pattern
-    {:type "Immunization"
-     :interactions
-     {:search-type
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Immunization]}
-      :read
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}
-    #:blaze.rest-api.resource-pattern
-    {:type "Observation"
-     :interactions
-     {:search-type
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Observation]}
-      :read
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}
-    #:blaze.rest-api.resource-pattern
-    {:type "DiagnosticReport"
-     :interactions
-     {:search-type
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/DiagnosticReport]}
-      :read
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}
-    #:blaze.rest-api.resource-pattern
-    {:type "CarePlan"
-     :interactions
-     {:search-type
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/CarePlan]}
-      :read
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}
-    #:blaze.rest-api.resource-pattern
-    {:type "MedicationRequest"
-     :interactions
-     {:search-type
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/MedicationRequest]}
       :read
       #:blaze.rest-api.interaction
       {:handler #blaze/ref :blaze.interaction/read}}}]
