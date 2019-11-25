@@ -189,3 +189,10 @@
         (reitit/match-by-name
           router (keyword type "versioned-instance") {:id id :vid vid})]
     (str base-url path)))
+
+(defn map-schema
+  [data mapping]
+  (prn "map-schema")
+  (clojure.pprint/pprint data)
+  (clojure.pprint/pprint mapping)
+  {:hi "123"})
