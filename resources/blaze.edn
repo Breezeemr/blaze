@@ -60,8 +60,54 @@
   :blaze.fhir.operation.evaluate-measure/compile-duration-seconds {}
   :blaze.fhir.operation.evaluate-measure/evaluate-duration-seconds {}
 
-
-  ;; breeze api start
+  :blaze/rest-api
+  {:transaction-handler #blaze/ref :blaze.interaction.transaction/handler
+   :history-system-handler #blaze/ref :blaze.interaction.history/system
+   :resource-patterns
+   [#:blaze.rest-api.resource-pattern
+    {:type :default
+     :interactions
+     {:read
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction/read}
+      :vread
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction/read}
+      :update
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction/update}
+      :delete
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction/delete}
+      :history-instance
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction.history/instance}
+      :history-type
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction.history/type}
+      :create
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction/create}
+      :search-type
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/default]}}}
+    ;; breeze api
+    #:blaze.rest-api.resource-pattern
+    {:type "Condition"
+     :interactions
+     {:search-type
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Condition]}
+      :read
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction/read}}}]
+   :operations
+   [#:blaze.rest-api.operation
+    {:code "evaluate-measure"
+     :def-uri "http://hl7.org/fhir/OperationDefinition/Measure-evaluate-measure"
+     :resource-types ["Measure"]
+     :type-handler #blaze/ref :blaze.fhir.operation.evaluate-measure/handler
+     :instance-handler #blaze/ref :blaze.fhir.operation.evaluate-measure/handler}]}
 
   ;; TODO: May want to add a new key that specifies the mapping between fhir and our datomic schema
   ;; It should be a ref that points to another part of this edn file with the (data) description of the mapping
@@ -91,20 +137,21 @@
                                        {:blaze.fhir.SearchParameter/code       "category"
                                         :blaze.fhir.SearchParameter/expression [:Condition/category :CodeableConcept/coding :Coding/code :code/code]}]}
 
+  ;; TODO: It is reasonable to consider extracting these mappings into a new map like `:features` below
   :blaze.schema.mapping/Condition
-  {:fn      nil
-   :mapping {:Condition/identifier         {:ident :fhir.Condition/identifier
+  {:fn      (fn [] {:lol "a test"})
+   :mapping {:Condition/identifier         {:ident       :fhir.Condition/identifier
                                             :cardinality :db.cardinality/many
-                                            :valueType :db.type/ref}
-             :Condition/clinicalStatus     {:ident :fhir.Condition/clinicalStatus
+                                            :valueType   :db.type/ref}
+             :Condition/clinicalStatus     {:ident       :fhir.Condition/clinicalStatus
                                             :cardinality :db.cardinality/one
-                                            :valueType :db.type/string}
-             :Condition/verificationStatus {:ident :fhir.Condition/verificationStatus
+                                            :valueType   :db.type/string}
+             :Condition/verificationStatus {:ident       :fhir.Condition/verificationStatus
                                             :cardinality :db.cardinality/one
-                                            :valueType :db.type/string}
-             :Condition/category           {:ident :fhir.Condition/category
+                                            :valueType   :db.type/string}
+             :Condition/category           {:ident       :fhir.Condition/category
                                             :cardinality :db.cardinality/many
-                                            :valueType :db.type/ref}
+                                            :valueType   :db.type/ref}
              :Condition/severity           {:ident       :fhir.Condition/severity,
                                             :cardinality :db.cardinality/one,
                                             :valueType   :db.type/ref}
@@ -180,57 +227,7 @@
                                             :cardinality :db.cardinality/one,
                                             :valueType   :db.type/string}
              }}
-
-  ;; breeze api end
-
-  :blaze/rest-api
-  {:transaction-handler #blaze/ref :blaze.interaction.transaction/handler
-   :history-system-handler #blaze/ref :blaze.interaction.history/system
-   :resource-patterns
-   [#:blaze.rest-api.resource-pattern
-    {:type :default
-     :interactions
-     {:read
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}
-      :vread
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}
-      :update
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/update}
-      :delete
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/delete}
-      :history-instance
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction.history/instance}
-      :history-type
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction.history/type}
-      :create
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/create}
-      :search-type
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/default]}}}
-    ;; breeze api
-    #:blaze.rest-api.resource-pattern
-    {:type "Condition"
-     :interactions
-     {:search-type
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Condition]}
-      :read
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}]
-   :operations
-   [#:blaze.rest-api.operation
-    {:code "evaluate-measure"
-     :def-uri "http://hl7.org/fhir/OperationDefinition/Measure-evaluate-measure"
-     :resource-types ["Measure"]
-     :type-handler #blaze/ref :blaze.fhir.operation.evaluate-measure/handler
-     :instance-handler #blaze/ref :blaze.fhir.operation.evaluate-measure/handler}]}}
+  }
 
  :features
  [{:name "OpenID Authentication"
