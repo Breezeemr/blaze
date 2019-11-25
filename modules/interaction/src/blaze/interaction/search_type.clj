@@ -56,8 +56,9 @@
 
 
 (defn- search [router db type query-params config mapping]
-  (prn "search" router db type query-params config mapping)
+  (prn "search")
   ;; TODO: This is where I need to leverage mapping, to make the proper query
+  ;; I think I will also need to map the config (which is the search config Drew made)
   (let [pred (resource-pred query-params config)]
     (cond->
         {:resourceType "Bundle"
@@ -78,6 +79,9 @@
          (filter #(not (:deleted (meta %))))
          (take (fhir-util/page-size query-params))
          (map #(entry router %)))
+        ;; TODO: I will have to override this resource-id-attr because it will make
+        ;; an ident like :Condition/id where we need :Resource/id... but that will be
+        ;; incredibly inefficient, I should try to use our phi.element/type
         (d/datoms db :aevt (util/resource-id-attr type)))))))
 
 
