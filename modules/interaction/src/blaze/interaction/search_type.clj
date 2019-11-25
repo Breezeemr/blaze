@@ -103,3 +103,9 @@
   [_ config]
   (log/info "Init FHIR search-type interaction handler")
   (handler config))
+
+;; temp location
+(defmethod ig/init-key :blaze.schema/mapping
+  [_ config]
+  (log/info "Init schema mapping")
+  (clojure.pprint/pprint _ config))
