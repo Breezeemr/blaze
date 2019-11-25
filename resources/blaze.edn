@@ -131,14 +131,14 @@
 
   [:blaze.interaction/search-type :blaze.interaction.search/Condition]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :schema/mapping                    #blaze/ref :blaze.schema.mapping/Condition
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :Condition]
    :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
                                         :blaze.fhir.SearchParameter/expression [:Condition/subject :Patient/id]}
                                        {:blaze.fhir.SearchParameter/code       "category"
                                         :blaze.fhir.SearchParameter/expression [:Condition/category :CodeableConcept/coding :Coding/code :code/code]}]}
 
   ;; TODO: It is reasonable to consider extracting these mappings into a new map like `:features` below
-  :blaze.schema.mapping/Condition
+  [:blaze.schema/mapping :blaze.interaction.search/Condition]
   {:fn      (fn [] {:lol "a test"})
    :mapping {:Condition/identifier         {:ident       :fhir.Condition/identifier
                                             :cardinality :db.cardinality/many
