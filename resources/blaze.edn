@@ -93,10 +93,18 @@
 
   :blaze.schema.mapping/Condition
   {:fn      nil
-   :mapping {:Condition/identifier         {:ident :fhir.Condition/identifier,:cardinality :db.cardinality/many,:valueType :db.type/ref}
-             :Condition/clinicalStatus     {:ident :fhir.Condition/clinicalStatus :cardinality :db.cardinality/one :valueType :db.type/string}
-             :Condition/verificationStatus {:ident :fhir.Condition/verificationStatus :cardinality :db.cardinality/one :valueType :db.type/string}
-             :Condition/category           {:ident :fhir.Condition/category :cardinality :db.cardinality/many :valueType :db.type/ref}
+   :mapping {:Condition/identifier         {:ident :fhir.Condition/identifier
+                                            :cardinality :db.cardinality/many
+                                            :valueType :db.type/ref}
+             :Condition/clinicalStatus     {:ident :fhir.Condition/clinicalStatus
+                                            :cardinality :db.cardinality/one
+                                            :valueType :db.type/string}
+             :Condition/verificationStatus {:ident :fhir.Condition/verificationStatus
+                                            :cardinality :db.cardinality/one
+                                            :valueType :db.type/string}
+             :Condition/category           {:ident :fhir.Condition/category
+                                            :cardinality :db.cardinality/many
+                                            :valueType :db.type/ref}
              :Condition/severity           {:ident       :fhir.Condition/severity,
                                             :cardinality :db.cardinality/one,
                                             :valueType   :db.type/ref}
