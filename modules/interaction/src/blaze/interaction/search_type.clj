@@ -8,6 +8,7 @@
     [blaze.handler.fhir.util :as fhir-util]
     [blaze.handler.util :as handler-util]
     [blaze.middleware.fhir.metrics :refer [wrap-observe-request-duration]]
+    [blaze.middleware.fhir.mapping :refer [wrap-map-schema]]
     [clojure.spec.alpha :as s]
     [clojure.string :as str]
     [cognitect.anomalies :as anom]
@@ -83,6 +84,7 @@
   (fn [{{{:fhir.resource/keys [type]} :data} ::reitit/match
        :keys [params]
        ::reitit/keys [router]}]
+    (prn "handler-intern")
     (-> (search router (d/db conn) type params config)
         (ring/response))))
 
@@ -99,6 +101,7 @@
   [config]
   (-> (handler-intern config)
       (wrap-params)
+      ;; (wrap-map-schema config)
       (wrap-observe-request-duration "search-type")))
 
 
@@ -106,9 +109,3 @@
   [_ config]
   (log/info "Init FHIR search-type interaction handler")
   (handler config))
-
-;; temp location
-(defmethod ig/init-key :blaze.schema/mapping
-  [_ config]
-  (log/info "Init schema mapping")
-  (clojure.pprint/pprint _ config))
