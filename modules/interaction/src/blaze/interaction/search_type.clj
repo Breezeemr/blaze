@@ -8,7 +8,6 @@
     [blaze.handler.fhir.util :as fhir-util]
     [blaze.handler.util :as handler-util]
     [blaze.middleware.fhir.metrics :refer [wrap-observe-request-duration]]
-    [blaze.middleware.fhir.mapping :refer [wrap-map-schema]]
     [clojure.spec.alpha :as s]
     [clojure.string :as str]
     [cognitect.anomalies :as anom]
@@ -56,7 +55,9 @@
   (or (zero? (fhir-util/page-size query-params)) (= "count" summary)))
 
 
-(defn- search [router db type query-params config]
+(defn- search [router db type query-params config mapping]
+  (prn "search" router db type query-params config mapping)
+  ;; TODO: This is where I need to leverage mapping, to make the proper query
   (let [pred (resource-pred query-params config)]
     (cond->
         {:resourceType "Bundle"
@@ -80,12 +81,12 @@
         (d/datoms db :aevt (util/resource-id-attr type)))))))
 
 
-(defn- handler-intern [{:keys [database/conn blaze.fhir.SearchParameter/config]}]
+(defn- handler-intern [{:keys [database/conn blaze.fhir.SearchParameter/config schema/mapping]}]
   (fn [{{{:fhir.resource/keys [type]} :data} ::reitit/match
        :keys [params]
        ::reitit/keys [router]}]
     (prn "handler-intern")
-    (-> (search router (d/db conn) type params config)
+    (-> (search router (d/db conn) type params config mapping)
         (ring/response))))
 
 
@@ -101,7 +102,6 @@
   [config]
   (-> (handler-intern config)
       (wrap-params)
-      ;; (wrap-map-schema config)
       (wrap-observe-request-duration "search-type")))
 
 
