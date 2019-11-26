@@ -52,10 +52,35 @@
   (or (zero? (fhir-util/page-size query-params)) (= "count" summary)))
 
 
+#_(defn- search [router db type query-params config mapping]
+    (let [pred (resource-pred query-params config)]
+      (cond->
+          {:resourceType "Bundle"
+           :type "searchset"}
+
+        (nil? pred)
+        (assoc :total (util/type-total db type))
+
+        (not (summary? query-params))
+        (assoc
+         :entry
+         (into
+          []
+          (comp
+           (map #(d/entity db (:e %)))
+           (filter (or pred (fn [_] true)))
+           (map #(pull/pull-resource* db type %))
+           #_(filter #(not (:deleted (meta %))))
+           #_(take (fhir-util/page-size query-params))
+           #_(map #(entry router %)))
+          (d/datoms db :aevt (util/resource-id-attr type)))))))
+
+
 (defn- search [router db type query-params config mapping]
-  (prn "search")
   ;; TODO: This is where I need to leverage mapping, to make the proper query
   ;; I think I will also need to map the config (which is the search config Drew made)
+  ;; Worry about the config and the pred after sorting out the basic request
+  (prn "type::" type)
   (let [pred (resource-pred query-params config)]
     (cond->
         {:resourceType "Bundle"
@@ -70,23 +95,22 @@
        (into
         []
         (comp
-         (map #(d/entity db (:e %)))
          (filter (or pred (fn [_] true)))
-         (map #(pull/pull-resource* db type %))
+         (map #(d/pull db '[*] %))
          (filter #(not (:deleted (meta %))))
          (take (fhir-util/page-size query-params))
          (map #(entry router %)))
-        ;; TODO: I will have to override this resource-id-attr because it will make
-        ;; an ident like :Condition/id where we need :Resource/id... but that will be
-        ;; incredibly inefficient, I should try to use our phi.element/type
-        (d/datoms db :aevt (util/resource-id-attr type)))))))
+        (d/q '[:find [?e ...]
+               :in $ ?type
+               :where [?e :phi.element/type ?type]]
+             db
+             (str "fhir-type/" type)))))))
 
 
 (defn- handler-intern [{:keys [database/conn blaze.fhir.SearchParameter/config schema/mapping]}]
   (fn [{{{:fhir.resource/keys [type]} :data} ::reitit/match
        :keys [params]
        ::reitit/keys [router]}]
-    (prn "handler-intern")
     (-> (search router (d/db conn) type params config mapping)
         (ring/response))))
 
