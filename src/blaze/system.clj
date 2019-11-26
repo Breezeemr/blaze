@@ -210,7 +210,7 @@
   (log/info "Init schema pull patterns")
   (if-let [pull-fn (:fn config)]
     nil ;; TODO: Will need to execute this fn to generate the pull patterns
-    (:expression config)))
+    (:pattern config)))
 
 
 (defmethod ig/init-key :blaze.server/executor
