@@ -98,16 +98,15 @@
        (into
         []
         (comp
-         (filter (or pred (fn [_] true)))
+         (map :e)
+         ;; (map #(d/entity db (:e %)))
+         ;; (filter (or pred (fn [_] true)))
          (map #(d/pull db '[*] %))
          (filter #(not (:deleted (meta %))))
          (take (fhir-util/page-size query-params))
-         (map #(entry router %)))
-        (d/q '[:find [?e ...]
-               :in $ ?type
-               :where [?e :phi.element/type ?type]]
-             db
-             (str "fhir-type/" type)))))))
+         (map #(entry router %))
+         )
+        (d/datoms db :avet :phi.element/type (str "fhir-type/" type)))))))
 
 
 (defn- handler-intern [{:keys [database/conn blaze.fhir.SearchParameter/config schema/mapping]}]
