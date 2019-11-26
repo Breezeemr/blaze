@@ -80,10 +80,6 @@
 
 
 (defn- search [router db type query-params config mapping]
-  ;; TODO: This is where I need to leverage mapping, to make the proper query
-  ;; I think I will also need to map the config (which is the search config Drew made)
-  ;; Worry about the config and the pred after sorting out the basic request
-  (prn "type::" type)
   (let [pred (resource-pred query-params config)]
     (cond->
         {:resourceType "Bundle"
