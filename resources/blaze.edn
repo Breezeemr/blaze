@@ -231,9 +231,9 @@
              }}
 
   [:blaze.schema/pattern :blaze.interaction.search/Condition]
-  {:fn         nil
-   :expression [:fhir.Resource/id
-                :fhir.Resource/subject]}
+  {:fn      nil
+   :pattern [:fhir.Resource/id
+             :fhir.Resource/subject]}
 
   }
 
