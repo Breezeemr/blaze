@@ -8,6 +8,7 @@
     [blaze.handler.fhir.util :as fhir-util]
     [blaze.middleware.fhir.metrics :refer [wrap-observe-request-duration]]
     [clojure.spec.alpha :as s]
+    [clojure.walk :refer [prewalk]]
     [datomic.api :as d]
     [datomic-spec.core :as ds]
     [integrant.core :as ig]
@@ -76,6 +77,13 @@
           (d/datoms db :aevt (util/resource-id-attr type)))))))
 
 
+;; TODO: This will need to be a function that blaze.edn points to, or at least its content will be based off blaze.edn
+;; Maybe rename `mapping` in blaze.edn to `transforms` based on "fhir-type/____"
+(defn- transform [mapping resource]
+  (prn mapping)
+  resource)
+
+
 (defn- search [router db type query-params config pattern mapping]
   (let [pred (resource-pred query-params config)]
     (cond->
@@ -97,11 +105,11 @@
         []
         (comp
          (map :e)
-         ;; (map #(d/entity db (:e %)))
          (filter (or pred (fn [_] true)))
          (map #(d/pull db pattern %))
          (filter #(not (:deleted (meta %))))
          (take (fhir-util/page-size query-params))
+         (map #(transform mapping %))
          (map #(entry router %)))
         (d/datoms db :avet :phi.element/type (str "fhir-type/" type)))))))
 
