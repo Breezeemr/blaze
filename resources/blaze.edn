@@ -233,7 +233,36 @@
   [:blaze.schema/pattern :blaze.interaction.search/Condition]
   {:fn      nil
    :pattern [:fhir.Resource/id
-             :fhir.Resource/subject]}
+             :phi.element/type
+             :fhir.v3.Condition/abatementAge
+             :fhir.v3.Condition/abatementBoolean
+             :fhir.v3.Condition/abatementDateTime
+             :fhir.v3.Condition/abatementPeriod
+             :fhir.v3.Condition/abatementRange
+             :fhir.v3.Condition/abatementString
+             :fhir.v3.Condition/assertedDate
+             :fhir.v3.Condition/asserter
+             :fhir.v3.Condition/bodySite
+             :fhir.v3.Condition/category
+             :fhir.v3.Condition/clinicalStatus
+             :fhir.v3.Condition/code
+             :fhir.v3.Condition/context
+             :fhir.v3.Condition/evidence
+             :fhir.v3.Condition/identifier
+             :fhir.v3.Condition/note
+             :fhir.v3.Condition/onsetAge
+             :fhir.v3.Condition/onsetDateTime
+             :fhir.v3.Condition/onsetPeriod
+             :fhir.v3.Condition/onsetRange
+             :fhir.v3.Condition/onsetString
+             :fhir.v3.Condition/severity
+             :fhir.v3.Condition/stage
+             :fhir.v3.Condition/subject
+             :fhir.v3.Condition/verificationStatus
+             :fhir.v3.Condition.evidence/code
+             :fhir.v3.Condition.evidence/detail
+             :fhir.v3.Condition.stage/assessment
+             :fhir.v3.Condition.stage/summary]}
 
   }
 
