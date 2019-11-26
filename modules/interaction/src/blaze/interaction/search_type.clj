@@ -101,8 +101,7 @@
          (map #(d/pull db '[*] %))
          (filter #(not (:deleted (meta %))))
          (take (fhir-util/page-size query-params))
-         (map #(entry router %))
-         )
+         (map #(entry router %)))
         (d/datoms db :avet :phi.element/type (str "fhir-type/" type)))))))
 
 
