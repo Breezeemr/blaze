@@ -97,7 +97,7 @@
         (comp
          (map :e)
          ;; (map #(d/entity db (:e %)))
-         ;; (filter (or pred (fn [_] true)))
+         (filter (or pred (fn [_] true)))
          (map #(d/pull db '[*] %))
          (filter #(not (:deleted (meta %))))
          (take (fhir-util/page-size query-params))
