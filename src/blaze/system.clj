@@ -178,12 +178,21 @@
     (log/debug "Init FHIR capabilities interaction handler")
     (fhir-capabilities-handler/handler base-url version structure-definitions))
 
+
 (defmethod ig/init-key :blaze.schema/mapping
   [_ config]
   (log/info "Init schema mapping")
   (if-let [mapping-fn (:fn config)]
     nil ;; TODO: Will need to call requiring-resolve and execute the fn
     (:mapping config)))
+
+
+(defmethod ig/init-key :blaze.schema/pattern
+  [_ config]
+  (log/info "Init schema pull patterns")
+  (if-let [pull-fn (:fn config)]
+    nil ;; TODO: Will need to execute this fn to generate the pull patterns
+    (:expression config)))
 
 
 (defmethod ig/init-key :blaze.server/executor
