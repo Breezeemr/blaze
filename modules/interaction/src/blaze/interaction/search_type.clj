@@ -91,6 +91,7 @@
                            :where [?e :phi.element/type ?type]]
                          db
                          (str "fhir-type/" type)))
+      ;; (count (into [] (d/datoms db :avet :phi.element/type (str "fhir-type/" type))))
 
       (not (summary? query-params))
       (assoc
