@@ -83,7 +83,11 @@
          :type "searchset"}
 
       (nil? pred)
-      (assoc :total (util/type-total db type))
+      (assoc :total (d/q '[:find (count ?e) .
+                           :in $ ?type
+                           :where [?e :phi.element/type ?type]]
+                         db
+                         (str "fhir-type/" type)))
 
       (not (summary? query-params))
       (assoc
