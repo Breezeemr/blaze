@@ -131,15 +131,16 @@
 
   [:blaze.interaction/search-type :blaze.interaction.search/Condition]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :schema/mapping                    #blaze/ref :blaze.schema/mapping
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.interaction.search/Condition]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/Condition]
    :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
                                         :blaze.fhir.SearchParameter/expression [:Condition/subject :Patient/id]}
                                        {:blaze.fhir.SearchParameter/code       "category"
                                         :blaze.fhir.SearchParameter/expression [:Condition/category :CodeableConcept/coding :Coding/code :code/code]}]}
 
-  ;; TODO: It is reasonable to consider extracting these mappings into a separate map, like `:features` below
   [:blaze.schema/mapping :blaze.interaction.search/Condition]
   {:fn      nil
+   ;; TODO: This mapping now only needs to be edge cases like $cr
    :mapping {
              ;; :Condition/identifier         {:ident       :fhir.Condition/identifier
              ;;                                :cardinality :db.cardinality/many
@@ -228,6 +229,12 @@
              ;;                                :cardinality :db.cardinality/one,
              ;;                                :valueType   :db.type/string}
              }}
+
+  [:blaze.schema/pattern :blaze.interaction.search/Condition]
+  {:fn         nil
+   :expression [:fhir.Resource/id
+                :fhir.Resource/subject]}
+
   }
 
  :features

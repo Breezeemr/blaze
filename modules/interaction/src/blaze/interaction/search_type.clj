@@ -79,7 +79,7 @@
           (d/datoms db :aevt (util/resource-id-attr type)))))))
 
 
-(defn- search [router db type query-params config mapping]
+(defn- search [router db type query-params config pattern mapping]
   (let [pred (resource-pred query-params config)]
     (cond->
         {:resourceType "Bundle"
@@ -101,18 +101,18 @@
          (map :e)
          ;; (map #(d/entity db (:e %)))
          (filter (or pred (fn [_] true)))
-         (map #(d/pull db '[*] %))
+         (map #(d/pull db pattern %))
          (filter #(not (:deleted (meta %))))
          (take (fhir-util/page-size query-params))
          (map #(entry router %)))
         (d/datoms db :avet :phi.element/type (str "fhir-type/" type)))))))
 
 
-(defn- handler-intern [{:keys [database/conn blaze.fhir.SearchParameter/config schema/mapping]}]
+(defn- handler-intern [{:keys [database/conn  blaze.fhir.SearchParameter/config schema/pattern schema/mapping]}]
   (fn [{{{:fhir.resource/keys [type]} :data} ::reitit/match
        :keys [params]
        ::reitit/keys [router]}]
-    (-> (search router (d/db conn) type params config mapping)
+    (-> (search router (d/db conn) type params config pattern mapping)
         (ring/response))))
 
 
