@@ -147,7 +147,6 @@
                                               :value nil}
              :fhir.CodeableConcept/coding$cr {:key   :fhir.CodeableConcept/coding
                                               :value blaze.fhir.transforms/coding}
-             ;; TODO: Can probably identify references in a generic way
              ;; Condition specific
              :fhir.v3.Condition/asserter     {:key   nil ;; nil key means keep same key
                                               :value blaze.fhir.transforms/reference}
