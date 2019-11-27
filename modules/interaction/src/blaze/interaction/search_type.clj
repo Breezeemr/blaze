@@ -53,31 +53,8 @@
   (or (zero? (fhir-util/page-size query-params)) (= "count" summary)))
 
 
-#_(defn- search [router db type query-params config mapping]
-    (let [pred (resource-pred query-params config)]
-      (cond->
-          {:resourceType "Bundle"
-           :type "searchset"}
-
-        (nil? pred)
-        (assoc :total (util/type-total db type))
-
-        (not (summary? query-params))
-        (assoc
-         :entry
-         (into
-          []
-          (comp
-           (map #(d/entity db (:e %)))
-           (filter (or pred (fn [_] true)))
-           (map #(pull/pull-resource* db type %))
-           #_(filter #(not (:deleted (meta %))))
-           #_(take (fhir-util/page-size query-params))
-           #_(map #(entry router %)))
-          (d/datoms db :aevt (util/resource-id-attr type)))))))
-
-
 (defn- transform [mapping resource]
+  (clojure.pprint/pprint resource)
   (prewalk (fn [node]
              (if (vector? node)
                (let [[k v] node]
