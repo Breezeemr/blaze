@@ -154,7 +154,10 @@
              :fhir.v3.Condition/context      {:key   nil
                                               :value blaze.fhir.transforms/reference}
              :fhir.v3.Condition/subject      {:key   nil
-                                              :value blaze.fhir.transforms/reference}}}
+                                              :value blaze.fhir.transforms/reference}
+             ;; TODO: :fhir.v3.Condition/identifier (I think it is a reference)
+             ;; TODO: Is :fhir.Condition/identifier$id ever used? Need to look at prod
+             }}
 
   [:blaze.schema/pattern :blaze.interaction.search/Condition]
   {:fn      nil

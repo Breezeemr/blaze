@@ -78,6 +78,7 @@
 
 
 (defn- transform [mapping resource]
+  (clojure.pprint/pprint resource)
   (prewalk (fn [node]
              (if (vector? node)
                (let [[k v] node]
