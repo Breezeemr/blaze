@@ -77,11 +77,22 @@
           (d/datoms db :aevt (util/resource-id-attr type)))))))
 
 
-;; TODO: This will need to be a function that blaze.edn points to, or at least its content will be based off blaze.edn
-;; Maybe rename `mapping` in blaze.edn to `transforms` based on "fhir-type/____"
 (defn- transform [mapping resource]
-  (prn mapping)
-  resource)
+  (prewalk (fn [item]
+              (if (vector? item)
+                (let [[k v] item]
+                  (if-let [f (get mapping k)]
+                    [k ((requiring-resolve f) v)]
+                    item))
+                item))
+            resource)
+  #_(into {}
+        (comp
+         (map (fn [[k v]]
+                (if-let [f (get mapping k)]
+                  [k ((requiring-resolve f) v)]
+                  [k v]))))
+        resource))
 
 
 (defn- search [router db type query-params config pattern mapping]
