@@ -155,8 +155,10 @@
                                               :value blaze.fhir.transforms/reference}
              :fhir.v3.Condition/subject      {:key   nil
                                               :value blaze.fhir.transforms/reference}
-             ;; TODO: :fhir.v3.Condition/identifier (I think it is a reference)
-             ;; TODO: Is :fhir.Condition/identifier$id ever used? Need to look at prod
+             :fhir.v3.Condition/identifier   {:key   nil ;; pretty sure :fhir.v3.Condition/identifier is never used
+                                              :value blaze.fhir.transforms/reference}
+
+             ;; I am pretty sure :fhir.Condition/identifier$id is never used
              }}
 
   [:blaze.schema/pattern :blaze.interaction.search/Condition]
