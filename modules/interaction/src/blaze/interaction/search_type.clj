@@ -86,13 +86,14 @@
   (prewalk (fn [node]
              (if (vector? node)
                (let [[k v] node]
-                 ;; (prn k v)
+                 ;; (prn "k v::" k v)
                  (if-let [mapper (get mapping k)]
                    (let [new-k (:key mapper)
                          f     (:value mapper)]
                      ;; (prn k v "~~~" new-k f)
-                     (when (and new-k f)
-                       [new-k ((requiring-resolve f) new-k v)]))
+                     (when f
+                       [(if new-k new-k k)
+                        ((requiring-resolve f) new-k v)]))
                     node))
                node))
             resource))
