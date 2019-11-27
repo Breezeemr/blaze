@@ -78,15 +78,12 @@
 
 
 (defn- transform [mapping resource]
-  (clojure.pprint/pprint resource)
   (prewalk (fn [node]
              (if (vector? node)
                (let [[k v] node]
-                 ;; (prn "k v::" k v)
                  (if-let [mapper (get mapping k)]
                    (let [new-k (:key mapper)
                          f     (:value mapper)]
-                     ;; (prn k v "~~~" new-k f)
                      (when f
                        [(if new-k new-k k)
                         ((requiring-resolve f) new-k v)]))
