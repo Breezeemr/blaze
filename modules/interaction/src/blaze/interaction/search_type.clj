@@ -78,15 +78,15 @@
 
 
 (defn- transform [mapping resource]
-  (prewalk (fn [item]
-              (if (vector? item)
-                (let [[k v] item]
-                  (if-let [mapper (get mapping k)]
-                    (let [new-k  (:key mapper)
-                          f      (:value mapper)]
+  (prewalk (fn [node]
+             (if (vector? node)
+               (let [[k v] node]
+                 (if-let [mapper (get mapping k)]
+                   (let [new-k (:key mapper)
+                         f     (:value mapper)]
                       [new-k ((requiring-resolve f) v)])
-                    item))
-                item))
+                    node))
+               node))
             resource))
 
 
