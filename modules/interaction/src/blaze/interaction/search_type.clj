@@ -82,18 +82,13 @@
   (prewalk (fn [item]
               (if (vector? item)
                 (let [[k v] item]
-                  (if-let [f (get mapping k)]
-                    [k ((requiring-resolve f) v)]
+                  (if-let [mapper (get mapping k)]
+                    (let [new-k  (:key mapper)
+                          f      (:value mapper)]
+                      [new-k ((requiring-resolve f) v)])
                     item))
                 item))
-            resource)
-  #_(into {}
-        (comp
-         (map (fn [[k v]]
-                (if-let [f (get mapping k)]
-                  [k ((requiring-resolve f) v)]
-                  [k v]))))
-        resource))
+            resource))
 
 
 (defn- search [router db type query-params config pattern mapping]
