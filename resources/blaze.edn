@@ -141,10 +141,8 @@
   [:blaze.schema/mapping :blaze.interaction.search/Condition]
   {:fn      nil
    :mapping {;; Generic
-             :phi.element/type               {:key   nil
-                                              :value nil} ;; nil value means remove this property
-             :db/id                          {:key   nil
-                                              :value nil}
+             ;; :phi.element/type               {:key   nil
+             ;;                                  :value nil} ;; nil value means remove this property
              :fhir.CodeableConcept/coding$cr {:key   :fhir.CodeableConcept/coding
                                               :value blaze.fhir.transforms/coding}
              ;; Condition specific
@@ -176,7 +174,8 @@
              :fhir.v3.Condition/bodySite
              :fhir.v3.Condition/category
              :fhir.v3.Condition/clinicalStatus
-             :fhir.v3.Condition/code
+             {:fhir.v3.Condition/code [:fhir.CodeableConcept/text
+                                       :fhir.CodeableConcept/coding$cr]}
              {:fhir.v3.Condition/context [:fhir.Resource/id
                                           :phi.element/type]}
              :fhir.v3.Condition/evidence
