@@ -3,11 +3,15 @@
    [clojure.string :as str]))
 
 
-(defn coding [c]
+(defn coding [_ v]
   (into []
         (comp
          (map #(str/split % #"\/"))
          (map (fn [[system code]]
                 {:system system
                  :code   code})))
-        c))
+        v))
+
+
+(defn reference [k v]
+  {:reference (str (name k) "/" (:fhir.Resource/id v))})

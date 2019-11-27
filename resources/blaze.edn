@@ -140,10 +140,16 @@
 
   [:blaze.schema/mapping :blaze.interaction.search/Condition]
   {:fn      nil
-   :mapping {:phi.element/type               {:key   nil
+   :mapping {;; Generic
+             :phi.element/type               {:key   nil
                                               :value nil}
              :fhir.CodeableConcept/coding$cr {:key   :fhir.CodeableConcept/coding
-                                              :value blaze.fhir.transforms/coding}}}
+                                              :value blaze.fhir.transforms/coding}
+             ;; TODO: I can actually probably just use generic :fhir.Resource/id because I need to update the
+             ;; pull expression to get the phi.element/type which will dictate the reference prefix
+             ;; Condition specific
+             :fhir.v3.Condition/subject      {:key   :fhir.v3.Condition/subject
+                                              :value blaze.fhir.transforms/reference}}}
 
   [:blaze.schema/pattern :blaze.interaction.search/Condition]
   {:fn      nil
@@ -156,12 +162,12 @@
              :fhir.v3.Condition/abatementRange
              :fhir.v3.Condition/abatementString
              :fhir.v3.Condition/assertedDate
-             :fhir.v3.Condition/asserter
+             {:fhir.v3.Condition/asserter [:fhir.Resource/id]}
              :fhir.v3.Condition/bodySite
              :fhir.v3.Condition/category
              :fhir.v3.Condition/clinicalStatus
              :fhir.v3.Condition/code
-             :fhir.v3.Condition/context
+             {:fhir.v3.Condition/context [:fhir.Resource/id]}
              :fhir.v3.Condition/evidence
              :fhir.v3.Condition/identifier
              :fhir.v3.Condition/note
@@ -172,7 +178,7 @@
              :fhir.v3.Condition/onsetString
              :fhir.v3.Condition/severity
              :fhir.v3.Condition/stage
-             :fhir.v3.Condition/subject
+             {:fhir.v3.Condition/subject [:fhir.Resource/id]}
              :fhir.v3.Condition/verificationStatus
              :fhir.v3.Condition.evidence/code
              :fhir.v3.Condition.evidence/detail

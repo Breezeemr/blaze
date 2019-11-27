@@ -8,7 +8,7 @@
     [blaze.handler.fhir.util :as fhir-util]
     [blaze.middleware.fhir.metrics :refer [wrap-observe-request-duration]]
     [clojure.spec.alpha :as s]
-    [clojure.walk :refer [prewalk]]
+    [clojure.walk :refer [prewalk postwalk]]
     [datomic.api :as d]
     [datomic-spec.core :as ds]
     [integrant.core :as ig]
@@ -78,14 +78,19 @@
 
 
 (defn- transform [mapping resource]
+  (println)
+  (clojure.pprint/pprint resource)
+  (println)
   (prewalk (fn [node]
              (if (vector? node)
                (let [[k v] node]
+                 ;; (prn k v)
                  (if-let [mapper (get mapping k)]
                    (let [new-k (:key mapper)
                          f     (:value mapper)]
+                     ;; (prn k v "~~~" new-k f)
                      (when (and new-k f)
-                       [new-k ((requiring-resolve f) v)]))
+                       [new-k ((requiring-resolve f) new-k v)]))
                     node))
                node))
             resource))
