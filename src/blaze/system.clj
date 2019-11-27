@@ -183,7 +183,7 @@
   [_ config]
   (log/info "Init schema mapping")
   (if-let [mapping-fn (:fn config)]
-    nil ;; TODO: Will need to call requiring-resolve and execute the fn
+    ((requiring-resolve mapping-fn))
     (:mapping config)))
 
 
@@ -191,7 +191,7 @@
   [_ config]
   (log/info "Init schema pull patterns")
   (if-let [pull-fn (:fn config)]
-    nil ;; TODO: Will need to execute this fn to generate the pull patterns
+    ((requiring-resolve pull-fn))
     (:pattern config)))
 
 
