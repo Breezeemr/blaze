@@ -84,7 +84,8 @@
                  (if-let [mapper (get mapping k)]
                    (let [new-k (:key mapper)
                          f     (:value mapper)]
-                      [new-k ((requiring-resolve f) v)])
+                     (when (and new-k f)
+                       [new-k ((requiring-resolve f) v)]))
                     node))
                node))
             resource))
