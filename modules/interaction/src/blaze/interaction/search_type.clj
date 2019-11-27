@@ -59,9 +59,9 @@
              (if (vector? node)
                (let [[k v] node]
                  (if-let [mapper (get mapping k)]
-                   (let [new-k (:key mapper)
+                   (let [new-k (:key mapper k)
                          f     (:value mapper)]
-                     [(if new-k new-k k)
+                     [new-k
                       ((requiring-resolve f) new-k v)])
                     node))
                node))
