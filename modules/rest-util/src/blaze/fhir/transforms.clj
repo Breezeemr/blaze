@@ -17,3 +17,7 @@
   (let [prefix (-> (:phi.element/type v) (str/split #"\/") second)
         id     (:fhir.Resource/id v)]
     {:reference (str prefix "/" id)}))
+
+
+(defn resource-type [_ v]
+  (second (str/split v #"\/")))
