@@ -140,7 +140,8 @@
 
   [:blaze.schema/mapping :blaze.interaction.search/Condition]
   {:fn      nil
-   :mapping {;; :fhir.v3.Condition/code blaze.fhir.transforms/codeable-concept
+   :mapping {:phi.element/type               {:key   nil
+                                              :value nil}
              :fhir.CodeableConcept/coding$cr {:key   :fhir.CodeableConcept/coding
                                               :value blaze.fhir.transforms/coding}}}
 
