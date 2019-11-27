@@ -146,14 +146,10 @@
              :fhir.CodeableConcept/coding$cr {:key   :fhir.CodeableConcept/coding
                                               :value blaze.fhir.transforms/coding}
              ;; Condition specific
-             :fhir.v3.Condition/asserter     {:key   nil ;; nil key means keep same key
-                                              :value blaze.fhir.transforms/reference}
-             :fhir.v3.Condition/context      {:key   nil
-                                              :value blaze.fhir.transforms/reference}
-             :fhir.v3.Condition/subject      {:key   nil
-                                              :value blaze.fhir.transforms/reference}
-             :fhir.v3.Condition/identifier   {:key   nil ;; pretty sure :fhir.v3.Condition/identifier is never used
-                                              :value blaze.fhir.transforms/reference}
+             :fhir.v3.Condition/asserter     {:value blaze.fhir.transforms/reference}
+             :fhir.v3.Condition/context      {:value blaze.fhir.transforms/reference}
+             :fhir.v3.Condition/subject      {:value blaze.fhir.transforms/reference}
+             :fhir.v3.Condition/identifier   {:value blaze.fhir.transforms/reference} ;; pretty sure :fhir.v3.Condition/identifier is never used
 
              ;; I am pretty sure :fhir.Condition/identifier$id is never used
              }}
