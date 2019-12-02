@@ -221,13 +221,61 @@
   [:blaze.schema/mapping :blaze.interaction.search/DiagnosticReport]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
-   :mapping {:fhir.DiagnosticReport/subject {:value blaze.fhir.transforms/reference}}}
+   :mapping {:fhir.DiagnosticReport/imagingStudy {:value blaze.fhir.transforms/reference}
+             :fhir.DiagnosticReport/performer    {:value blaze.fhir.transforms/reference}
+             :fhir.DiagnosticReport/request      {:value blaze.fhir.transforms/reference}
+             :fhir.DiagnosticReport/result       {:value blaze.fhir.transforms/reference}
+             :fhir.DiagnosticReport/specimen     {:value blaze.fhir.transforms/reference}
+             :fhir.DiagnosticReport/subject      {:value blaze.fhir.transforms/reference}
+             :fhir.DiagnosticReport.image/link   {:value blaze.fhir.transforms/reference}}}
 
   [:blaze.schema/pattern :blaze.interaction.search/DiagnosticReport]
   {:fn      nil
    :pattern [:fhir.Resource/id
              :phi.element/type
-             {:fhir.DiagnosticReport/subject [:fhir.Resource/id :phi.element/type]}]}
+             ;; :fhir.DiagnosticReport/category
+             ;; :fhir.DiagnosticReport/category$cr
+             ;; :fhir.DiagnosticReport/code
+             ;; :fhir.DiagnosticReport/code$cr
+             ;; :fhir.DiagnosticReport/codedDiagnosis
+             ;; :fhir.DiagnosticReport/codedDiagnosis$cr
+             ;; :fhir.DiagnosticReport/conclusion
+             ;; :fhir.DiagnosticReport/contained
+             ;; :fhir.DiagnosticReport/diagnosticDateTime
+             ;; :fhir.DiagnosticReport/diagnosticPeriod
+             ;; :fhir.DiagnosticReport/effectiveDateTime
+             ;; :fhir.DiagnosticReport/effectivePeriod
+             ;; :fhir.DiagnosticReport/encounter
+             ;; :fhir.DiagnosticReport/extension
+             ;; :fhir.DiagnosticReport/id
+             ;; :fhir.DiagnosticReport/identifier
+             ;; :fhir.DiagnosticReport/identifier$id
+             ;; :fhir.DiagnosticReport/image
+             {:fhir.DiagnosticReport/imagingStudy [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.DiagnosticReport/implicitRules
+             ;; :fhir.DiagnosticReport/issued
+             ;; :fhir.DiagnosticReport/language
+             ;; :fhir.DiagnosticReport/meta
+             ;; :fhir.DiagnosticReport/modifierExtension
+             ;; :fhir.DiagnosticReport/name
+             ;; :fhir.DiagnosticReport/name$cr
+             {:fhir.DiagnosticReport/performer [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.DiagnosticReport/presentedForm
+             {:fhir.DiagnosticReport/request [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.DiagnosticReport/request Detail
+             {:fhir.DiagnosticReport/result [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.DiagnosticReport/serviceCategory
+             ;; :fhir.DiagnosticReport/serviceCategory$cr
+             {:fhir.DiagnosticReport/specimen [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.DiagnosticReport/status
+             ;; :fhir.DiagnosticReport/status$cr
+             {:fhir.DiagnosticReport/subject [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.DiagnosticReport/text
+             ;; :fhir.DiagnosticReport.image/comment
+             ;; :fhir.DiagnosticReport.image/extension
+             {:fhir.DiagnosticReport.image/link [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.DiagnosticReport.image/modifierExtension
+             ]}
 
   [:blaze.fhir/SearchParameter :blaze.interaction.search/DiagnosticReport]
   {:fn     nil
@@ -272,6 +320,7 @@
 
   ;;
   ;; MedicationPrescription
+  ;; TODO: This is probably not working because it isn't in the StructureDefinitions
   ;;
   [:blaze.interaction/search-type :blaze.interaction.search/MedicationPrescription]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
