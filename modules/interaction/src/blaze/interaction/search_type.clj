@@ -139,6 +139,22 @@
   (handler config))
 
 
+(defmethod ig/init-key :blaze.schema/mapping
+  [_ config]
+  (log/info "Init schema mapping")
+  (if-let [mapping-fn (:fn config)]
+    ((requiring-resolve mapping-fn))
+    (merge (:mapping config) (:default config))))
+
+
+(defmethod ig/init-key :blaze.schema/pattern
+  [_ config]
+  (log/info "Init schema pull patterns")
+  (if-let [pull-fn (:fn config)]
+    ((requiring-resolve pull-fn))
+    (:pattern config)))
+
+
 (defmethod ig/init-key :blaze.fhir/SearchParameter
   [_ config]
   (log/info "Init search parameters")
