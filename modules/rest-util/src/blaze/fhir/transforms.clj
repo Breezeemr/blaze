@@ -14,9 +14,14 @@
 
 
 (defn reference [k v]
-  (let [prefix (-> (:phi.element/type v) (str/split #"\/") second)
-        id     (:fhir.Resource/id v)]
-    {:reference (str prefix "/" id)}))
+  (into []
+        (map (fn [val]
+               (let [prefix (-> (:phi.element/type val) (str/split #"\/") second)
+                     id     (:fhir.Resource/id val)]
+                 {:reference (str prefix "/" id)})))
+        (if (sequential? v)
+          v
+          [v])))
 
 
 (defn resource-type [_ v]
