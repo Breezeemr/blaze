@@ -166,15 +166,12 @@
              :fhir.v3.Condition/abatementRange
              :fhir.v3.Condition/abatementString
              :fhir.v3.Condition/assertedDate
-             {:fhir.v3.Condition/asserter [:fhir.Resource/id
-                                           :phi.element/type]}
+             {:fhir.v3.Condition/asserter [:fhir.Resource/id :phi.element/type]}
              :fhir.v3.Condition/bodySite
              :fhir.v3.Condition/category
              :fhir.v3.Condition/clinicalStatus
-             {:fhir.v3.Condition/code [:fhir.CodeableConcept/text
-                                       :fhir.CodeableConcept/coding$cr]}
-             {:fhir.v3.Condition/context [:fhir.Resource/id
-                                          :phi.element/type]}
+             {:fhir.v3.Condition/code [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
+             {:fhir.v3.Condition/context [:fhir.Resource/id :phi.element/type]}
              :fhir.v3.Condition/evidence
              :fhir.v3.Condition/identifier
              :fhir.v3.Condition/note
@@ -185,8 +182,7 @@
              :fhir.v3.Condition/onsetString
              :fhir.v3.Condition/severity
              :fhir.v3.Condition/stage
-             {:fhir.v3.Condition/subject [:fhir.Resource/id
-                                          :phi.element/type]}
+             {:fhir.v3.Condition/subject [:fhir.Resource/id :phi.element/type]}
              :fhir.v3.Condition/verificationStatus
              :fhir.v3.Condition.evidence/code
              :fhir.v3.Condition.evidence/detail
