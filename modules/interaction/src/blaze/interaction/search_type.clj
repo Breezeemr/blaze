@@ -17,7 +17,7 @@
     [ring.util.response :as ring]
     [taoensso.timbre :as log])
   (:import
-   (java.util UUID)))
+    (java.util UUID)))
 
 
 (defn- match?
