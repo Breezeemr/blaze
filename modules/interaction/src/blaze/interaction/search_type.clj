@@ -112,7 +112,6 @@
   (fn [{{{:fhir.resource/keys [type]} :data} ::reitit/match
        :keys [params]
        ::reitit/keys [router]}]
-    (prn "pattern::" pattern)
     (-> (search router (d/db conn) type params config pattern mapping)
         (ring/response))))
 
