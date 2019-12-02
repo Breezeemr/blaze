@@ -100,6 +100,15 @@
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Condition]}
       :read
       #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction/read}}}
+    #:blaze.rest-api.resource-pattern
+    {:type "DiagnosticReport"
+     :interactions
+     {:search-type
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/DiagnosticReport]}
+      :read
+      #:blaze.rest-api.interaction
       {:handler #blaze/ref :blaze.interaction/read}}}]
    :operations
    [#:blaze.rest-api.operation
@@ -136,6 +145,9 @@
              :fhir.CodeableConcept/coding$cr {:key   :fhir.CodeableConcept/coding
                                               :value blaze.fhir.transforms/coding}}}
 
+  ;;
+  ;; Condition
+  ;;
   [:blaze.interaction/search-type :blaze.interaction.search/Condition]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
    :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.interaction.search/Condition]
@@ -145,9 +157,9 @@
   [:blaze.schema/mapping :blaze.interaction.search/Condition]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
-   :mapping {:fhir.v3.Condition/context      {:value blaze.fhir.transforms/reference}
-             :fhir.v3.Condition/subject      {:value blaze.fhir.transforms/reference}
-             :fhir.v3.Condition/identifier   {:value blaze.fhir.transforms/reference} ;; pretty sure :fhir.v3.Condition/identifier is never used
+   :mapping {:fhir.v3.Condition/context    {:value blaze.fhir.transforms/reference}
+             :fhir.v3.Condition/subject    {:value blaze.fhir.transforms/reference}
+             :fhir.v3.Condition/identifier {:value blaze.fhir.transforms/reference} ;; pretty sure :fhir.v3.Condition/identifier is never used
              ;; I am pretty sure :fhir.Condition/identifier$id is never used
              }}
 
@@ -199,9 +211,39 @@
             {:blaze.fhir.SearchParameter/code       "category"
              :blaze.fhir.SearchParameter/expression [:fhir.v3.Condition/category :fhir.CodeableConcept/coding :fhir.Coding/code #_:code/code]}]}
 
-  ;; [:blaze.fhir/constraints :blaze.interaction.search/Condition]
-  ;; {:fn nil
-  ;;  :constraints [{}]}
+  ;;
+  ;; DiagnosticReport
+  ;;
+  [:blaze.interaction/search-type :blaze.interaction.search/DiagnosticReport]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.interaction.search/DiagnosticReport]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/DiagnosticReport]
+   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.interaction.search/DiagnosticReport]}
+
+  [:blaze.schema/mapping :blaze.interaction.search/DiagnosticReport]
+  {:fn      nil
+   :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
+   :mapping {:fhir.DiagnosticReport/subject {:value blaze.fhir.transforms/reference}}}
+
+  [:blaze.schema/pattern :blaze.interaction.search/DiagnosticReport]
+  {:fn      nil
+   :pattern [:fhir.Resource/id
+             :phi.element/type
+             {:fhir.DiagnosticReport/subject [:fhir.Resource/id :phi.element/type]}]}
+
+  [:blaze.fhir/SearchParameter :blaze.interaction.search/DiagnosticReport]
+  {:fn     nil
+   :params [{:blaze.fhir.SearchParameter/code       "_id"
+             :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"} ;; uuid is not actually a valid FHIR SearchParameter type
+            {:blaze.fhir.SearchParameter/code       "subject"
+             :blaze.fhir.SearchParameter/expression [:fhir.DiagnosticReport/subject :fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}
+            {:blaze.fhir.SearchParameter/code       "patient"  ;; patient also searches for subject
+             :blaze.fhir.SearchParameter/expression [:fhir.DiagnosticReport/subject :fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}]}
+
+
 
   }
 
