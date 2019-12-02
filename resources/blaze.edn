@@ -233,49 +233,47 @@
   {:fn      nil
    :pattern [:fhir.Resource/id
              :phi.element/type
-             ;; :fhir.DiagnosticReport/category
-             ;; :fhir.DiagnosticReport/category$cr
-             ;; :fhir.DiagnosticReport/code
-             ;; :fhir.DiagnosticReport/code$cr
-             ;; :fhir.DiagnosticReport/codedDiagnosis
-             ;; :fhir.DiagnosticReport/codedDiagnosis$cr
-             ;; :fhir.DiagnosticReport/conclusion
-             ;; :fhir.DiagnosticReport/contained
-             ;; :fhir.DiagnosticReport/diagnosticDateTime
-             ;; :fhir.DiagnosticReport/diagnosticPeriod
-             ;; :fhir.DiagnosticReport/effectiveDateTime
-             ;; :fhir.DiagnosticReport/effectivePeriod
-             ;; :fhir.DiagnosticReport/encounter
-             ;; :fhir.DiagnosticReport/extension
-             ;; :fhir.DiagnosticReport/id
-             ;; :fhir.DiagnosticReport/identifier
-             ;; :fhir.DiagnosticReport/identifier$id
-             ;; :fhir.DiagnosticReport/image
+             :fhir.DiagnosticReport/category
+             :fhir.DiagnosticReport/category$cr
+             :fhir.DiagnosticReport/code
+             :fhir.DiagnosticReport/code$cr
+             :fhir.DiagnosticReport/codedDiagnosis
+             :fhir.DiagnosticReport/codedDiagnosis$cr
+             :fhir.DiagnosticReport/conclusion
+             :fhir.DiagnosticReport/contained
+             :fhir.DiagnosticReport/diagnosticDateTime
+             :fhir.DiagnosticReport/diagnosticPeriod
+             :fhir.DiagnosticReport/effectiveDateTime
+             :fhir.DiagnosticReport/effectivePeriod
+             :fhir.DiagnosticReport/encounter
+             :fhir.DiagnosticReport/extension
+             :fhir.DiagnosticReport/id
+             :fhir.DiagnosticReport/identifier
+             :fhir.DiagnosticReport/identifier$id
+             :fhir.DiagnosticReport/image
              {:fhir.DiagnosticReport/imagingStudy [:fhir.Resource/id :phi.element/type]}
-             ;; :fhir.DiagnosticReport/implicitRules
-             ;; :fhir.DiagnosticReport/issued
-             ;; :fhir.DiagnosticReport/language
-             ;; :fhir.DiagnosticReport/meta
-             ;; :fhir.DiagnosticReport/modifierExtension
-             ;; :fhir.DiagnosticReport/name
-             ;; :fhir.DiagnosticReport/name$cr
+             :fhir.DiagnosticReport/implicitRules
+             :fhir.DiagnosticReport/issued
+             :fhir.DiagnosticReport/language
+             :fhir.DiagnosticReport/meta
+             :fhir.DiagnosticReport/modifierExtension
+             :fhir.DiagnosticReport/name
+             :fhir.DiagnosticReport/name$cr
              {:fhir.DiagnosticReport/performer [:fhir.Resource/id :phi.element/type]}
-             ;; :fhir.DiagnosticReport/presentedForm
+             :fhir.DiagnosticReport/presentedForm
              {:fhir.DiagnosticReport/request [:fhir.Resource/id :phi.element/type]}
-             ;; :fhir.DiagnosticReport/request Detail
+             :fhir.DiagnosticReport/request Detail
              {:fhir.DiagnosticReport/result [:fhir.Resource/id :phi.element/type]}
-             ;; :fhir.DiagnosticReport/serviceCategory
-             ;; :fhir.DiagnosticReport/serviceCategory$cr
+             :fhir.DiagnosticReport/serviceCategory
+             :fhir.DiagnosticReport/serviceCategory$cr
              {:fhir.DiagnosticReport/specimen [:fhir.Resource/id :phi.element/type]}
-             ;; :fhir.DiagnosticReport/status
-             ;; :fhir.DiagnosticReport/status$cr
+             :fhir.DiagnosticReport/status
+             :fhir.DiagnosticReport/status$cr
              {:fhir.DiagnosticReport/subject [:fhir.Resource/id :phi.element/type]}
-             ;; :fhir.DiagnosticReport/text
-             ;; :fhir.DiagnosticReport.image/comment
-             ;; :fhir.DiagnosticReport.image/extension
-             {:fhir.DiagnosticReport.image/link [:fhir.Resource/id :phi.element/type]}
-             ;; :fhir.DiagnosticReport.image/modifierExtension
-             ]}
+             :fhir.DiagnosticReport/text
+             :fhir.DiagnosticReport.image/comment
+             :fhir.DiagnosticReport.image/extension
+             {:fhir.DiagnosticReport.image/link [:fhir.Resource/id :phi.element/type]}]}
 
   [:blaze.fhir/SearchParameter :blaze.interaction.search/DiagnosticReport]
   {:fn     nil
