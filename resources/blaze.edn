@@ -144,7 +144,7 @@
 
   [:blaze.schema/mapping :blaze.interaction.search/Condition]
   {:fn      nil
-   ;; :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
+   :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
    :mapping {:fhir.v3.Condition/context      {:value blaze.fhir.transforms/reference}
              :fhir.v3.Condition/subject      {:value blaze.fhir.transforms/reference}
              :fhir.v3.Condition/identifier   {:value blaze.fhir.transforms/reference} ;; pretty sure :fhir.v3.Condition/identifier is never used
