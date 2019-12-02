@@ -109,6 +109,24 @@
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/DiagnosticReport]}
       :read
       #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction/read}}}
+    #:blaze.rest-api.resource-pattern
+    {:type "Observation"
+     :interactions
+     {:search-type
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Observation]}
+      :read
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction/read}}}
+    #:blaze.rest-api.resource-pattern
+    {:type "MedicationPrescription"
+     :interactions
+     {:search-type
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/MedicationPrescription]}
+      :read
+      #:blaze.rest-api.interaction
       {:handler #blaze/ref :blaze.interaction/read}}}]
    :operations
    [#:blaze.rest-api.operation
@@ -117,26 +135,6 @@
      :resource-types ["Measure"]
      :type-handler #blaze/ref :blaze.fhir.operation.evaluate-measure/handler
      :instance-handler #blaze/ref :blaze.fhir.operation.evaluate-measure/handler}]}
-
-  ;; TODO: May want to add a new key that specifies the mapping between fhir and our datomic schema
-  ;; It should be a ref that points to another part of this edn file with the (data) description of the mapping
-  ;; Try to make it so Alex will like it. We will want our mapping descriptions to happen previously,
-  ;; Alex probably prefers them to happen in real time. The difference is we want to point to some data,
-  ;; he will probably want to point to a function that transforms the fhir json files during startup
-  ;; would be nice to be able to handle 2 versions at the same time for a given resource. Probably the simplest way to do this is to
-  ;; point to a ref where that ref may be a function that resolves the mapping or already raw mapping
-  ;;
-  ;; the search parameters are incomplete
-  ;; consider the invariants https://www.hl7.org/fhir/condition.html#invs
-  ;; consider using clojure spec, don't try to prevent all possible errors. use it for information, mainly as documentation,
-  ;;  can also use to generate things (docs?) that make sense
-  ;; we'll need to be able to reference custom functions as well (like handle the merging of identifier and identifier$id)
-  ;; later we'll need to optimize the searching handler but not yet
-  ;;
-  ;; get to a concrete implementation fairly quickly. focus on condition and have it work on our database
-  ;; don't do edn generation, manually edit it
-  ;; do modify the interaction module handlers
-  ;; writing is a lower priority. All Drew needs is reading and searching
 
   [:blaze.schema/mapping :blaze.interaction.search/default]
   {:fn      nil
@@ -243,7 +241,63 @@
              :blaze.fhir.SearchParameter/expression [:fhir.DiagnosticReport/subject :fhir.Resource/id]
              :blaze.fhir.SearchParameter/type       "uuid"}]}
 
+  ;;
+  ;; Observation
+  ;;
+  [:blaze.interaction/search-type :blaze.interaction.search/Observation]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.interaction.search/Observation]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/Observation]
+   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.interaction.search/Observation]}
 
+  [:blaze.schema/mapping :blaze.interaction.search/Observation]
+  {:fn      nil
+   :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
+   :mapping {:fhir.Observation/subject {:value blaze.fhir.transforms/reference}}}
+
+  [:blaze.schema/pattern :blaze.interaction.search/Observation]
+  {:fn      nil
+   :pattern [:fhir.Resource/id
+             :phi.element/type
+             {:fhir.Observation/subject [:fhir.Resource/id :phi.element/type]}]}
+
+  [:blaze.fhir/SearchParameter :blaze.interaction.search/Observation]
+  {:fn     nil
+   :params [{:blaze.fhir.SearchParameter/code       "_id"
+             :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}
+            {:blaze.fhir.SearchParameter/code       "subject"
+             :blaze.fhir.SearchParameter/expression [:fhir.Observation/subject :fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}]}
+
+  ;;
+  ;; MedicationPrescription
+  ;;
+  [:blaze.interaction/search-type :blaze.interaction.search/MedicationPrescription]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.interaction.search/MedicationPrescription]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/MedicationPrescription]
+   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.interaction.search/MedicationPrescription]}
+
+  [:blaze.schema/mapping :blaze.interaction.search/MedicationPrescription]
+  {:fn      nil
+   :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
+   :mapping {:fhir.MedicationPrescription/patient {:value blaze.fhir.transforms/reference}}}
+
+  [:blaze.schema/pattern :blaze.interaction.search/MedicationPrescription]
+  {:fn      nil
+   :pattern [:fhir.Resource/id
+             :phi.element/type
+             {:fhir.MedicationPrescription/patient [:fhir.Resource/id :phi.element/type]}]}
+
+  [:blaze.fhir/SearchParameter :blaze.interaction.search/MedicationPrescription]
+  {:fn     nil
+   :params [{:blaze.fhir.SearchParameter/code       "_id"
+             :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}
+            {:blaze.fhir.SearchParameter/code       "patient"
+             :blaze.fhir.SearchParameter/expression [:fhir.MedicationPrescription/patient :fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}]}
 
   }
 
