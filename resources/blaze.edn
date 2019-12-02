@@ -134,7 +134,8 @@
    :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.interaction.search/Condition]
    :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/Condition]
    :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
-                                        :blaze.fhir.SearchParameter/expression [:fhir.v3.Condition/subject :fhir.Patient/id]}
+                                        :blaze.fhir.SearchParameter/expression [:fhir.v3.Condition/subject :fhir.Resource/id]
+                                        :blaze.fhir.SearchParameter/type       "uuid"} ;; uuid is not actually a valid FHIR SearchParameter type
                                        {:blaze.fhir.SearchParameter/code       "category"
                                         :blaze.fhir.SearchParameter/expression [:fhir.v3.Condition/category :fhir.CodeableConcept/coding :fhir.Coding/code #_:code/code]}]}
 

@@ -17,7 +17,9 @@
     [reitit.core :as reitit]
     [ring.middleware.params :refer [wrap-params]]
     [ring.util.response :as ring]
-    [taoensso.timbre :as log]))
+    [taoensso.timbre :as log])
+  (:import
+   (java.util UUID)))
 
 
 (defn- match?
@@ -33,14 +35,23 @@
 
 (defn- resource-pred [query-params config]
   (let [valid-query-params  (select-keys query-params (map :blaze.fhir.SearchParameter/code config))
-        select-path-by-code (fn [config code]
+        select-params-by-code (fn [config code]
                               (->> config
                                    (filter #(= (:blaze.fhir.SearchParameter/code %) code))
-                                   first
-                                   :blaze.fhir.SearchParameter/expression))]
+                                   first))]
     (when (seq valid-query-params)
-      (fn [resource] (every? (fn [[path search]] (match? resource path search))
-                            (mapv (fn [[k v]] [(select-path-by-code config k) v]) valid-query-params))))))
+      (fn [resource]
+        (every? (fn [[path search]]
+                  (match? resource path search))
+                (mapv (fn [[k v]]
+                        (let [params (select-params-by-code config k)
+                              path   (:blaze.fhir.SearchParameter/expression params)
+                              type   (:blaze.fhir.SearchParameter/type params)
+                              search (case type
+                                       "uuid" (UUID/fromString v)
+                                       v)]
+                          [path search]))
+                      valid-query-params))))))
 
 (defn- entry
   [router {type "resourceType" id "id" :as resource}]
@@ -56,7 +67,6 @@
 
 
 (defn- transform [mapping resource]
-  (clojure.pprint/pprint resource)
   (prewalk (fn [node]
              (if (vector? node)
                (let [[k v] node]
@@ -91,9 +101,9 @@
         []
         (comp
          (map :e)
-         (filter (or pred (fn [_] true)))
          (map #(d/pull db pattern %))
          (filter #(not (:deleted (meta %))))
+         (filter (or pred (fn [_] true)))
          (take (fhir-util/page-size query-params))
          (map #(transform mapping %))
          (map #(entry router %)))
