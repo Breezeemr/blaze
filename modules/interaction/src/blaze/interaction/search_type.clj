@@ -137,3 +137,11 @@
   [_ config]
   (log/info "Init FHIR search-type interaction handler")
   (handler config))
+
+
+(defmethod ig/init-key :blaze.fhir/SearchParameter
+  [_ config]
+  (log/info "Init search parameters")
+  (if-let [params-fn (:fn config)]
+    ((requiring-resolve params-fn))
+    (:params config)))
