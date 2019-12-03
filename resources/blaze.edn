@@ -120,6 +120,15 @@
       #:blaze.rest-api.interaction
       {:handler #blaze/ref :blaze.interaction/read}}}
     #:blaze.rest-api.resource-pattern
+    {:type "Patient"
+     :interactions
+     {:search-type
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Patient]}
+      :read
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction/read}}}
+    #:blaze.rest-api.resource-pattern
     {:type "MedicationRequest"
      :interactions
      {:search-type
@@ -420,6 +429,34 @@
             {:blaze.fhir.SearchParameter/code       "subject"
              :blaze.fhir.SearchParameter/expression [:fhir.Observation/subject :fhir.Resource/id]
              :blaze.fhir.SearchParameter/type       "uuid"}]}
+
+
+  ;;
+  ;; Patient
+  ;;
+  [:blaze.interaction/search-type :blaze.interaction.search/Patient]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.interaction.search/Patient]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/Patient]
+   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.interaction.search/Patient]}
+
+  [:blaze.schema/mapping :blaze.interaction.search/Patient]
+  {:fn      nil
+   :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
+   :mapping {}}
+
+  [:blaze.schema/pattern :blaze.interaction.search/Patient]
+  {:fn      nil
+   :pattern [:db/id
+             :fhir.Resource/id
+             :phi.element/type]}
+
+  [:blaze.fhir/SearchParameter :blaze.interaction.search/Patient]
+  {:fn     nil
+   :params [{:blaze.fhir.SearchParameter/code       "_id"
+             :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}]}
+
 
   ;;
   ;; MedicationRequest
