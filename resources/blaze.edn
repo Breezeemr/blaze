@@ -262,8 +262,7 @@
              {:fhir.DiagnosticReport/performer [:fhir.Resource/id :phi.element/type]}
              :fhir.DiagnosticReport/presentedForm
              {:fhir.DiagnosticReport/request [:fhir.Resource/id :phi.element/type]}
-             :fhir.DiagnosticReport/request Detail
-             {:fhir.DiagnosticReport/result [:fhir.Resource/id :phi.element/type]}
+             {:fhir.DiagnosticReport/result [:db/id :fhir.Resource/id :phi.element/type]} ;; FIXME: Observations really don't have :fhir.Resource/id
              :fhir.DiagnosticReport/serviceCategory
              :fhir.DiagnosticReport/serviceCategory$cr
              {:fhir.DiagnosticReport/specimen [:fhir.Resource/id :phi.element/type]}
