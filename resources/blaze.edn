@@ -304,7 +304,9 @@
              :fhir.Observation/performer      {:value blaze.fhir.transforms/reference}
              :fhir.Observation/speciment      {:value blaze.fhir.transforms/reference}
              :fhir.Observation/device         {:value blaze.fhir.transforms/reference}
-             :fhir.Observation.related/target {:value blaze.fhir.transforms/reference}}}
+             :fhir.Observation.related/target {:value blaze.fhir.transforms/reference}
+             :fhir.Observation/code$cr        {:key   :fhir.Observation/code
+                                               :value blaze.fhir.transforms/$cr}}}
 
   [:blaze.schema/pattern :blaze.interaction.search/Observation]
   {:fn      nil
@@ -313,16 +315,16 @@
              :fhir.Observation/appliesDateTime
              :fhir.Observation/appliesPeriod
              {:fhir.Observation/bodySite [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             ;; :fhir.Observation/bodySite$cr
+             :fhir.Observation/bodySite$cr
              {:fhir.Observation/category [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             ;; :fhir.Observation/category$cr
+             :fhir.Observation/category$cr
              {:fhir.Observation/code [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             ;; :fhir.Observation/code$cr
+             :fhir.Observation/code$cr
              :fhir.Observation/comments
              :fhir.Observation/component
              :fhir.Observation/contained
              {:fhir.Observation/dataAbsentReason [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             ;; :fhir.Observation/dataAbsentReason$cr
+             :fhir.Observation/dataAbsentReason$cr
              {:fhir.Observation/device [:fhir.Resource/id :phi.element/type]}
              :fhir.Observation/effectiveDateTime
              :fhir.Observation/effectivePeriod
@@ -333,27 +335,27 @@
              :fhir.Observation/identifier$id
              :fhir.Observation/implicitRules
              {:fhir.Observation/interpretation [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             ;; :fhir.Observation/interpretation$cr
+             :fhir.Observation/interpretation$cr
              :fhir.Observation/issued
              :fhir.Observation/language
              :fhir.Observation/meta
              {:fhir.Observation/method [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             ;; :fhir.Observation/method$cr
+             :fhir.Observation/method$cr
              :fhir.Observation/modifierExtension
              {:fhir.Observation/performer [:fhir.Resource/id :phi.element/type]}
              :fhir.Observation/referenceRange
              :fhir.Observation/related
              {:fhir.Observation/reliability [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             ;; :fhir.Observation/reliability$cr
+             :fhir.Observation/reliability$cr
              {:fhir.Observation/specimen [:fhir.Resource/id :phi.element/type]}
              {:fhir.Observation/status [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             ;; :fhir.Observation/status$cr
+             :fhir.Observation/status$cr
              {:fhir.Observation/subject [:fhir.Resource/id :phi.element/type]}
              :fhir.Observation/text
              :fhir.Observation/valueAttachment
              :fhir.Observation/valueAttachment$cr
              {:fhir.Observation/valueCodeableConcept [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             ;; :fhir.Observation/valueCodeableConcept$cr
+             :fhir.Observation/valueCodeableConcept$cr
              :fhir.Observation/valueDateTime
              :fhir.Observation/valueDateTime$cr
              :fhir.Observation/valuePeriod
@@ -371,16 +373,16 @@
              :fhir.Observation/valueTime
              :fhir.Observation/valueTime$cr
              {:fhir.Observation.component/code [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             ;; :fhir.Observation.component/code$cr
+             :fhir.Observation.component/code$cr
              {:fhir.Observation.component/dataAbsentReason [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             ;; :fhir.Observation.component/dataAbsentReason$cr
+             :fhir.Observation.component/dataAbsentReason$cr
              :fhir.Observation.component/extension
              :fhir.Observation.component/modifierExtension
              :fhir.Observation.component/referenceRange
              :fhir.Observation.component/valueAttachment
              :fhir.Observation.component/valueAttachment$cr
              {:fhir.Observation.component/valueCodeableConcept [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             ;; :fhir.Observation.component/valueCodeableConcept$cr
+             :fhir.Observation.component/valueCodeableConcept$cr
              :fhir.Observation.component/valueDateTime
              :fhir.Observation.component/valueDateTime$cr
              :fhir.Observation.component/valuePeriod
@@ -402,7 +404,7 @@
              :fhir.Observation.referenceRange/high
              :fhir.Observation.referenceRange/low
              {:fhir.Observation.referenceRange/meaning [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             ;; :fhir.Observation.referenceRange/meaning$cr
+             :fhir.Observation.referenceRange/meaning$cr
              :fhir.Observation.referenceRange/modifierExtension
              :fhir.Observation.referenceRange/text
              :fhir.Observation.related/extension
