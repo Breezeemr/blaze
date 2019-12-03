@@ -560,7 +560,7 @@
 
 
   ;;
-  ;; MedicationRequest
+  ;; MedicationRequest (old name: MedicationPrescription)
   ;;
   [:blaze.interaction/search-type :blaze.interaction.search/MedicationRequest]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
@@ -571,13 +571,59 @@
   [:blaze.schema/mapping :blaze.interaction.search/MedicationRequest]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
-   :mapping {}}
+   :mapping {:type                                            "MedicationPrescription"
+             :fhir.MedicationPrescription/encounter           {:value blaze.fhir.transforms/reference}
+             :fhir.MedicationPrescription/medication          {:value blaze.fhir.transforms/reference}
+             :fhir.MedicationPrescription/patient             {:value blaze.fhir.transforms/reference}
+             :fhir.MedicationPrescription/prescriber          {:value blaze.fhir.transforms/reference}
+             :fhir.MedicationPrescription.dispense/medication {:value blaze.fhir.transforms/reference}}}
 
   [:blaze.schema/pattern :blaze.interaction.search/MedicationRequest]
   {:fn      nil
-   :pattern [:db/id
-             :fhir.Resource/id
-             :phi.element/type]}
+   :pattern [:fhir.Resource/id
+             :phi.element/type
+             :fhir.MedicationPrescription/dateWritten
+             :fhir.MedicationPrescription/dispense
+             :fhir.MedicationPrescription/dosageInstruction
+             {:fhir.MedicationPrescription/encounter [:fhir.Resource/id :phi.element/type]}
+             :fhir.MedicationPrescription/identifier
+             :fhir.MedicationPrescription/identifier$id
+             {:fhir.MedicationPrescription/medication [:fhir.Resource/id :phi.element/type]}
+             {:fhir.MedicationPrescription/patient [:fhir.Resource/id :phi.element/type]}
+             {:fhir.MedicationPrescription/prescriber [:fhir.Resource/id :phi.element/type]}
+             :fhir.MedicationPrescription/reasonCodeableConcept
+             :fhir.MedicationPrescription/reasonCodeableConcept$cr
+             :fhir.MedicationPrescription/reasonResource
+             :fhir.MedicationPrescription/status
+             :fhir.MedicationPrescription/status$cr
+             :fhir.MedicationPrescription/substitution
+             :fhir.MedicationPrescription.dispense/expectedSupplyDuration
+             {:fhir.MedicationPrescription.dispense/medication [:fhir.Resource/id :phi.element/type]}
+             :fhir.MedicationPrescription.dispense/numberOfRepeatsAllowed
+             :fhir.MedicationPrescription.dispense/quantity
+             :fhir.MedicationPrescription.dispense/validityPeriod
+             :fhir.MedicationPrescription.dosageInstruction/additionalInstructions
+             :fhir.MedicationPrescription.dosageInstruction/additionalInstructions$cr
+             :fhir.MedicationPrescription.dosageInstruction/asNeededBoolean
+             :fhir.MedicationPrescription.dosageInstruction/asNeededCodeableConcept
+             :fhir.MedicationPrescription.dosageInstruction/asNeededCodeableConcept$cr
+             :fhir.MedicationPrescription.dosageInstruction/doseQuantity
+             :fhir.MedicationPrescription.dosageInstruction/maxDosePerPeriod
+             :fhir.MedicationPrescription.dosageInstruction/method
+             :fhir.MedicationPrescription.dosageInstruction/method$cr
+             :fhir.MedicationPrescription.dosageInstruction/rate
+             :fhir.MedicationPrescription.dosageInstruction/route
+             :fhir.MedicationPrescription.dosageInstruction/route$cr
+             :fhir.MedicationPrescription.dosageInstruction/site
+             :fhir.MedicationPrescription.dosageInstruction/site$cr
+             :fhir.MedicationPrescription.dosageInstruction/text
+             :fhir.MedicationPrescription.dosageInstruction/timingDateTime
+             :fhir.MedicationPrescription.dosageInstruction/timingPeriod
+             :fhir.MedicationPrescription.dosageInstruction/timingSchedule
+             :fhir.MedicationPrescription.substitution/reason
+             :fhir.MedicationPrescription.substitution/reason$cr
+             :fhir.MedicationPrescription.substitution/type
+             :fhir.MedicationPrescription.substitution/type$cr]}
 
   [:blaze.fhir/SearchParameter :blaze.interaction.search/MedicationRequest]
   {:fn     nil
@@ -586,36 +632,6 @@
              :blaze.fhir.SearchParameter/type       "uuid"}]}
 
 
-
-  ;; ;;
-  ;; ;; MedicationPrescription
-  ;; ;; TODO: This is probably not working because it isn't in the StructureDefinitions
-  ;; ;;
-  ;; [:blaze.interaction/search-type :blaze.interaction.search/MedicationPrescription]
-  ;; {:database/conn                     #blaze/ref :blaze.datomic/conn
-  ;;  :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.interaction.search/MedicationPrescription]
-  ;;  :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/MedicationPrescription]
-  ;;  :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.interaction.search/MedicationPrescription]}
-
-  ;; [:blaze.schema/mapping :blaze.interaction.search/MedicationPrescription]
-  ;; {:fn      nil
-  ;;  :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
-  ;;  :mapping {:fhir.MedicationPrescription/patient {:value blaze.fhir.transforms/reference}}}
-
-  ;; [:blaze.schema/pattern :blaze.interaction.search/MedicationPrescription]
-  ;; {:fn      nil
-  ;;  :pattern [:fhir.Resource/id
-  ;;            :phi.element/type
-  ;;            {:fhir.MedicationPrescription/patient [:fhir.Resource/id :phi.element/type]}]}
-
-  ;; [:blaze.fhir/SearchParameter :blaze.interaction.search/MedicationPrescription]
-  ;; {:fn     nil
-  ;;  :params [{:blaze.fhir.SearchParameter/code       "_id"
-  ;;            :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
-  ;;            :blaze.fhir.SearchParameter/type       "uuid"}
-  ;;           {:blaze.fhir.SearchParameter/code       "patient"
-  ;;            :blaze.fhir.SearchParameter/expression [:fhir.MedicationPrescription/patient :fhir.Resource/id]
-  ;;            :blaze.fhir.SearchParameter/type       "uuid"}]}
 
   }
 

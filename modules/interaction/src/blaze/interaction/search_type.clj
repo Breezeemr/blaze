@@ -79,7 +79,10 @@
 
 
 (defn- search [router db type query-params config pattern mapping]
-  (let [pred (resource-pred query-params config)]
+  (let [pred (resource-pred query-params config)
+        type (if-let [new-type (:type mapping)]
+               new-type
+               type)]
     (cond->
         {:resourceType "Bundle"
          :type "searchset"}
