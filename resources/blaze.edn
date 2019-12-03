@@ -443,13 +443,88 @@
   [:blaze.schema/mapping :blaze.interaction.search/Patient]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
-   :mapping {}}
+   :mapping {:fhir.Patient/careProvider              {:value blaze.fhir.transforms/reference}
+             :fhir.Patient/managingOrganization      {:value blaze.fhir.transforms/reference}
+             :fhir.Patient.link/other                {:value blaze.fhir.transforms/reference}
+             :fhir.Patient/communication$cr          {:key   :fhir.Patient/communication
+                                                      :value blaze.fhir.transforms/$cr}
+             #_#_:fhir.Patient/gender$cr             {:key   :fhir.Patient/gender
+                                                      :value blaze.fhir.transforms/$cr}
+             :fhir.Patient/maritalStatus$cr          {:key   :fhir.Patient/maritalStatus
+                                                      :value blaze.fhir.transforms/$cr}
+             :fhir.Patient.communication/language$cr {:key   :fhir.Patient.communication/language
+                                                      :value blaze.fhir.transforms/$cr}
+             #_#_:fhir.Patient.contact/gender$cr     {:key   :fhir.Patient.contact/gender
+                                                      :value blaze.fhir.transforms/$cr}
+             :fhir.Patient.contact/relationship$cr   {:key   :fhir.Patient.contect/relationship
+                                                      :value blaze.fhir.transforms/$cr}
+             #_#_:fhir.Patient.link/type$cr          {:key   :fhir.Patient.link/type
+                                                      :value blaze.fhir.transforms/$cr}}}
 
   [:blaze.schema/pattern :blaze.interaction.search/Patient]
   {:fn      nil
-   :pattern [:db/id
-             :fhir.Resource/id
-             :phi.element/type]}
+   :pattern [:fhir.Resource/id
+             :phi.element/type
+             :fhir.Patient/active
+             :fhir.Patient/address
+             ;; :fhir.Patient/animal
+             :fhir.Patient/birthDate
+             {:fhir.Patient/careProvider [:fhir.Resource/id :phi.element/type]}
+             :fhir.Patient/communication
+             :fhir.Patient/communication$cr
+             :fhir.Patient/contact
+             :fhir.Patient/contained
+             :fhir.Patient/deceasedBoolean
+             :fhir.Patient/deceasedDateTime
+             :fhir.Patient/extension
+             :fhir.Patient/gender
+             :fhir.Patient/gender$cr
+             :fhir.Patient/id
+             :fhir.Patient/identifier
+             :fhir.Patient/identifier$id
+             :fhir.Patient/implicitRules
+             :fhir.Patient/language
+             :fhir.Patient/link
+             {:fhir.Patient/managingOrganization [:fhir.Resource/id :phi.element/type]}
+             {:fhir.Patient/maritalStatus [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
+             :fhir.Patient/maritalStatus$cr
+             :fhir.Patient/meta
+             :fhir.Patient/modifierExtension
+             :fhir.Patient/multipleBirthBoolean
+             :fhir.Patient/multipleBirthInteger
+             :fhir.Patient/name
+             :fhir.Patient/photo
+             :fhir.Patient/telecom
+             :fhir.Patient/text
+             ;; :fhir.Patient.animal/breed
+             ;; :fhir.Patient.animal/breed$cr
+             ;; :fhir.Patient.animal/extension
+             ;; :fhir.Patient.animal/genderStatus
+             ;; :fhir.Patient.animal/genderStatus$cr
+             ;; :fhir.Patient.animal/modifierExtension
+             ;; :fhir.Patient.animal/species
+             ;; :fhir.Patient.animal/species$cr
+             ;; :fhir.Patient.communication/extension
+             {:fhir.Patient.communication/language [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
+             :fhir.Patient.communication/language$cr
+             :fhir.Patient.communication/modifierExtension
+             :fhir.Patient.communication/preferred
+             :fhir.Patient.contact/address
+             :fhir.Patient.contact/extension
+             :fhir.Patient.contact/gender
+             :fhir.Patient.contact/gender$cr
+             :fhir.Patient.contact/modifierExtension
+             :fhir.Patient.contact/name
+             {:fhir.Patient.contact/organization [:fhir.Resource/id :phi.element/type]}
+             :fhir.Patient.contact/period
+             {:fhir.Patient.contact/relationship [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
+             :fhir.Patient.contact/relationship$cr
+             :fhir.Patient.contact/telecom
+             :fhir.Patient.link/extension
+             :fhir.Patient.link/modifierExtension
+             {:fhir.Patient.link/other [:fhir.Resource/id :phi.element/type]}
+             :fhir.Patient.link/type
+             :fhir.Patient.link/type$cr]}
 
   [:blaze.fhir/SearchParameter :blaze.interaction.search/Patient]
   {:fn     nil
