@@ -93,6 +93,15 @@
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/default]}}}
     ;; breeze api
     #:blaze.rest-api.resource-pattern
+    {:type "Consent"
+     :interactions
+     {:search-type
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Consent]}
+      :read
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref :blaze.interaction/read}}}
+    #:blaze.rest-api.resource-pattern
     {:type "Condition"
      :interactions
      {:search-type
@@ -145,6 +154,14 @@
      :type-handler #blaze/ref :blaze.fhir.operation.evaluate-measure/handler
      :instance-handler #blaze/ref :blaze.fhir.operation.evaluate-measure/handler}]}
 
+  ;; Create second database for Consents
+  :consent-conn
+  {:structure-definitions [] ;; #blaze/ref :blaze/structure-definition
+   :database/uri #blaze/cfg ["CONSENT_DATABASE_URI" string? "datomic:dev://localhost:4334/bundle-test"]}
+
+  ;;
+  ;; Default mappings
+  ;;
   [:blaze.schema/mapping :blaze.interaction.search/default]
   {:fn      nil
    :mapping {:phi.element/type               {:key   :resourceType
@@ -156,7 +173,7 @@
   ;; Consent
   ;;
   [:blaze.interaction/search-type :blaze.interaction.search/Consent]
-  {:database/conn                     #blaze/ref :blaze.datomic/conn
+  {:database/conn                     #blaze/ref :consent-conn
    :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.interaction.search/Consent]
    :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/Consent]
    :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.interaction.search/Consent]}
@@ -164,12 +181,52 @@
   [:blaze.schema/mapping :blaze.interaction.search/Consent]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
-   :mapping {}}
+   :mapping {:fhir.Consent/organization              {:value blaze.fhir.transforms/reference}
+             :fhir.Consent/patient                   {:value blaze.fhir.transforms/reference}
+             :fhir.Consent/performer                 {:value blaze.fhir.transforms/reference}
+             :fhir.Consent/sourceReference           {:value blaze.fhir.transforms/reference}
+             :fhir.Consent.provision.data/reference  {:value blaze.fhir.transforms/reference}
+             :fhir.Consent.provision.actor/reference {:value blaze.fhir.transforms/reference}
+             :fhir.Consent.verification/verifiedWith {:value blaze.fhir.transforms/reference}}}
 
   [:blaze.schema/pattern :blaze.interaction.search/Consent]
   {:fn      nil
    :pattern [:fhir.Resource/id
-             :phi.element/type]}
+             :phi.element/type
+             :fhir.Consent/category
+             :fhir.Consent/dateTime
+             :fhir.Consent/identifier
+             {:fhir.Consent/organization [:fhir.Resource/id :phi.element/type]}
+             {:fhir.Consent/patient [:fhir.Resource/id :phi.element/type]}
+             {:fhir.Consent/performer [:fhir.Resource/id :phi.element/type]}
+             :fhir.Consent/policy
+             :fhir.Consent/policyRule
+             :fhir.Consent/provision
+             :fhir.Consent/scope
+             :fhir.Consent/sourceAttachment
+             {:fhir.Consent/sourceReference [:fhir.Resource/id :phi.element/type]}
+             :fhir.Consent/status
+             :fhir.Consent/verification
+             :fhir.Consent.policy/authority
+             :fhir.Consent.policy/uri
+             :fhir.Consent.provision/action
+             :fhir.Consent.provision/actor
+             :fhir.Consent.provision/class
+             :fhir.Consent.provision/code
+             :fhir.Consent.provision/data
+             :fhir.Consent.provision/dataPeriod
+             :fhir.Consent.provision/period
+             :fhir.Consent.provision/provision
+             :fhir.Consent.provision/purpose
+             :fhir.Consent.provision/securityLabel
+             :fhir.Consent.provision/type
+             {:fhir.Consent.provision.actor/reference [:fhir.Resource/id :phi.element/type]}
+             :fhir.Consent.provision.actor/role
+             :fhir.Consent.provision.data/meaning
+             {:fhir.Consent.provision.data/reference [:fhir.Resource/id :phi.element/type]}
+             :fhir.Consent.verification/verificationDate
+             :fhir.Consent.verification/verified
+             {:fhir.Consent.verification/verifiedWith [:fhir.Resource/id :phi.element/type]}]}
 
   [:blaze.fhir/SearchParameter :blaze.interaction.search/Consent]
   {:fn     nil

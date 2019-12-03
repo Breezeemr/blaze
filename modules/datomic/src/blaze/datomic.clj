@@ -31,6 +31,10 @@
   (log/info "Connect with database:" uri)
   (d/connect uri))
 
+(defmethod ig/init-key :consent-conn
+  [_ config]
+  (ig/init-key :blaze.datomic/conn config))
+
 
 (defmethod ig/init-key ::tx/executor
   [_ _]
