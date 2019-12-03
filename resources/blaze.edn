@@ -153,6 +153,32 @@
                                               :value blaze.fhir.transforms/coding}}}
 
   ;;
+  ;; Consent
+  ;;
+  [:blaze.interaction/search-type :blaze.interaction.search/Consent]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.interaction.search/Consent]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/Consent]
+   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.interaction.search/Consent]}
+
+  [:blaze.schema/mapping :blaze.interaction.search/Consent]
+  {:fn      nil
+   :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
+   :mapping {}}
+
+  [:blaze.schema/pattern :blaze.interaction.search/Consent]
+  {:fn      nil
+   :pattern [:fhir.Resource/id
+             :phi.element/type]}
+
+  [:blaze.fhir/SearchParameter :blaze.interaction.search/Consent]
+  {:fn     nil
+   :params [{:blaze.fhir.SearchParameter/code       "_id"
+             :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}]}
+
+
+  ;;
   ;; Condition
   ;;
   [:blaze.interaction/search-type :blaze.interaction.search/Condition]
@@ -272,7 +298,7 @@
              {:fhir.DiagnosticReport/performer [:fhir.Resource/id :phi.element/type]}
              :fhir.DiagnosticReport/presentedForm
              {:fhir.DiagnosticReport/request [:fhir.Resource/id :phi.element/type]}
-             {:fhir.DiagnosticReport/result [:db/id :fhir.Resource/id :phi.element/type]} ;; FIXME: Observations really don't have :fhir.Resource/id
+             {:fhir.DiagnosticReport/result [:fhir.Resource/id :phi.element/type]}
              {:fhir.DiagnosticReport/serviceCategory [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
              ;; :fhir.DiagnosticReport/serviceCategory$cr
              {:fhir.DiagnosticReport/specimen [:fhir.Resource/id :phi.element/type]}
