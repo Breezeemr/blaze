@@ -310,7 +310,7 @@
 
   [:blaze.schema/pattern :blaze.interaction.search/Observation]
   {:fn      nil
-   :pattern [:db/id
+   :pattern [;; :db/id
              :phi.element/type
              :fhir.Observation/appliesDateTime
              :fhir.Observation/appliesPeriod
