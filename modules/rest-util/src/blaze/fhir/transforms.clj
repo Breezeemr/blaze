@@ -14,6 +14,7 @@
 
 
 (defn reference [k v]
+  (prn "reference::" k v)
   (into []
         (map (fn [val]
                (let [prefix (-> (:phi.element/type val) (str/split #"\/") second)
