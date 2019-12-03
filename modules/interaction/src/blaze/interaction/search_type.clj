@@ -88,12 +88,12 @@
          :type "searchset"}
 
       (nil? pred)
-      (assoc :total (d/q '[:find (count ?e) .
-                           :in $ ?type
-                           :where [?e :phi.element/type ?type]]
-                         db
-                         (str "fhir-type/" type)))
-      ;; (count (into [] (d/datoms db :avet :phi.element/type (str "fhir-type/" type))))
+      (assoc :total (or (d/q '[:find (count ?e) .
+                               :in $ ?type
+                               :where [?e :phi.element/type ?type]]
+                             db
+                             (str "fhir-type/" type))
+                        0))
 
       (not (summary? query-params))
       (assoc
