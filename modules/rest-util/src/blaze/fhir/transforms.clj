@@ -12,6 +12,9 @@
                  :code   code})))
         v))
 
+(defn $cr [_ v]
+  (coding _ (str/split v #"\u001f")))
+
 
 (defn reference [k v]
   (prn "reference::" k v)
