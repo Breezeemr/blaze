@@ -120,11 +120,11 @@
       #:blaze.rest-api.interaction
       {:handler #blaze/ref :blaze.interaction/read}}}
     #:blaze.rest-api.resource-pattern
-    {:type "MedicationPrescription"
+    {:type "MedicationRequest"
      :interactions
      {:search-type
       #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/MedicationPrescription]}
+      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/MedicationRequest]}
       :read
       #:blaze.rest-api.interaction
       {:handler #blaze/ref :blaze.interaction/read}}}]
@@ -422,34 +422,62 @@
              :blaze.fhir.SearchParameter/type       "uuid"}]}
 
   ;;
-  ;; MedicationPrescription
-  ;; TODO: This is probably not working because it isn't in the StructureDefinitions
+  ;; MedicationRequest
   ;;
-  [:blaze.interaction/search-type :blaze.interaction.search/MedicationPrescription]
+  [:blaze.interaction/search-type :blaze.interaction.search/MedicationRequest]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.interaction.search/MedicationPrescription]
-   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/MedicationPrescription]
-   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.interaction.search/MedicationPrescription]}
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.interaction.search/MedicationRequest]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/MedicationRequest]
+   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.interaction.search/MedicationRequest]}
 
-  [:blaze.schema/mapping :blaze.interaction.search/MedicationPrescription]
+  [:blaze.schema/mapping :blaze.interaction.search/MedicationRequest]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
-   :mapping {:fhir.MedicationPrescription/patient {:value blaze.fhir.transforms/reference}}}
+   :mapping {}}
 
-  [:blaze.schema/pattern :blaze.interaction.search/MedicationPrescription]
+  [:blaze.schema/pattern :blaze.interaction.search/MedicationRequest]
   {:fn      nil
-   :pattern [:fhir.Resource/id
-             :phi.element/type
-             {:fhir.MedicationPrescription/patient [:fhir.Resource/id :phi.element/type]}]}
+   :pattern [:db/id
+             :fhir.Resource/id
+             :phi.element/type]}
 
-  [:blaze.fhir/SearchParameter :blaze.interaction.search/MedicationPrescription]
+  [:blaze.fhir/SearchParameter :blaze.interaction.search/MedicationRequest]
   {:fn     nil
    :params [{:blaze.fhir.SearchParameter/code       "_id"
              :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
-             :blaze.fhir.SearchParameter/type       "uuid"}
-            {:blaze.fhir.SearchParameter/code       "patient"
-             :blaze.fhir.SearchParameter/expression [:fhir.MedicationPrescription/patient :fhir.Resource/id]
              :blaze.fhir.SearchParameter/type       "uuid"}]}
+
+
+
+  ;; ;;
+  ;; ;; MedicationPrescription
+  ;; ;; TODO: This is probably not working because it isn't in the StructureDefinitions
+  ;; ;;
+  ;; [:blaze.interaction/search-type :blaze.interaction.search/MedicationPrescription]
+  ;; {:database/conn                     #blaze/ref :blaze.datomic/conn
+  ;;  :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.interaction.search/MedicationPrescription]
+  ;;  :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/MedicationPrescription]
+  ;;  :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.interaction.search/MedicationPrescription]}
+
+  ;; [:blaze.schema/mapping :blaze.interaction.search/MedicationPrescription]
+  ;; {:fn      nil
+  ;;  :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
+  ;;  :mapping {:fhir.MedicationPrescription/patient {:value blaze.fhir.transforms/reference}}}
+
+  ;; [:blaze.schema/pattern :blaze.interaction.search/MedicationPrescription]
+  ;; {:fn      nil
+  ;;  :pattern [:fhir.Resource/id
+  ;;            :phi.element/type
+  ;;            {:fhir.MedicationPrescription/patient [:fhir.Resource/id :phi.element/type]}]}
+
+  ;; [:blaze.fhir/SearchParameter :blaze.interaction.search/MedicationPrescription]
+  ;; {:fn     nil
+  ;;  :params [{:blaze.fhir.SearchParameter/code       "_id"
+  ;;            :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
+  ;;            :blaze.fhir.SearchParameter/type       "uuid"}
+  ;;           {:blaze.fhir.SearchParameter/code       "patient"
+  ;;            :blaze.fhir.SearchParameter/expression [:fhir.MedicationPrescription/patient :fhir.Resource/id]
+  ;;            :blaze.fhir.SearchParameter/type       "uuid"}]}
 
   }
 
