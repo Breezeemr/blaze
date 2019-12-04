@@ -8,6 +8,7 @@
     [blaze.handler.fhir.util :as fhir-util]
     [blaze.handler.util :as handler-util]
     [blaze.middleware.fhir.metrics :refer [wrap-observe-request-duration]]
+    [blaze.fhir.transforms :as transforms]
     [clojure.spec.alpha :as s]
     [clojure.string :as str]
     [datomic.api :as d]
@@ -93,7 +94,7 @@
          (filter #(not (:deleted (meta %))))
          (filter (or pred (fn [_] true)))
          (take (fhir-util/page-size query-params))
-         (map #(fhir-util/transform mapping %))
+         (map #(transforms/transform mapping %))
          (map #(entry router %)))
         (d/datoms db :avet :phi.element/type (str "fhir-type/" type)))))))
 
@@ -102,6 +103,7 @@
   (fn [{{{:fhir.resource/keys [type]} :data} ::reitit/match
        :keys [params]
        ::reitit/keys [router]}]
+    (prn "Search:" type)
     (-> (search router (d/db conn) type params config pattern mapping)
         (ring/response))))
 
@@ -138,16 +140,16 @@
 ;; TODO: these are more generic than just search_type
 
 (defmethod ig/init-key :blaze.schema/mapping
-  [_ config]
-  (log/info "Init schema mapping")
+  [[_ k] config]
+  (log/info "Init schema mapping for" k)
   (if-let [mapping-fn (:fn config)]
     ((requiring-resolve mapping-fn))
     (merge (:mapping config) (:default config))))
 
 
 (defmethod ig/init-key :blaze.schema/pattern
-  [_ config]
-  (log/info "Init schema pull patterns")
+  [[_ k] config]
+  (log/info "Init schema pull patterns for" k)
   (if-let [pull-fn (:fn config)]
     ((requiring-resolve pull-fn))
     (:pattern config)))

@@ -7,6 +7,7 @@
     [blaze.handler.util :as handler-util]
     [blaze.handler.fhir.util :as fhir-util]
     [blaze.middleware.fhir.metrics :refer [wrap-observe-request-duration]]
+    [blaze.fhir.transforms :as transforms]
     [clojure.spec.alpha :as s]
     [cognitect.anomalies :as anom]
     [datomic.api :as d]
@@ -51,12 +52,13 @@
 
 (defn pull-resource [db pattern mapping id]
   (->> (d/pull db pattern [:fhir.Resource/id id])
-       (fhir-util/transform mapping)))
+       (transforms/transform mapping)))
 
 
 (defn- handler-intern [{:keys [database/conn schema/pattern schema/mapping]}]
   (fn [{{{:fhir.resource/keys [type]} :data} ::reitit/match
         {:keys [id vid]} :path-params}]
+    (prn "Read:" type id)
     (-> (db conn vid)
         (md/chain'
           (fn [db]

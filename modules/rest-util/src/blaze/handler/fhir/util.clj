@@ -7,7 +7,6 @@
     [blaze.executors :refer [executor?]]
     [blaze.terminology-service :refer [term-service?]]
     [clojure.spec.alpha :as s]
-    [clojure.walk :refer [prewalk]]
     [datomic-spec.core :as ds]
     [manifold.deferred :as md :refer [deferrable?]]
     [reitit.core :as reitit]))
@@ -190,24 +189,3 @@
         (reitit/match-by-name
           router (keyword type "versioned-instance") {:id id :vid vid})]
     (str base-url path)))
-
-(defn map-schema
-  [data mapping]
-  (prn "map-schema")
-  (clojure.pprint/pprint data)
-  (clojure.pprint/pprint mapping)
-  {:hi "123"})
-
-
-(defn transform [mapping resource]
-  (prewalk (fn [node]
-             (if (vector? node)
-               (let [[k v] node]
-                 (if-let [mapper (get mapping k)]
-                   (let [new-k (:key mapper k)
-                         f     (:value mapper)]
-                     [new-k
-                      ((requiring-resolve f) new-k v)])
-                   node))
-               node))
-           resource))
