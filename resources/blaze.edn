@@ -118,7 +118,7 @@
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/DiagnosticReport]}
       :read
       #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/default]}}}
+      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/DiagnosticReport]}}}
     #:blaze.rest-api.resource-pattern
     {:type "Observation"
      :interactions
@@ -127,7 +127,7 @@
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Observation]}
       :read
       #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/default]}}}
+      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/Observation]}}}
     #:blaze.rest-api.resource-pattern
     {:type "Patient"
      :interactions
@@ -249,7 +249,7 @@
    :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Condition]
    :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/Condition]}
 
-[:blaze.interaction/read :blaze.interaction.read/Condition]
+  [:blaze.interaction/read :blaze.interaction.read/Condition]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
    :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Condition]
    :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Condition]}
@@ -315,6 +315,12 @@
   ;; DiagnosticReport
   ;;
   [:blaze.interaction/search-type :blaze.interaction.search/DiagnosticReport]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/DiagnosticReport]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/DiagnosticReport]
+   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/DiagnosticReport]}
+
+  [:blaze.interaction/read :blaze.interaction.read/DiagnosticReport]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
    :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/DiagnosticReport]
    :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/DiagnosticReport]
@@ -397,6 +403,11 @@
    :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Observation]
    :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Observation]
    :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/Observation]}
+
+  [:blaze.interaction/read :blaze.interaction.read/Observation]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Observation]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Observation]}
 
   [:blaze.schema/mapping :blaze.fhir/Observation]
   {:fn      nil
