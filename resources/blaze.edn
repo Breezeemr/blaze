@@ -462,7 +462,7 @@
              {:fhir.Observation/reliability [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
              :fhir.Observation/reliability$cr
              {:fhir.Observation/specimen [:fhir.Resource/id :phi.element/type]}
-             {:fhir.Observation/status [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
+             ;; {:fhir.Observation/status [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
              :fhir.Observation/status$cr
              {:fhir.Observation/subject [:fhir.Resource/id :phi.element/type]}
              :fhir.Observation/text
