@@ -142,6 +142,16 @@
   (handler config))
 
 
+(defmethod ig/init-key :blaze.fhir/SearchParameter
+  [_ config]
+  (log/info "Init search parameters")
+  (if-let [params-fn (:fn config)]
+    ((requiring-resolve params-fn))
+    (:params config)))
+
+
+;; TODO: these are more generic than just search_type
+
 (defmethod ig/init-key :blaze.schema/mapping
   [_ config]
   (log/info "Init schema mapping")
@@ -156,11 +166,3 @@
   (if-let [pull-fn (:fn config)]
     ((requiring-resolve pull-fn))
     (:pattern config)))
-
-
-(defmethod ig/init-key :blaze.fhir/SearchParameter
-  [_ config]
-  (log/info "Init search parameters")
-  (if-let [params-fn (:fn config)]
-    ((requiring-resolve params-fn))
-    (:params config)))
