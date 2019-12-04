@@ -136,7 +136,7 @@
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Patient]}
       :read
       #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/default]}}}
+      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/Patient]}}}
     #:blaze.rest-api.resource-pattern
     {:type "MedicationRequest"
      :interactions
@@ -522,6 +522,11 @@
    :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Patient]
    :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Patient]
    :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/Patient]}
+
+  [:blaze.interaction/read :blaze.interaction.read/Patient]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Patient]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Patient]}
 
   [:blaze.schema/mapping :blaze.fhir/Patient]
   {:fn      nil

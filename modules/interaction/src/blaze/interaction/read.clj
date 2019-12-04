@@ -5,6 +5,7 @@
   (:require
     [blaze.datomic.pull :as pull]
     [blaze.handler.util :as handler-util]
+    [blaze.handler.fhir.util :as fhir-util]
     [blaze.middleware.fhir.metrics :refer [wrap-observe-request-duration]]
     [clojure.spec.alpha :as s]
     [cognitect.anomalies :as anom]
@@ -17,7 +18,8 @@
     [taoensso.timbre :as log])
   (:import
     [java.time ZonedDateTime ZoneId]
-    [java.time.format DateTimeFormatter]))
+    [java.time.format DateTimeFormatter]
+    [java.util UUID]))
 
 
 (def ^:private gmt (ZoneId/of "GMT"))
@@ -47,22 +49,27 @@
     (d/db conn)))
 
 
-(defn- handler-intern [conn]
+(defn pull-resource [db pattern mapping id]
+  (->> (d/pull db pattern [:fhir.Resource/id id])
+       (fhir-util/transform mapping)))
+
+
+(defn- handler-intern [{:keys [database/conn schema/pattern schema/mapping]}]
   (fn [{{{:fhir.resource/keys [type]} :data} ::reitit/match
         {:keys [id vid]} :path-params}]
     (-> (db conn vid)
         (md/chain'
           (fn [db]
-            (if-let [resource (pull/pull-resource db type id)]
+            (if-let [resource (pull-resource db pattern mapping (UUID/fromString id))]
               (if (:deleted (meta resource))
                 (-> (handler-util/operation-outcome
-                      {:fhir/issue "deleted"})
+                     {:fhir/issue "deleted"})
                     (ring/response)
                     (ring/status 410)
-                    (ring/header "Last-Modified" (last-modified resource))
+                    ;; (ring/header "Last-Modified" (last-modified resource))
                     (ring/header "ETag" (etag resource)))
                 (-> (ring/response resource)
-                    (ring/header "Last-Modified" (last-modified resource))
+                    ;; (ring/header "Last-Modified" (last-modified resource))
                     (ring/header "ETag" (etag resource))))
               (handler-util/error-response
                 {::anom/category ::anom/not-found
@@ -87,13 +94,14 @@
 
 (defn handler
   ""
-  [conn]
-  (-> (handler-intern conn)
+  [config]
+  (prn config)
+  (-> (handler-intern config)
       (wrap-interaction-name)
       (wrap-observe-request-duration)))
 
 
 (defmethod ig/init-key :blaze.interaction/read
-  [_ {:database/keys [conn]}]
+  [_ config]
   (log/info "Init FHIR read interaction handler")
-  (handler conn))
+  (handler config))
