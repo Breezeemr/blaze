@@ -109,7 +109,7 @@
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Condition]}
       :read
       #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/default]}}}
+      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/Condition]}}}
     #:blaze.rest-api.resource-pattern
     {:type "DiagnosticReport"
      :interactions
@@ -248,6 +248,11 @@
    :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Condition]
    :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Condition]
    :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/Condition]}
+
+[:blaze.interaction/read :blaze.interaction.read/Condition]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Condition]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Condition]}
 
   [:blaze.schema/mapping :blaze.fhir/Condition]
   {:fn      nil
