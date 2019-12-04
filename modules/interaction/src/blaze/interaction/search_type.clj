@@ -78,7 +78,9 @@
       (nil? pred)
       (assoc :total (or (d/q '[:find (count ?e) .
                                :in $ ?type
-                               :where [?e :phi.element/type ?type]]
+                               :where
+                               [?e :phi.element/type ?type]
+                               [?e :fhir.Resource/id]]
                              db
                              (str "fhir-type/" type))
                         0))
@@ -91,6 +93,13 @@
         (comp
          (map :e)
          (map #(d/pull db pattern %))
+         (filter (fn [resource]
+                   (if (some? (:fhir.Resource/id resource))
+                     true
+                     (do
+                       (log/info (str "Following entity id does not have :fhir.Resource/id: " (:db/id resource) ))
+                       false))))
+         (map #(dissoc % :db/id))
          (filter #(not (:deleted (meta %))))
          (filter (or pred (fn [_] true)))
          (take (fhir-util/page-size query-params))
