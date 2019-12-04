@@ -323,8 +323,7 @@
   [:blaze.interaction/read :blaze.interaction.read/DiagnosticReport]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
    :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/DiagnosticReport]
-   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/DiagnosticReport]
-   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/DiagnosticReport]}
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/DiagnosticReport]}
 
   [:blaze.schema/mapping :blaze.fhir/DiagnosticReport]
   {:fn      nil
