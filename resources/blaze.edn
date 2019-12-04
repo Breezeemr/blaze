@@ -145,7 +145,17 @@
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/MedicationRequest]}
       :read
       #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/MedicationRequest]}}}]
+      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/MedicationRequest]}}}
+    #:blaze.rest-api.resource-pattern
+    {:type "AllergyIntolerance"
+     :interactions
+     {:search-type
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/AllergyIntolerance]}
+      :read
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/AllergyIntolerance]}}}
+    ]
    :operations
    [#:blaze.rest-api.operation
     {:code "evaluate-measure"
@@ -719,6 +729,38 @@
              :fhir.MedicationPrescription.substitution/type$cr]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/MedicationRequest]
+  {:fn     nil
+   :params [{:blaze.fhir.SearchParameter/code       "_id"
+             :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}]}
+
+
+  ;;
+  ;; AllergyIntolerance
+  ;;
+  [:blaze.interaction/search-type :blaze.interaction.search/AllergyIntolerance]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/AllergyIntolerance]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/AllergyIntolerance]
+   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/AllergyIntolerance]}
+
+  [:blaze.interaction/read :blaze.interaction.read/AllergyIntolerance]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/AllergyIntolerance]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/AllergyIntolerance]}
+
+  [:blaze.schema/mapping :blaze.fhir/AllergyIntolerance]
+  {:fn      nil
+   :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
+   :mapping {}}
+
+  [:blaze.schema/pattern :blaze.fhir/AllergyIntolerance]
+  {:fn      nil
+   :pattern [:db/id
+             :fhir.Resource/id
+             :phi.element/type]}
+
+  [:blaze.fhir/SearchParameter :blaze.fhir/AllergyIntolerance]
   {:fn     nil
    :params [{:blaze.fhir.SearchParameter/code       "_id"
              :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
