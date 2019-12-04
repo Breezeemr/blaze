@@ -103,6 +103,6 @@
 
 
 (defmethod ig/init-key :blaze.interaction/read
-  [_ config]
-  (log/info "Init FHIR read interaction handler")
+  [[_ k] config]
+  (log/info "Init FHIR read interaction handler for" k)
   (handler config))

@@ -131,8 +131,8 @@
 
 
 (defmethod ig/init-key :blaze.interaction/search-type
-  [_ config]
-  (log/info "Init FHIR search-type interaction handler")
+  [[_ k] config]
+  (log/info "Init FHIR search-type interaction handler for" k)
   (handler config))
 
 
