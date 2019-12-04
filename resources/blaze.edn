@@ -29,7 +29,7 @@
   {:database/transaction-executor #blaze/ref :blaze.datomic.transaction/executor
    :database/conn #blaze/ref :blaze.datomic/conn}
 
-  :blaze.interaction/read
+  [:blaze.interaction/read :blaze.interaction.read/default]
   {:database/conn #blaze/ref :blaze.datomic/conn}
 
   [:blaze.interaction/search-type :blaze.interaction.search/default]
@@ -69,10 +69,10 @@
      :interactions
      {:read
       #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}
+      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/default]}
       :vread
       #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}
+      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/default]}
       :update
       #:blaze.rest-api.interaction
       {:handler #blaze/ref :blaze.interaction/update}
@@ -100,7 +100,7 @@
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Consent]}
       :read
       #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}
+      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/default]}}}
     #:blaze.rest-api.resource-pattern
     {:type "Condition"
      :interactions
@@ -109,7 +109,7 @@
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Condition]}
       :read
       #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}
+      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/default]}}}
     #:blaze.rest-api.resource-pattern
     {:type "DiagnosticReport"
      :interactions
@@ -118,7 +118,7 @@
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/DiagnosticReport]}
       :read
       #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}
+      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/default]}}}
     #:blaze.rest-api.resource-pattern
     {:type "Observation"
      :interactions
@@ -127,7 +127,7 @@
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Observation]}
       :read
       #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}
+      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/default]}}}
     #:blaze.rest-api.resource-pattern
     {:type "Patient"
      :interactions
@@ -136,7 +136,7 @@
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Patient]}
       :read
       #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}
+      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/default]}}}
     #:blaze.rest-api.resource-pattern
     {:type "MedicationRequest"
      :interactions
@@ -145,7 +145,7 @@
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/MedicationRequest]}
       :read
       #:blaze.rest-api.interaction
-      {:handler #blaze/ref :blaze.interaction/read}}}]
+      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/default]}}}]
    :operations
    [#:blaze.rest-api.operation
     {:code "evaluate-measure"
