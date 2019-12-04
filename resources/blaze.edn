@@ -182,7 +182,7 @@
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
    :mapping {:fhir.Consent/organization              {:value blaze.fhir.transforms/reference}
-             :fhir.Consent/patient                   {:value blaze.fhir.transforms/reference}
+             :fhir.Consent/patient                   {:value blaze.fhir.transforms/consent-patient-reference}
              :fhir.Consent/performer                 {:value blaze.fhir.transforms/reference}
              :fhir.Consent/sourceReference           {:value blaze.fhir.transforms/reference}
              :fhir.Consent.provision.data/reference  {:value blaze.fhir.transforms/reference}
@@ -197,7 +197,7 @@
              :fhir.Consent/dateTime
              :fhir.Consent/identifier
              {:fhir.Consent/organization [:fhir.Resource/id :phi.element/type]}
-             {:fhir.Consent/patient [:fhir.Resource/id :phi.element/type]}
+             {:fhir.Consent/patient [:fhir.Reference/reference :phi.element/type]}
              {:fhir.Consent/performer [:fhir.Resource/id :phi.element/type]}
              :fhir.Consent/policy
              :fhir.Consent/policyRule
