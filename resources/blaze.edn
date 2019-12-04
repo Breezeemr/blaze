@@ -412,7 +412,7 @@
 
   [:blaze.schema/pattern :blaze.fhir/Observation]
   {:fn      nil
-   :pattern [:fhir.Resource/id :phi.element/type] #_[#_:db/id
+   :pattern [:db/id ;; Need :db/id to log when :fhir.Resource/id is missing
              :fhir.Resource/id
              :phi.element/type
              :fhir.Observation/appliesDateTime
