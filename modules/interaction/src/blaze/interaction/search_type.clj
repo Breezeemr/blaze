@@ -91,15 +91,15 @@
         (comp
          (map :e)
          (map #(d/pull db pattern %))
+         (filter #(not (:deleted (meta %))))
+         (filter (or pred (fn [_] true)))
          (filter (fn [resource]
                    (if (some? (:fhir.Resource/id resource))
                      true
                      (do
-                       (log/info (str "Following entity id does not have :fhir.Resource/id: " (:db/id resource) ))
+                       (log/info (str "Following " type " entity does not have :fhir.Resource/id: " (:db/id resource)))
                        false))))
          (map #(dissoc % :db/id))
-         (filter #(not (:deleted (meta %))))
-         (filter (or pred (fn [_] true)))
          (take (fhir-util/page-size query-params))
          (map #(transforms/transform mapping %))
          (map #(entry router %)))

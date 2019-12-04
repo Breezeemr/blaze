@@ -196,7 +196,8 @@
 
   [:blaze.schema/pattern :blaze.fhir/Consent]
   {:fn      nil
-   :pattern [:fhir.Resource/id
+   :pattern [:db/id
+             :fhir.Resource/id
              :phi.element/type
              :fhir.Consent/category
              :fhir.Consent/dateTime
@@ -265,7 +266,8 @@
 
   [:blaze.schema/pattern :blaze.fhir/Condition]
   {:fn      nil
-   :pattern [:fhir.Resource/id
+   :pattern [:db/id
+             :fhir.Resource/id
              :phi.element/type
              :fhir.v3.Condition/abatementAge
              :fhir.v3.Condition/abatementBoolean
@@ -339,7 +341,8 @@
 
   [:blaze.schema/pattern :blaze.fhir/DiagnosticReport]
   {:fn      nil
-   :pattern [:fhir.Resource/id
+   :pattern [:db/id
+             :fhir.Resource/id
              :phi.element/type
              {:fhir.DiagnosticReport/category [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
              :fhir.DiagnosticReport/category$cr
@@ -572,7 +575,8 @@
 
   [:blaze.schema/pattern :blaze.fhir/Patient]
   {:fn      nil
-   :pattern [:fhir.Resource/id
+   :pattern [:db/id
+             :fhir.Resource/id
              :phi.element/type
              :fhir.Patient/active
              :fhir.Patient/address
@@ -668,7 +672,8 @@
 
   [:blaze.schema/pattern :blaze.fhir/MedicationRequest]
   {:fn      nil
-   :pattern [:fhir.Resource/id
+   :pattern [:db/id
+             :fhir.Resource/id
              :phi.element/type
              :fhir.MedicationPrescription/dateWritten
              :fhir.MedicationPrescription/dispense
