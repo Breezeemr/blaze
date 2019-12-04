@@ -155,6 +155,42 @@
       :read
       #:blaze.rest-api.interaction
       {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/AllergyIntolerance]}}}
+    #:blaze.rest-api.resource-pattern
+    {:type "Procedure"
+     :interactions
+     {:search-type
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Procedure]}
+      :read
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/Procedure]}}}
+    #:blaze.rest-api.resource-pattern
+    {:type "CarePlan"
+     :interactions
+     {:search-type
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/CarePlan]}
+      :read
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/CarePlan]}}}
+    #:blaze.rest-api.resource-pattern
+    {:type "Immunization"
+     :interactions
+     {:search-type
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Immunization]}
+      :read
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/Immunization]}}}
+    #:blaze.rest-api.resource-pattern
+    {:type "ServiceRequest"
+     :interactions
+     {:search-type
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/ServiceRequest]}
+      :read
+      #:blaze.rest-api.interaction
+      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/ServiceRequest]}}}
     ]
    :operations
    [#:blaze.rest-api.operation
@@ -797,6 +833,135 @@
              :fhir.v3.AllergyIntolerance.reaction/substance]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/AllergyIntolerance]
+  {:fn     nil
+   :params [{:blaze.fhir.SearchParameter/code       "_id"
+             :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}]}
+
+  ;;
+  ;; Procedure
+  ;;
+  [:blaze.interaction/search-type :blaze.interaction.search/Procedure]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Procedure]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Procedure]
+   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/Procedure]}
+
+  [:blaze.interaction/read :blaze.interaction.read/Procedure]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Procedure]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Procedure]}
+
+  [:blaze.schema/mapping :blaze.fhir/Procedure]
+  {:fn      nil
+   :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
+   :mapping {}}
+
+  [:blaze.schema/pattern :blaze.fhir/Procedure]
+  {:fn      nil
+   :pattern [:db/id
+             :fhir.Resource/id
+             :phi.element/type
+             ]}
+
+  [:blaze.fhir/SearchParameter :blaze.fhir/Procedure]
+  {:fn     nil
+   :params [{:blaze.fhir.SearchParameter/code       "_id"
+             :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}]}
+
+  ;;
+  ;; CarePlan
+  ;;
+  [:blaze.interaction/search-type :blaze.interaction.search/CarePlan]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/CarePlan]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/CarePlan]
+   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/CarePlan]}
+
+  [:blaze.interaction/read :blaze.interaction.read/CarePlan]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/CarePlan]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/CarePlan]}
+
+  [:blaze.schema/mapping :blaze.fhir/CarePlan]
+  {:fn      nil
+   :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
+   :mapping {}}
+
+  [:blaze.schema/pattern :blaze.fhir/CarePlan]
+  {:fn      nil
+   :pattern [:db/id
+             :fhir.Resource/id
+             :phi.element/type
+             ]}
+
+  [:blaze.fhir/SearchParameter :blaze.fhir/CarePlan]
+  {:fn     nil
+   :params [{:blaze.fhir.SearchParameter/code       "_id"
+             :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}]}
+
+
+  ;;
+  ;; Immunization
+  ;;
+  [:blaze.interaction/search-type :blaze.interaction.search/Immunization]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Immunization]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Immunization]
+   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/Immunization]}
+
+  [:blaze.interaction/read :blaze.interaction.read/Immunization]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Immunization]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Immunization]}
+
+  [:blaze.schema/mapping :blaze.fhir/Immunization]
+  {:fn      nil
+   :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
+   :mapping {}}
+
+  [:blaze.schema/pattern :blaze.fhir/Immunization]
+  {:fn      nil
+   :pattern [:db/id
+             :fhir.Resource/id
+             :phi.element/type
+             ]}
+
+  [:blaze.fhir/SearchParameter :blaze.fhir/Immunization]
+  {:fn     nil
+   :params [{:blaze.fhir.SearchParameter/code       "_id"
+             :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}]}
+
+  ;;
+  ;; ServiceRequest
+  ;;
+  [:blaze.interaction/search-type :blaze.interaction.search/ServiceRequest]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/ServiceRequest]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/ServiceRequest]
+   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/ServiceRequest]}
+
+  [:blaze.interaction/read :blaze.interaction.read/ServiceRequest]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/ServiceRequest]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/ServiceRequest]}
+
+  [:blaze.schema/mapping :blaze.fhir/ServiceRequest]
+  {:fn      nil
+   :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
+   :mapping {}}
+
+  [:blaze.schema/pattern :blaze.fhir/ServiceRequest]
+  {:fn      nil
+   :pattern [:db/id
+             :fhir.Resource/id
+             :phi.element/type
+             ]}
+
+  [:blaze.fhir/SearchParameter :blaze.fhir/ServiceRequest]
   {:fn     nil
    :params [{:blaze.fhir.SearchParameter/code       "_id"
              :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
