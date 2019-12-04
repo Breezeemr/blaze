@@ -95,7 +95,6 @@
 (defn handler
   ""
   [config]
-  (prn config)
   (-> (handler-intern config)
       (wrap-interaction-name)
       (wrap-observe-request-duration)))
