@@ -1,6 +1,7 @@
 (ns blaze.fhir.transforms
   (:require
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [clojure.walk :refer [prewalk]]))
 
 
 (defn coding [_ v]
@@ -12,8 +13,8 @@
                  :code   code})))
         v))
 
-(defn $cr [_ v]
-  (coding _ (str/split v #"\u001f")))
+(defn $cr [k v]
+  (coding k (str/split v #"\u001f")))
 
 
 (defn reference [_ v]
@@ -35,3 +36,17 @@
 
 (defn resource-type [_ v]
   (second (str/split v #"\/")))
+
+
+(defn transform [mapping resource]
+  (prewalk (fn [node]
+             (if (vector? node)
+               (let [[k v] node]
+                 (if-let [mapper (get mapping k)]
+                   (let [new-k (:key mapper k)
+                         f     (:value mapper)]
+                     [new-k
+                      ((requiring-resolve f) new-k v)])
+                   node))
+               node))
+           resource))
