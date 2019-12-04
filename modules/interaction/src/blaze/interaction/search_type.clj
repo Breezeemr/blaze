@@ -8,7 +8,6 @@
     [blaze.handler.fhir.util :as fhir-util]
     [blaze.middleware.fhir.metrics :refer [wrap-observe-request-duration]]
     [clojure.spec.alpha :as s]
-    [clojure.walk :refer [prewalk postwalk]]
     [datomic.api :as d]
     [datomic-spec.core :as ds]
     [integrant.core :as ig]
@@ -64,20 +63,6 @@
   (or (zero? (fhir-util/page-size query-params)) (= "count" summary)))
 
 
-(defn- transform [mapping resource]
-  (prewalk (fn [node]
-             (if (vector? node)
-               (let [[k v] node]
-                 (if-let [mapper (get mapping k)]
-                   (let [new-k (:key mapper k)
-                         f     (:value mapper)]
-                     [new-k
-                      ((requiring-resolve f) new-k v)])
-                    node))
-               node))
-            resource))
-
-
 (defn- search [router db type query-params config pattern mapping]
   (let [pred (resource-pred query-params config)
         type (if-let [new-type (:type mapping)]
@@ -106,7 +91,7 @@
          (filter #(not (:deleted (meta %))))
          (filter (or pred (fn [_] true)))
          (take (fhir-util/page-size query-params))
-         (map #(transform mapping %))
+         (map #(fhir-util/transform mapping %))
          (map #(entry router %)))
         (d/datoms db :avet :phi.element/type (str "fhir-type/" type)))))))
 
