@@ -145,7 +145,7 @@
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/MedicationRequest]}
       :read
       #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/default]}}}]
+      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/MedicationRequest]}}}]
    :operations
    [#:blaze.rest-api.operation
     {:code "evaluate-measure"
@@ -412,7 +412,8 @@
 
   [:blaze.schema/pattern :blaze.fhir/Observation]
   {:fn      nil
-   :pattern [;; :db/id
+   :pattern [:db/id
+             :fhir.Resource/id
              :phi.element/type
              :fhir.Observation/appliesDateTime
              :fhir.Observation/appliesPeriod
@@ -639,6 +640,11 @@
    :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/MedicationRequest]
    :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/MedicationRequest]
    :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/MedicationRequest]}
+
+  [:blaze.interaction/read :blaze.interaction.read/MedicationRequest]
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/MedicationRequest]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/MedicationRequest]}
 
   [:blaze.schema/mapping :blaze.fhir/MedicationRequest]
   {:fn      nil
