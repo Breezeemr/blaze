@@ -100,7 +100,7 @@
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Consent]}
       :read
       #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/default]}}}
+      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/Consent]}}}
     #:blaze.rest-api.resource-pattern
     {:type "Condition"
      :interactions
@@ -177,6 +177,11 @@
    :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Consent]
    :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Consent]
    :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/Consent]}
+
+  [:blaze.interaction/read :blaze.interaction.read/Consent]
+  {:database/conn                     #blaze/ref :consent-conn
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Consent]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Consent]}
 
   [:blaze.schema/mapping :blaze.fhir/Consent]
   {:fn      nil
