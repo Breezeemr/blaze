@@ -162,7 +162,7 @@
   ;;
   ;; Default mappings
   ;;
-  [:blaze.schema/mapping :blaze.interaction.search/default]
+  [:blaze.schema/mapping :blaze.fhir/default]
   {:fn      nil
    :mapping {:phi.element/type               {:key   :resourceType
                                               :value blaze.fhir.transforms/resource-type}
@@ -174,13 +174,13 @@
   ;;
   [:blaze.interaction/search-type :blaze.interaction.search/Consent]
   {:database/conn                     #blaze/ref :consent-conn
-   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.interaction.search/Consent]
-   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/Consent]
-   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.interaction.search/Consent]}
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Consent]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Consent]
+   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/Consent]}
 
-  [:blaze.schema/mapping :blaze.interaction.search/Consent]
+  [:blaze.schema/mapping :blaze.fhir/Consent]
   {:fn      nil
-   :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
+   :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
    :mapping {:fhir.Consent/organization              {:value blaze.fhir.transforms/reference}
              :fhir.Consent/patient                   {:value blaze.fhir.transforms/reference}
              :fhir.Consent/performer                 {:value blaze.fhir.transforms/reference}
@@ -189,7 +189,7 @@
              :fhir.Consent.provision.actor/reference {:value blaze.fhir.transforms/reference}
              :fhir.Consent.verification/verifiedWith {:value blaze.fhir.transforms/reference}}}
 
-  [:blaze.schema/pattern :blaze.interaction.search/Consent]
+  [:blaze.schema/pattern :blaze.fhir/Consent]
   {:fn      nil
    :pattern [:fhir.Resource/id
              :phi.element/type
@@ -228,7 +228,7 @@
              :fhir.Consent.verification/verified
              {:fhir.Consent.verification/verifiedWith [:fhir.Resource/id :phi.element/type]}]}
 
-  [:blaze.fhir/SearchParameter :blaze.interaction.search/Consent]
+  [:blaze.fhir/SearchParameter :blaze.fhir/Consent]
   {:fn     nil
    :params [{:blaze.fhir.SearchParameter/code       "_id"
              :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
@@ -240,20 +240,20 @@
   ;;
   [:blaze.interaction/search-type :blaze.interaction.search/Condition]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.interaction.search/Condition]
-   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/Condition]
-   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.interaction.search/Condition]}
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Condition]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Condition]
+   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/Condition]}
 
-  [:blaze.schema/mapping :blaze.interaction.search/Condition]
+  [:blaze.schema/mapping :blaze.fhir/Condition]
   {:fn      nil
-   :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
+   :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
    :mapping {:fhir.v3.Condition/context    {:value blaze.fhir.transforms/reference}
              :fhir.v3.Condition/subject    {:value blaze.fhir.transforms/reference}
              :fhir.v3.Condition/identifier {:value blaze.fhir.transforms/reference} ;; pretty sure :fhir.v3.Condition/identifier is never used
              ;; I am pretty sure :fhir.Condition/identifier$id is never used
              }}
 
-  [:blaze.schema/pattern :blaze.interaction.search/Condition]
+  [:blaze.schema/pattern :blaze.fhir/Condition]
   {:fn      nil
    :pattern [:fhir.Resource/id
              :phi.element/type
@@ -287,7 +287,7 @@
              :fhir.v3.Condition.stage/assessment
              :fhir.v3.Condition.stage/summary]}
 
-  [:blaze.fhir/SearchParameter :blaze.interaction.search/Condition]
+  [:blaze.fhir/SearchParameter :blaze.fhir/Condition]
   {:fn     nil
    :params [{:blaze.fhir.SearchParameter/code       "_id"
              :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
@@ -306,13 +306,13 @@
   ;;
   [:blaze.interaction/search-type :blaze.interaction.search/DiagnosticReport]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.interaction.search/DiagnosticReport]
-   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/DiagnosticReport]
-   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.interaction.search/DiagnosticReport]}
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/DiagnosticReport]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/DiagnosticReport]
+   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/DiagnosticReport]}
 
-  [:blaze.schema/mapping :blaze.interaction.search/DiagnosticReport]
+  [:blaze.schema/mapping :blaze.fhir/DiagnosticReport]
   {:fn      nil
-   :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
+   :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
    :mapping {:fhir.DiagnosticReport/encounter    {:value blaze.fhir.transforms/reference}
              :fhir.DiagnosticReport/imagingStudy {:value blaze.fhir.transforms/reference}
              :fhir.DiagnosticReport/performer    {:value blaze.fhir.transforms/reference}
@@ -322,7 +322,7 @@
              :fhir.DiagnosticReport/subject      {:value blaze.fhir.transforms/reference}
              :fhir.DiagnosticReport.image/link   {:value blaze.fhir.transforms/reference}}}
 
-  [:blaze.schema/pattern :blaze.interaction.search/DiagnosticReport]
+  [:blaze.schema/pattern :blaze.fhir/DiagnosticReport]
   {:fn      nil
    :pattern [:fhir.Resource/id
              :phi.element/type
@@ -367,7 +367,7 @@
              :fhir.DiagnosticReport.image/extension
              {:fhir.DiagnosticReport.image/link [:fhir.Resource/id :phi.element/type]}]}
 
-  [:blaze.fhir/SearchParameter :blaze.interaction.search/DiagnosticReport]
+  [:blaze.fhir/SearchParameter :blaze.fhir/DiagnosticReport]
   {:fn     nil
    :params [{:blaze.fhir.SearchParameter/code       "_id"
              :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
@@ -384,13 +384,13 @@
   ;;
   [:blaze.interaction/search-type :blaze.interaction.search/Observation]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.interaction.search/Observation]
-   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/Observation]
-   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.interaction.search/Observation]}
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Observation]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Observation]
+   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/Observation]}
 
-  [:blaze.schema/mapping :blaze.interaction.search/Observation]
+  [:blaze.schema/mapping :blaze.fhir/Observation]
   {:fn      nil
-   :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
+   :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
    :mapping {:fhir.Observation/subject        {:value blaze.fhir.transforms/reference}
              :fhir.Observation/encounter      {:value blaze.fhir.transforms/reference}
              :fhir.Observation/performer      {:value blaze.fhir.transforms/reference}
@@ -400,7 +400,7 @@
              :fhir.Observation/code$cr        {:key   :fhir.Observation/code
                                                :value blaze.fhir.transforms/$cr}}}
 
-  [:blaze.schema/pattern :blaze.interaction.search/Observation]
+  [:blaze.schema/pattern :blaze.fhir/Observation]
   {:fn      nil
    :pattern [;; :db/id
              :phi.element/type
@@ -504,7 +504,7 @@
              {:fhir.Observation.related/target [:fhir.Resource/id :phi.element/type]}
              :fhir.Observation.related/type]}
 
-  [:blaze.fhir/SearchParameter :blaze.interaction.search/Observation]
+  [:blaze.fhir/SearchParameter :blaze.fhir/Observation]
   {:fn     nil
    :params [{:blaze.fhir.SearchParameter/code       "_id"
              :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
@@ -519,13 +519,13 @@
   ;;
   [:blaze.interaction/search-type :blaze.interaction.search/Patient]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.interaction.search/Patient]
-   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/Patient]
-   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.interaction.search/Patient]}
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Patient]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Patient]
+   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/Patient]}
 
-  [:blaze.schema/mapping :blaze.interaction.search/Patient]
+  [:blaze.schema/mapping :blaze.fhir/Patient]
   {:fn      nil
-   :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
+   :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
    :mapping {:fhir.Patient/careProvider              {:value blaze.fhir.transforms/reference}
              :fhir.Patient/managingOrganization      {:value blaze.fhir.transforms/reference}
              :fhir.Patient.link/other                {:value blaze.fhir.transforms/reference}
@@ -544,7 +544,7 @@
              #_#_:fhir.Patient.link/type$cr          {:key   :fhir.Patient.link/type
                                                       :value blaze.fhir.transforms/$cr}}}
 
-  [:blaze.schema/pattern :blaze.interaction.search/Patient]
+  [:blaze.schema/pattern :blaze.fhir/Patient]
   {:fn      nil
    :pattern [:fhir.Resource/id
              :phi.element/type
@@ -609,7 +609,7 @@
              :fhir.Patient.link/type
              :fhir.Patient.link/type$cr]}
 
-  [:blaze.fhir/SearchParameter :blaze.interaction.search/Patient]
+  [:blaze.fhir/SearchParameter :blaze.fhir/Patient]
   {:fn     nil
    :params [{:blaze.fhir.SearchParameter/code       "_id"
              :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
@@ -621,13 +621,13 @@
   ;;
   [:blaze.interaction/search-type :blaze.interaction.search/MedicationRequest]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.interaction.search/MedicationRequest]
-   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/MedicationRequest]
-   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.interaction.search/MedicationRequest]}
+   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/MedicationRequest]
+   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/MedicationRequest]
+   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/MedicationRequest]}
 
-  [:blaze.schema/mapping :blaze.interaction.search/MedicationRequest]
+  [:blaze.schema/mapping :blaze.fhir/MedicationRequest]
   {:fn      nil
-   :default #blaze/ref [:blaze.schema/mapping :blaze.interaction.search/default]
+   :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
    :mapping {:type                                            "MedicationPrescription"
              :fhir.MedicationPrescription/encounter           {:value blaze.fhir.transforms/reference}
              :fhir.MedicationPrescription/medication          {:value blaze.fhir.transforms/reference}
@@ -635,7 +635,7 @@
              :fhir.MedicationPrescription/prescriber          {:value blaze.fhir.transforms/reference}
              :fhir.MedicationPrescription.dispense/medication {:value blaze.fhir.transforms/reference}}}
 
-  [:blaze.schema/pattern :blaze.interaction.search/MedicationRequest]
+  [:blaze.schema/pattern :blaze.fhir/MedicationRequest]
   {:fn      nil
    :pattern [:fhir.Resource/id
              :phi.element/type
@@ -682,7 +682,7 @@
              :fhir.MedicationPrescription.substitution/type
              :fhir.MedicationPrescription.substitution/type$cr]}
 
-  [:blaze.fhir/SearchParameter :blaze.interaction.search/MedicationRequest]
+  [:blaze.fhir/SearchParameter :blaze.fhir/MedicationRequest]
   {:fn     nil
    :params [{:blaze.fhir.SearchParameter/code       "_id"
              :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
