@@ -52,13 +52,13 @@
 
 (defn pull-resource [db pattern mapping id]
   (->> (d/pull db pattern [:fhir.Resource/id id])
-       (transforms/transform mapping)))
+       (transforms/transform db mapping)))
 
 
 (defn- handler-intern [{:keys [database/conn schema/pattern schema/mapping]}]
   (fn [{{{:fhir.resource/keys [type]} :data} ::reitit/match
         {:keys [id vid]} :path-params}]
-    (prn "Read:" type id)
+    (log/info "Read:" type id)
     (-> (db conn vid)
         (md/chain'
           (fn [db]
