@@ -460,12 +460,12 @@
   [:blaze.schema/mapping :blaze.fhir/Observation]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
-   :mapping {:fhir.Observation/subject        {:value blaze.fhir.transforms/reference}
-             :fhir.Observation/encounter      {:value blaze.fhir.transforms/reference}
-             :fhir.Observation/performer      {:value blaze.fhir.transforms/reference}
-             :fhir.Observation/speciment      {:value blaze.fhir.transforms/reference}
-             :fhir.Observation/device         {:value blaze.fhir.transforms/reference}
-             :fhir.Observation.related/target {:value blaze.fhir.transforms/reference}
+   :mapping {:fhir.Observation/subject        {:value blaze.fhir.transforms/reference-one}
+             ;; :fhir.Observation/encounter      {:value blaze.fhir.transforms/reference}
+             ;; :fhir.Observation/performer      {:value blaze.fhir.transforms/reference}
+             ;; :fhir.Observation/speciment      {:value blaze.fhir.transforms/reference}
+             ;; :fhir.Observation/device         {:value blaze.fhir.transforms/reference}
+             ;; :fhir.Observation.related/target {:value blaze.fhir.transforms/reference}
              :fhir.Observation/code$cr        {:key   :fhir.Observation/code
                                                :value blaze.fhir.transforms/$cr}}}
 
@@ -474,105 +474,106 @@
    :pattern [:db/id ;; Need :db/id to log when :fhir.Resource/id is missing
              :fhir.Resource/id
              :phi.element/type
-             :fhir.Observation/appliesDateTime
-             :fhir.Observation/appliesPeriod
-             {:fhir.Observation/bodySite [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             :fhir.Observation/bodySite$cr
-             {:fhir.Observation/category [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             :fhir.Observation/category$cr
-             {:fhir.Observation/code [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             :fhir.Observation/code$cr
-             :fhir.Observation/comments
-             :fhir.Observation/component
-             :fhir.Observation/contained
-             {:fhir.Observation/dataAbsentReason [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             :fhir.Observation/dataAbsentReason$cr
-             {:fhir.Observation/device [:fhir.Resource/id :phi.element/type]}
-             :fhir.Observation/effectiveDateTime
-             :fhir.Observation/effectivePeriod
-             {:fhir.Observation/encounter [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             :fhir.Observation/extension
-             :fhir.Observation/id
-             :fhir.Observation/identifier
-             :fhir.Observation/identifier$id
-             :fhir.Observation/implicitRules
-             {:fhir.Observation/interpretation [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             :fhir.Observation/interpretation$cr
-             :fhir.Observation/issued
-             :fhir.Observation/language
-             :fhir.Observation/meta
-             {:fhir.Observation/method [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             :fhir.Observation/method$cr
-             :fhir.Observation/modifierExtension
-             {:fhir.Observation/performer [:fhir.Resource/id :phi.element/type]}
-             :fhir.Observation/referenceRange
-             :fhir.Observation/related
-             {:fhir.Observation/reliability [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             :fhir.Observation/reliability$cr
-             {:fhir.Observation/specimen [:fhir.Resource/id :phi.element/type]}
-             ;; {:fhir.Observation/status [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             :fhir.Observation/status$cr
+             ;; :fhir.Observation/appliesDateTime
+             ;; :fhir.Observation/appliesPeriod
+             ;; {:fhir.Observation/bodySite [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
+             ;; :fhir.Observation/bodySite$cr
+             ;; {:fhir.Observation/category [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
+             ;; :fhir.Observation/category$cr
+             ;; {:fhir.Observation/code [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
+             ;; :fhir.Observation/code$cr
+             ;; :fhir.Observation/comments
+             ;; :fhir.Observation/component
+             ;; :fhir.Observation/contained
+             ;; {:fhir.Observation/dataAbsentReason [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
+             ;; :fhir.Observation/dataAbsentReason$cr
+             ;; {:fhir.Observation/device [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.Observation/effectiveDateTime
+             ;; :fhir.Observation/effectivePeriod
+             ;; {:fhir.Observation/encounter [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
+             ;; :fhir.Observation/extension
+             ;; :fhir.Observation/id
+             ;; :fhir.Observation/identifier
+             ;; :fhir.Observation/identifier$id
+             ;; :fhir.Observation/implicitRules
+             ;; {:fhir.Observation/interpretation [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
+             ;; :fhir.Observation/interpretation$cr
+             ;; :fhir.Observation/issued
+             ;; :fhir.Observation/language
+             ;; :fhir.Observation/meta
+             ;; {:fhir.Observation/method [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
+             ;; :fhir.Observation/method$cr
+             ;; :fhir.Observation/modifierExtension
+             ;; {:fhir.Observation/performer [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.Observation/referenceRange
+             ;; :fhir.Observation/related
+             ;; {:fhir.Observation/reliability [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
+             ;; :fhir.Observation/reliability$cr
+             ;; {:fhir.Observation/specimen [:fhir.Resource/id :phi.element/type]}
+             ;; ;; {:fhir.Observation/status [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
+             ;; :fhir.Observation/status$cr
              {:fhir.Observation/subject [:fhir.Resource/id :phi.element/type]}
-             :fhir.Observation/text
-             :fhir.Observation/valueAttachment
-             :fhir.Observation/valueAttachment$cr
-             {:fhir.Observation/valueCodeableConcept [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             :fhir.Observation/valueCodeableConcept$cr
-             :fhir.Observation/valueDateTime
-             :fhir.Observation/valueDateTime$cr
-             :fhir.Observation/valuePeriod
-             :fhir.Observation/valuePeriod$cr
-             {:fhir.Observation/valueQuantity [:phi.element/type :fhir.Quantity/value :fhir.Quantity/comparator :fhir.Quantity/units :fhir.Quantity/system :fhir.Quantity/code]}
-             :fhir.Observation/valueQuantity$cr
-             :fhir.Observation/valueRange
-             :fhir.Observation/valueRange$cr
-             :fhir.Observation/valueRatio
-             :fhir.Observation/valueRatio$cr
-             :fhir.Observation/valueSampledData
-             :fhir.Observation/valueSampledData$cr
-             :fhir.Observation/valueString
-             :fhir.Observation/valueString$cr
-             :fhir.Observation/valueTime
-             :fhir.Observation/valueTime$cr
-             {:fhir.Observation.component/code [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             :fhir.Observation.component/code$cr
-             {:fhir.Observation.component/dataAbsentReason [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             :fhir.Observation.component/dataAbsentReason$cr
-             :fhir.Observation.component/extension
-             :fhir.Observation.component/modifierExtension
-             :fhir.Observation.component/referenceRange
-             :fhir.Observation.component/valueAttachment
-             :fhir.Observation.component/valueAttachment$cr
-             {:fhir.Observation.component/valueCodeableConcept [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             :fhir.Observation.component/valueCodeableConcept$cr
-             :fhir.Observation.component/valueDateTime
-             :fhir.Observation.component/valueDateTime$cr
-             :fhir.Observation.component/valuePeriod
-             :fhir.Observation.component/valuePeriod$cr
-             :fhir.Observation.component/valueQuantity
-             :fhir.Observation.component/valueQuantity$cr
-             :fhir.Observation.component/valueRange
-             :fhir.Observation.component/valueRange$cr
-             :fhir.Observation.component/valueRatio
-             :fhir.Observation.component/valueRatio$cr
-             :fhir.Observation.component/valueSampledData
-             :fhir.Observation.component/valueSampledData$cr
-             :fhir.Observation.component/valueString
-             :fhir.Observation.component/valueString$cr
-             :fhir.Observation.component/valueTime
-             :fhir.Observation.component/valueTime$cr
-             :fhir.Observation.referenceRange/age
-             :fhir.Observation.referenceRange/extension
-             :fhir.Observation.referenceRange/high
-             :fhir.Observation.referenceRange/low
-             {:fhir.Observation.referenceRange/meaning [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             :fhir.Observation.referenceRange/meaning$cr
-             :fhir.Observation.referenceRange/modifierExtension
-             :fhir.Observation.referenceRange/text
-             :fhir.Observation.related/extension
-             :fhir.Observation.related/modifierExtension
-             {:fhir.Observation.related/target [:fhir.Resource/id :phi.element/type]}
-             :fhir.Observation.related/type]}
+             ;; :fhir.Observation/text
+             ;; :fhir.Observation/valueAttachment
+             ;; :fhir.Observation/valueAttachment$cr
+             ;; {:fhir.Observation/valueCodeableConcept [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
+             ;; :fhir.Observation/valueCodeableConcept$cr
+             ;; :fhir.Observation/valueDateTime
+             ;; :fhir.Observation/valueDateTime$cr
+             ;; :fhir.Observation/valuePeriod
+             ;; :fhir.Observation/valuePeriod$cr
+             ;; {:fhir.Observation/valueQuantity [:phi.element/type :fhir.Quantity/value :fhir.Quantity/comparator :fhir.Quantity/units :fhir.Quantity/system :fhir.Quantity/code]}
+             ;; :fhir.Observation/valueQuantity$cr
+             ;; :fhir.Observation/valueRange
+             ;; :fhir.Observation/valueRange$cr
+             ;; :fhir.Observation/valueRatio
+             ;; :fhir.Observation/valueRatio$cr
+             ;; :fhir.Observation/valueSampledData
+             ;; :fhir.Observation/valueSampledData$cr
+             ;; :fhir.Observation/valueString
+             ;; :fhir.Observation/valueString$cr
+             ;; :fhir.Observation/valueTime
+             ;; :fhir.Observation/valueTime$cr
+             ;; {:fhir.Observation.component/code [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
+             ;; :fhir.Observation.component/code$cr
+             ;; {:fhir.Observation.component/dataAbsentReason [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
+             ;; :fhir.Observation.component/dataAbsentReason$cr
+             ;; :fhir.Observation.component/extension
+             ;; :fhir.Observation.component/modifierExtension
+             ;; :fhir.Observation.component/referenceRange
+             ;; :fhir.Observation.component/valueAttachment
+             ;; :fhir.Observation.component/valueAttachment$cr
+             ;; {:fhir.Observation.component/valueCodeableConcept [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
+             ;; :fhir.Observation.component/valueCodeableConcept$cr
+             ;; :fhir.Observation.component/valueDateTime
+             ;; :fhir.Observation.component/valueDateTime$cr
+             ;; :fhir.Observation.component/valuePeriod
+             ;; :fhir.Observation.component/valuePeriod$cr
+             ;; :fhir.Observation.component/valueQuantity
+             ;; :fhir.Observation.component/valueQuantity$cr
+             ;; :fhir.Observation.component/valueRange
+             ;; :fhir.Observation.component/valueRange$cr
+             ;; :fhir.Observation.component/valueRatio
+             ;; :fhir.Observation.component/valueRatio$cr
+             ;; :fhir.Observation.component/valueSampledData
+             ;; :fhir.Observation.component/valueSampledData$cr
+             ;; :fhir.Observation.component/valueString
+             ;; :fhir.Observation.component/valueString$cr
+             ;; :fhir.Observation.component/valueTime
+             ;; :fhir.Observation.component/valueTime$cr
+             ;; :fhir.Observation.referenceRange/age
+             ;; :fhir.Observation.referenceRange/extension
+             ;; :fhir.Observation.referenceRange/high
+             ;; :fhir.Observation.referenceRange/low
+             ;; {:fhir.Observation.referenceRange/meaning [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
+             ;; :fhir.Observation.referenceRange/meaning$cr
+             ;; :fhir.Observation.referenceRange/modifierExtension
+             ;; :fhir.Observation.referenceRange/text
+             ;; :fhir.Observation.related/extension
+             ;; :fhir.Observation.related/modifierExtension
+             ;; {:fhir.Observation.related/target [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.Observation.related/type
+             ]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/Observation]
   {:fn     nil
@@ -709,60 +710,63 @@
   [:blaze.schema/mapping :blaze.fhir/MedicationRequest]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
-   :mapping {:type                                            "MedicationPrescription"
-             :fhir.MedicationPrescription/encounter           {:value blaze.fhir.transforms/reference}
-             :fhir.MedicationPrescription/medication          {:value blaze.fhir.transforms/reference}
-             :fhir.MedicationPrescription/patient             {:value blaze.fhir.transforms/reference}
-             :fhir.MedicationPrescription/prescriber          {:value blaze.fhir.transforms/reference}
-             :fhir.MedicationPrescription.dispense/medication {:value blaze.fhir.transforms/reference}}}
+   :mapping {:type                                   "MedicationPrescription"
+             ;; :fhir.MedicationPrescription/encounter           {:value blaze.fhir.transforms/reference}
+             :fhir.MedicationPrescription/medication {:key   :fhir.MedicationRequest/medicationCodeableConcept
+                                                      :value 'blaze.fhir.transforms/medication-request-medication-reference->codeable-concept}
+             ;; :fhir.MedicationPrescription/patient             {:value blaze.fhir.transforms/reference}
+             ;; :fhir.MedicationPrescription/prescriber          {:value blaze.fhir.transforms/reference}
+             ;; :fhir.MedicationPrescription.dispense/medication {:value blaze.fhir.transforms/reference}
+             }}
 
   [:blaze.schema/pattern :blaze.fhir/MedicationRequest]
   {:fn      nil
    :pattern [:db/id
              :fhir.Resource/id
              :phi.element/type
-             :fhir.MedicationPrescription/dateWritten
-             :fhir.MedicationPrescription/dispense
-             :fhir.MedicationPrescription/dosageInstruction
-             {:fhir.MedicationPrescription/encounter [:fhir.Resource/id :phi.element/type]}
-             :fhir.MedicationPrescription/identifier
-             :fhir.MedicationPrescription/identifier$id
+             ;; :fhir.MedicationPrescription/dateWritten
+             ;; :fhir.MedicationPrescription/dispense
+             ;; :fhir.MedicationPrescription/dosageInstruction
+             ;; {:fhir.MedicationPrescription/encounter [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.MedicationPrescription/identifier
+             ;; :fhir.MedicationPrescription/identifier$id
              {:fhir.MedicationPrescription/medication [:fhir.Resource/id :phi.element/type]}
-             {:fhir.MedicationPrescription/patient [:fhir.Resource/id :phi.element/type]}
-             {:fhir.MedicationPrescription/prescriber [:fhir.Resource/id :phi.element/type]}
-             :fhir.MedicationPrescription/reasonCodeableConcept
-             :fhir.MedicationPrescription/reasonCodeableConcept$cr
-             :fhir.MedicationPrescription/reasonResource
-             :fhir.MedicationPrescription/status
-             :fhir.MedicationPrescription/status$cr
-             :fhir.MedicationPrescription/substitution
-             :fhir.MedicationPrescription.dispense/expectedSupplyDuration
-             {:fhir.MedicationPrescription.dispense/medication [:fhir.Resource/id :phi.element/type]}
-             :fhir.MedicationPrescription.dispense/numberOfRepeatsAllowed
-             :fhir.MedicationPrescription.dispense/quantity
-             :fhir.MedicationPrescription.dispense/validityPeriod
-             :fhir.MedicationPrescription.dosageInstruction/additionalInstructions
-             :fhir.MedicationPrescription.dosageInstruction/additionalInstructions$cr
-             :fhir.MedicationPrescription.dosageInstruction/asNeededBoolean
-             :fhir.MedicationPrescription.dosageInstruction/asNeededCodeableConcept
-             :fhir.MedicationPrescription.dosageInstruction/asNeededCodeableConcept$cr
-             :fhir.MedicationPrescription.dosageInstruction/doseQuantity
-             :fhir.MedicationPrescription.dosageInstruction/maxDosePerPeriod
-             :fhir.MedicationPrescription.dosageInstruction/method
-             :fhir.MedicationPrescription.dosageInstruction/method$cr
-             :fhir.MedicationPrescription.dosageInstruction/rate
-             :fhir.MedicationPrescription.dosageInstruction/route
-             :fhir.MedicationPrescription.dosageInstruction/route$cr
-             :fhir.MedicationPrescription.dosageInstruction/site
-             :fhir.MedicationPrescription.dosageInstruction/site$cr
-             :fhir.MedicationPrescription.dosageInstruction/text
-             :fhir.MedicationPrescription.dosageInstruction/timingDateTime
-             :fhir.MedicationPrescription.dosageInstruction/timingPeriod
-             :fhir.MedicationPrescription.dosageInstruction/timingSchedule
-             :fhir.MedicationPrescription.substitution/reason
-             :fhir.MedicationPrescription.substitution/reason$cr
-             :fhir.MedicationPrescription.substitution/type
-             :fhir.MedicationPrescription.substitution/type$cr]}
+             ;; {:fhir.MedicationPrescription/patient [:fhir.Resource/id :phi.element/type]}
+             ;; {:fhir.MedicationPrescription/prescriber [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.MedicationPrescription/reasonCodeableConcept
+             ;; :fhir.MedicationPrescription/reasonCodeableConcept$cr
+             ;; :fhir.MedicationPrescription/reasonResource
+             ;; :fhir.MedicationPrescription/status
+             ;; :fhir.MedicationPrescription/status$cr
+             ;; :fhir.MedicationPrescription/substitution
+             ;; :fhir.MedicationPrescription.dispense/expectedSupplyDuration
+             ;; {:fhir.MedicationPrescription.dispense/medication [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.MedicationPrescription.dispense/numberOfRepeatsAllowed
+             ;; :fhir.MedicationPrescription.dispense/quantity
+             ;; :fhir.MedicationPrescription.dispense/validityPeriod
+             ;; :fhir.MedicationPrescription.dosageInstruction/additionalInstructions
+             ;; :fhir.MedicationPrescription.dosageInstruction/additionalInstructions$cr
+             ;; :fhir.MedicationPrescription.dosageInstruction/asNeededBoolean
+             ;; :fhir.MedicationPrescription.dosageInstruction/asNeededCodeableConcept
+             ;; :fhir.MedicationPrescription.dosageInstruction/asNeededCodeableConcept$cr
+             ;; :fhir.MedicationPrescription.dosageInstruction/doseQuantity
+             ;; :fhir.MedicationPrescription.dosageInstruction/maxDosePerPeriod
+             ;; :fhir.MedicationPrescription.dosageInstruction/method
+             ;; :fhir.MedicationPrescription.dosageInstruction/method$cr
+             ;; :fhir.MedicationPrescription.dosageInstruction/rate
+             ;; :fhir.MedicationPrescription.dosageInstruction/route
+             ;; :fhir.MedicationPrescription.dosageInstruction/route$cr
+             ;; :fhir.MedicationPrescription.dosageInstruction/site
+             ;; :fhir.MedicationPrescription.dosageInstruction/site$cr
+             ;; :fhir.MedicationPrescription.dosageInstruction/text
+             ;; :fhir.MedicationPrescription.dosageInstruction/timingDateTime
+             ;; :fhir.MedicationPrescription.dosageInstruction/timingPeriod
+             ;; :fhir.MedicationPrescription.dosageInstruction/timingSchedule
+             ;; :fhir.MedicationPrescription.substitution/reason
+             ;; :fhir.MedicationPrescription.substitution/reason$cr
+             ;; :fhir.MedicationPrescription.substitution/type
+             ;; :fhir.MedicationPrescription.substitution/type$cr
+             ]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/MedicationRequest]
   {:fn     nil
