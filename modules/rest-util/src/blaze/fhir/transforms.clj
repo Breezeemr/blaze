@@ -5,17 +5,18 @@
    [datomic.api :as d]))
 
 
-(defn coding [{:keys [v]}]
+(defn coding$cr [{:keys [v]}]
   (into []
         (comp
          (map #(str/split % #"\/"))
          (map (fn [[system code]]
-                {:system system
-                 :code   code})))
+                {:system  system
+                 :code    code
+                 :display code})))
         v))
 
-(defn $cr [k v]
-  (coding k (str/split v #"\u001f")))
+(defn $cr [{:keys [v]}]
+  (coding (str/split v #"\u001f")))
 
 
 (defn reference-one [{:keys [v]}]
