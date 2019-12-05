@@ -1103,8 +1103,8 @@
   [:blaze.schema/mapping :blaze.fhir/Immunization]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
-   :mapping {:fhir.Immunization/vaccineCode$cr {:key   :fhir.Immunization/vaccineCode
-                                                :value 'blaze.fhir.transforms/codeable-concept}
+   :mapping {#_#_:fhir.Immunization/vaccineCode$cr {:key   :fhir.Immunization/vaccineCode
+                                                :value blaze.fhir.transforms/codeable-concept}
              :fhir.Immunization/date           {:key :fhir.Immunization/occurenceDateTime}}}
 
   [:blaze.schema/pattern :blaze.fhir/Immunization]
@@ -1144,8 +1144,8 @@
              ;; :fhir.Immunization/status
              ;; :fhir.Immunization/text
              ;; :fhir.Immunization/vaccinationProtocol
-             ;; :fhir.Immunization/vaccineCode
-             :fhir.Immunization/vaccineCode$cr
+             {:fhir.Immunization/vaccineCode [:fhir.CodeableConcept/text]}
+             ;; :fhir.Immunization/vaccineCode$cr
              ;; :fhir.Immunization/wasNotGiven
              ;; :fhir.Immunization.education/documentType
              ;; :fhir.Immunization.education/presentationDate

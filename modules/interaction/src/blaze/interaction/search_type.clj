@@ -69,42 +69,41 @@
         type (if-let [new-type (:type mapping)]
                new-type
                type)]
-    (-> (cond->
-            {:resourceType "Bundle"
-             :type "searchset"}
+    (cond->
+        {:resourceType "Bundle"
+         :type "searchset"}
 
-          (nil? pred)
-          (assoc :total (or (d/q '[:find (count ?e) .
-                                   :in $ ?type
-                                   :where
-                                   [?e :phi.element/type ?type]
-                                   [?e :fhir.Resource/id]]
-                                 db
-                                 (str "fhir-type/" type))
-                            0))
+      (nil? pred)
+      (assoc :total (or (d/q '[:find (count ?e) .
+                               :in $ ?type
+                               :where
+                               [?e :phi.element/type ?type]
+                               [?e :fhir.Resource/id]]
+                             db
+                             (str "fhir-type/" type))
+                        0))
 
-          (not (summary? query-params))
-          (assoc
-           :entry
-           (into
-            []
-            (comp
-             (map :e)
-             (map #(d/pull db pattern %))
-             (filter #(not (:deleted (meta %))))
-             (filter (or pred (fn [_] true)))
-             (filter (fn [resource]
-                       (if (some? (:fhir.Resource/id resource))
-                         true
-                         (do
-                           ;; (log/info (str "Following " type " entity does not have :fhir.Resource/id: " (:db/id resource)))
-                           false))))
-             (map #(dissoc % :db/id))
-             (take (fhir-util/page-size query-params))
-             (map #(transforms/transform db mapping %))
-             (map #(entry router %)))
-            (d/datoms db :avet :phi.element/type (str "fhir-type/" type)))))
-        clojure.pprint/pprint)))
+      (not (summary? query-params))
+      (assoc
+       :entry
+       (into
+        []
+        (comp
+         (map :e)
+         (map #(d/pull db pattern %))
+         (filter #(not (:deleted (meta %))))
+         (filter (or pred (fn [_] true)))
+         (filter (fn [resource]
+                   (if (some? (:fhir.Resource/id resource))
+                     true
+                     (do
+                       ;; (log/info (str "Following " type " entity does not have :fhir.Resource/id: " (:db/id resource)))
+                       false))))
+         (map #(dissoc % :db/id))
+         (take (fhir-util/page-size query-params))
+         (map #(transforms/transform db mapping %))
+         (map #(entry router %)))
+        (d/datoms db :avet :phi.element/type (str "fhir-type/" type)))))))
 
 
 (defn- handler-intern [{:keys [database/conn  blaze.fhir.SearchParameter/config schema/pattern schema/mapping]}]
