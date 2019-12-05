@@ -5,18 +5,28 @@
    [datomic.api :as d]))
 
 
+(defn coding [[system code]]
+  {:system  system
+   :code    code
+   :display code})
+
+
 (defn coding$cr [{:keys [v]}]
   (into []
         (comp
          (map #(str/split % #"\/"))
-         (map (fn [[system code]]
-                {:system  system
-                 :code    code
-                 :display code})))
+         (map coding))
         v))
+
 
 (defn $cr [{:keys [v]}]
   (coding$cr (str/split v #"\u001f")))
+
+
+(defn codeable-concept [{:keys [v]}]
+  {:fhir.CodeableConcept/text v
+   ;; There could be multiple codings but I have not implemented since I have not yet come across
+   :fhir.CodeableConcept/coding [(coding (str/split v #"\/"))]})
 
 
 (defn reference-one [{:keys [v]}]
