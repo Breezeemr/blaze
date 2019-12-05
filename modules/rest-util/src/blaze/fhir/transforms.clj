@@ -20,8 +20,7 @@
 (defn reference-one [{:keys [v]}]
   (let [prefix (-> (:phi.element/type v) (str/split #"\/") second)
         id     (:fhir.Resource/id v)]
-    nil
-    #_(when id
+    (when id
       {:reference (str prefix "/" id)})))
 
 
