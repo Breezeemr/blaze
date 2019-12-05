@@ -2,7 +2,9 @@
   (:require
    [clojure.string :as str]
    [clojure.walk :refer [prewalk postwalk]]
-   [datomic.api :as d]))
+   [datomic.api :as d])
+  (:import
+   (java.time LocalDate ZoneId)))
 
 
 (defn coding [[system code]]
@@ -77,6 +79,20 @@
 
 (defn resource-type [{:keys [v]}]
   (second (str/split v #"\/")))
+
+
+(defn inst->date [{:keys [v]}]
+  (LocalDate/from (.atZone (.toInstant v)
+                           (ZoneId/of "UTC"))))
+
+
+(defn inst->date->str [{:keys [v]}]
+  (str (inst->date {:v v})))
+
+
+(defn null-separated-list->vec [{:keys [v]}]
+  (prn v)
+  (str/split v #"\u001f"))
 
 
 (defn transform [db mapping resource]
