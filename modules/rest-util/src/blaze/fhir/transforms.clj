@@ -73,7 +73,9 @@
                       (if-let [mapper (get mapping k)]
                         (let [new-k (:key mapper k)
                               f     (:value mapper)
-                              new-v ((requiring-resolve f) {:db db :k new-k :v v})]
+                              new-v (if f
+                                      ((requiring-resolve f) {:db db :k new-k :v v})
+                                      v)]
                           [new-k new-v])
                         node))
                     node))
