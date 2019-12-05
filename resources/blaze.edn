@@ -726,7 +726,7 @@
              :phi.element/type
              ;; :fhir.MedicationPrescription/dateWritten
              ;; :fhir.MedicationPrescription/dispense
-             ;; :fhir.MedicationPrescription/dosageInstruction
+             :fhir.MedicationPrescription/dosageInstruction
              ;; {:fhir.MedicationPrescription/encounter [:fhir.Resource/id :phi.element/type]}
              ;; :fhir.MedicationPrescription/identifier
              ;; :fhir.MedicationPrescription/identifier$id
