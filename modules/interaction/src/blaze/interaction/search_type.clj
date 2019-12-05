@@ -102,7 +102,7 @@
                            ;; (log/info (str "Following " type " entity does not have :fhir.Resource/id: " (:db/id resource)))
                            false))))
              (map #(dissoc % :db/id))
-             #_(take (fhir-util/page-size query-params))
+             (take (fhir-util/page-size query-params))
              #_(map #(transforms/transform db mapping %))
              #_(map #(entry router %)))
             (d/datoms db :avet :phi.element/type (str "fhir-type/" type)))))
