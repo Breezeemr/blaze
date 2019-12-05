@@ -213,7 +213,7 @@
    :mapping {:phi.element/type               {:key   :resourceType
                                               :value blaze.fhir.transforms/resource-type}
              :fhir.CodeableConcept/coding$cr {:key   :fhir.CodeableConcept/coding
-                                              :value blaze.fhir.transforms/coding}}}
+                                              :value blaze.fhir.transforms/coding$cr}}}
 
   ;;
   ;; Consent
