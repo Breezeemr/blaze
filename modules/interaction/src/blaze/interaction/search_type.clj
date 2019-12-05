@@ -101,8 +101,8 @@
                            false))))
              (map #(dissoc % :db/id))
              (take (fhir-util/page-size query-params))
-             #_(map #(transforms/transform db mapping %))
-             #_(map #(entry router %)))
+             (map #(transforms/transform db mapping %))
+             (map #(entry router %)))
             (d/datoms db :avet :phi.element/type (str "fhir-type/" type)))))
         clojure.pprint/pprint)))
 
