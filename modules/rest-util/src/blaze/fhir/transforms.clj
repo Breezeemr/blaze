@@ -1,7 +1,8 @@
 (ns blaze.fhir.transforms
   (:require
    [clojure.string :as str]
-   [clojure.walk :refer [prewalk postwalk]]))
+   [clojure.walk :refer [prewalk postwalk]]
+   [datomic.api :as d]))
 
 
 (defn coding [{:keys [v]}]
@@ -39,16 +40,21 @@
       {:reference (str prefix "/" id)})))
 
 
-(defn medication-request-medication-reference->codeable-concept [{:keys [v]}]
-  ;; (prn "thing::" v)
-  (reference-one {:v v}))
+(defn medication-request-medication-reference->codeable-concept [{:keys [db v]}]
+  (if-let [id (:fhir.Resource/id v)]
+    (->> (d/pull db '[:fhir.Medication/code] [:fhir.Resource/id id])
+         :fhir.Medication/code
+         :fhir.CodeableConcept/coding$cr
+         (into []
+               (map (fn [coding$cr]
+                      {:display coding$cr}))))))
 
 
 (defn resource-type [{:keys [v]}]
   (second (str/split v #"\/")))
 
 
-(defn transform [mapping resource]
+(defn transform [db mapping resource]
   (->> (prewalk (fn [node]
                   (if (vector? node)
                     (let [[k v] node]
@@ -56,7 +62,7 @@
                       (if-let [mapper (get mapping k)]
                         (let [new-k (:key mapper k)
                               f     (:value mapper)
-                              new-v ((requiring-resolve f) {:k new-k :v v})]
+                              new-v ((requiring-resolve f) {:db db :k new-k :v v})]
                           [new-k new-v])
                         node))
                     node))
