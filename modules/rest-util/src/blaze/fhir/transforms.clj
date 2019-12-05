@@ -16,7 +16,7 @@
         v))
 
 (defn $cr [{:keys [v]}]
-  (coding (str/split v #"\u001f")))
+  (coding$cr (str/split v #"\u001f")))
 
 
 (defn reference-one [{:keys [v]}]
