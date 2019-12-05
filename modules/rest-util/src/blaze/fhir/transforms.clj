@@ -19,17 +19,21 @@
         v))
 
 
-(defn $cr [{:keys [v]}]
-  (coding$cr (str/split v #"\u001f")))
-
-
 (defn codeable-concept [{:keys [v]}]
   {:fhir.CodeableConcept/text v
-   ;; There could be multiple codings but I have not implemented since I have not yet come across
+   ;; TODO: Handle v as a string or a list of strings (and therefore a list of codings)
    :fhir.CodeableConcept/coding [(coding (str/split v #"\/"))]})
 
 
-(defn reference-one [{:keys [v]}]
+(defn codeable-concept-many [{:keys [v]}]
+  (into []
+        (map #(codeable-concept {:v %}))
+        (if (sequential? v)
+          v
+          [v])))
+
+
+(defn reference [{:keys [v]}]
   (let [prefix (-> (:phi.element/type v) (str/split #"\/") second)
         id     (:fhir.Resource/id v)]
     (when id
@@ -38,7 +42,7 @@
 
 (defn reference-many [{:keys [v]}]
   (into []
-        (map #(reference-one {:v %}))
+        (map #(reference {:v %}))
         (if (sequential? v)
           v
           [v])))
