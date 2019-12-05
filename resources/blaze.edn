@@ -792,7 +792,7 @@
   [:blaze.schema/mapping :blaze.fhir/AllergyIntolerance]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
-   :mapping {}}
+   :mapping {:fhir.v3.AllergyIntolerance/assertedDate {:key :fhir.AllergyInolerance/recordedDate}}}
 
   [:blaze.schema/pattern :blaze.fhir/AllergyIntolerance]
   {:fn      nil
@@ -800,41 +800,42 @@
              :fhir.Resource/id
              :phi.element/type
              :fhir.v3.AllergyIntolerance/assertedDate
-             :fhir.v3.AllergyIntolerance/asserter
-             :fhir.v3.AllergyIntolerance/category
-             :fhir.v3.AllergyIntolerance/clinicalStatus
-             :fhir.v3.AllergyIntolerance/code
-             :fhir.v3.AllergyIntolerance/contained
-             :fhir.v3.AllergyIntolerance/criticality
-             :fhir.v3.AllergyIntolerance/extension
-             :fhir.v3.AllergyIntolerance/id
-             :fhir.v3.AllergyIntolerance/identifier
-             :fhir.v3.AllergyIntolerance/implicitRules
-             :fhir.v3.AllergyIntolerance/language
-             :fhir.v3.AllergyIntolerance/lastOccurrence
-             :fhir.v3.AllergyIntolerance/meta
-             :fhir.v3.AllergyIntolerance/modifierExtension
-             :fhir.v3.AllergyIntolerance/note
-             :fhir.v3.AllergyIntolerance/onsetDateTime
-             :fhir.v3.AllergyIntolerance/onsetPeriod
-             :fhir.v3.AllergyIntolerance/onsetRange
-             :fhir.v3.AllergyIntolerance/onsetReference
-             :fhir.v3.AllergyIntolerance/onsetString
-             :fhir.v3.AllergyIntolerance/patient
-             :fhir.v3.AllergyIntolerance/reaction
-             :fhir.v3.AllergyIntolerance/recorder
-             :fhir.v3.AllergyIntolerance/text
-             :fhir.v3.AllergyIntolerance/type
-             :fhir.v3.AllergyIntolerance/verificationStatus
-             :fhir.v3.AllergyIntolerance.reaction/description
-             :fhir.v3.AllergyIntolerance.reaction/exposureRoute
-             :fhir.v3.AllergyIntolerance.reaction/extension
-             :fhir.v3.AllergyIntolerance.reaction/manifestation
-             :fhir.v3.AllergyIntolerance.reaction/modifierExtension
-             :fhir.v3.AllergyIntolerance.reaction/note
-             :fhir.v3.AllergyIntolerance.reaction/onset
-             :fhir.v3.AllergyIntolerance.reaction/severity
-             :fhir.v3.AllergyIntolerance.reaction/substance]}
+             ;; :fhir.v3.AllergyIntolerance/asserter
+             ;; :fhir.v3.AllergyIntolerance/category
+             ;; :fhir.v3.AllergyIntolerance/clinicalStatus
+             {:fhir.v3.AllergyIntolerance/code [:fhir.CodeableConcept/coding$cr]}
+             ;; :fhir.v3.AllergyIntolerance/contained
+             ;; :fhir.v3.AllergyIntolerance/criticality
+             ;; :fhir.v3.AllergyIntolerance/extension
+             ;; :fhir.v3.AllergyIntolerance/id
+             ;; :fhir.v3.AllergyIntolerance/identifier
+             ;; :fhir.v3.AllergyIntolerance/implicitRules
+             ;; :fhir.v3.AllergyIntolerance/language
+             ;; :fhir.v3.AllergyIntolerance/lastOccurrence
+             ;; :fhir.v3.AllergyIntolerance/meta
+             ;; :fhir.v3.AllergyIntolerance/modifierExtension
+             ;; :fhir.v3.AllergyIntolerance/note
+             ;; :fhir.v3.AllergyIntolerance/onsetDateTime
+             ;; :fhir.v3.AllergyIntolerance/onsetPeriod
+             ;; :fhir.v3.AllergyIntolerance/onsetRange
+             ;; :fhir.v3.AllergyIntolerance/onsetReference
+             ;; :fhir.v3.AllergyIntolerance/onsetString
+             ;; :fhir.v3.AllergyIntolerance/patient
+             ;; :fhir.v3.AllergyIntolerance/reaction
+             ;; :fhir.v3.AllergyIntolerance/recorder
+             ;; :fhir.v3.AllergyIntolerance/text
+             ;; :fhir.v3.AllergyIntolerance/type
+             ;; :fhir.v3.AllergyIntolerance/verificationStatus
+             ;; :fhir.v3.AllergyIntolerance.reaction/description
+             ;; :fhir.v3.AllergyIntolerance.reaction/exposureRoute
+             ;; :fhir.v3.AllergyIntolerance.reaction/extension
+             ;; :fhir.v3.AllergyIntolerance.reaction/manifestation
+             ;; :fhir.v3.AllergyIntolerance.reaction/modifierExtension
+             {:fhir.v3.AllergyIntolerance.reaction/note [:fhir.Annocation/text]}
+             ;; :fhir.v3.AllergyIntolerance.reaction/onset
+             ;; :fhir.v3.AllergyIntolerance.reaction/severity
+             ;; :fhir.v3.AllergyIntolerance.reaction/substance
+             ]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/AllergyIntolerance]
   {:fn     nil
