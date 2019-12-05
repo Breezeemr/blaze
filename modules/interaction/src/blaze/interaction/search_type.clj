@@ -9,6 +9,7 @@
     [blaze.middleware.fhir.metrics :refer [wrap-observe-request-duration]]
     [blaze.fhir.transforms :as transforms]
     [clojure.spec.alpha :as s]
+    [clojure.set :refer [rename-keys]]
     [datomic.api :as d]
     [datomic-spec.core :as ds]
     [integrant.core :as ig]
@@ -17,7 +18,7 @@
     [ring.util.response :as ring]
     [taoensso.timbre :as log])
   (:import
-    (java.util UUID)))
+   [java.util UUID]))
 
 
 (defn- match?
@@ -102,6 +103,8 @@
          (map #(dissoc % :db/id))
          (take (fhir-util/page-size query-params))
          (map #(transforms/transform db mapping %))
+         (map #(rename-keys % {:fhir.Resource/id "id" :resourceType "resourceType"}))
+         (map #(update % "id" str))
          (map #(entry router %)))
         (d/datoms db :avet :phi.element/type (str "fhir-type/" type)))))))
 

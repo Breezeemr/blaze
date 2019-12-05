@@ -304,46 +304,45 @@
   [:blaze.schema/mapping :blaze.fhir/Condition]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
-   :mapping {:fhir.v3.Condition/context    {:value blaze.fhir.transforms/reference}
-             :fhir.v3.Condition/subject    {:value blaze.fhir.transforms/reference}
-             :fhir.v3.Condition/identifier {:value blaze.fhir.transforms/reference} ;; pretty sure :fhir.v3.Condition/identifier is never used
-             ;; I am pretty sure :fhir.Condition/identifier$id is never used
-             }}
+   :mapping {:fhir.Condition/category$cr {:key   :fhir.Condition/category
+                                          :value blaze.fhir.transforms/codeable-concept-many}}}
 
   [:blaze.schema/pattern :blaze.fhir/Condition]
   {:fn      nil
    :pattern [:db/id
              :fhir.Resource/id
              :phi.element/type
-             :fhir.v3.Condition/abatementAge
-             :fhir.v3.Condition/abatementBoolean
-             :fhir.v3.Condition/abatementDateTime
-             :fhir.v3.Condition/abatementPeriod
-             :fhir.v3.Condition/abatementRange
-             :fhir.v3.Condition/abatementString
-             :fhir.v3.Condition/assertedDate
-             {:fhir.v3.Condition/asserter [:fhir.Resource/id :phi.element/type]}
-             :fhir.v3.Condition/bodySite
-             :fhir.v3.Condition/category
-             :fhir.v3.Condition/clinicalStatus
-             {:fhir.v3.Condition/code [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
-             {:fhir.v3.Condition/context [:fhir.Resource/id :phi.element/type]}
-             :fhir.v3.Condition/evidence
-             :fhir.v3.Condition/identifier
-             :fhir.v3.Condition/note
-             :fhir.v3.Condition/onsetAge
+             ;; :fhir.v3.Condition/abatementAge
+             ;; :fhir.v3.Condition/abatementBoolean
+             ;; :fhir.v3.Condition/abatementDateTime
+             ;; :fhir.v3.Condition/abatementPeriod
+             ;; :fhir.v3.Condition/abatementRange
+             ;; :fhir.v3.Condition/abatementString
+             ;; :fhir.v3.Condition/assertedDate
+             ;; {:fhir.v3.Condition/asserter [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.v3.Condition/bodySite
+             ;; :fhir.v3.Condition/category
+             :fhir.Condition/category$cr
+             ;; :fhir.v3.Condition/clinicalStatus
+             {:fhir.v3.Condition/code [:fhir.CodeableConcept/text #_:fhir.CodeableConcept/coding$cr]}
+             ;; {:fhir.v3.Condition/context [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.v3.Condition/evidence
+             ;; :fhir.v3.Condition/identifier
+             ;; :fhir.v3.Condition/note
+             ;; :fhir.v3.Condition/onsetAge
              :fhir.v3.Condition/onsetDateTime
-             :fhir.v3.Condition/onsetPeriod
-             :fhir.v3.Condition/onsetRange
-             :fhir.v3.Condition/onsetString
-             :fhir.v3.Condition/severity
-             :fhir.v3.Condition/stage
-             {:fhir.v3.Condition/subject [:fhir.Resource/id :phi.element/type]}
-             :fhir.v3.Condition/verificationStatus
-             :fhir.v3.Condition.evidence/code
-             :fhir.v3.Condition.evidence/detail
-             :fhir.v3.Condition.stage/assessment
-             :fhir.v3.Condition.stage/summary]}
+             ;; :fhir.v3.Condition/onsetPeriod
+             ;; :fhir.v3.Condition/onsetRange
+             ;; :fhir.v3.Condition/onsetString
+             ;; :fhir.v3.Condition/severity
+             ;; :fhir.v3.Condition/stage
+             ;; {:fhir.v3.Condition/subject [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.v3.Condition/verificationStatus
+             ;; :fhir.v3.Condition.evidence/code
+             ;; :fhir.v3.Condition.evidence/detail
+             ;; :fhir.v3.Condition.stage/assessment
+             ;; :fhir.v3.Condition.stage/summary
+             ]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/Condition]
   {:fn     nil
@@ -460,14 +459,14 @@
   [:blaze.schema/mapping :blaze.fhir/Observation]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
-   :mapping {:fhir.Observation/subject        {:value blaze.fhir.transforms/reference-one}
+   :mapping {:fhir.Observation/subject        {:value blaze.fhir.transforms/reference}
              ;; :fhir.Observation/encounter      {:value blaze.fhir.transforms/reference}
              ;; :fhir.Observation/performer      {:value blaze.fhir.transforms/reference}
              ;; :fhir.Observation/speciment      {:value blaze.fhir.transforms/reference}
              ;; :fhir.Observation/device         {:value blaze.fhir.transforms/reference}
              ;; :fhir.Observation.related/target {:value blaze.fhir.transforms/reference}
              :fhir.Observation/code$cr        {:key   :fhir.Observation/code
-                                               :value blaze.fhir.transforms/$cr}}}
+                                               :value blaze.fhir.transforms/codeable-concept}}}
 
   [:blaze.schema/pattern :blaze.fhir/Observation]
   {:fn      nil
