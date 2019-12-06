@@ -107,9 +107,11 @@
                          (keys resource))
         extensions (into []
                          (map second)
-                         (select-keys resource ks))]
-    (-> (apply dissoc resource ks)
-        (assoc :extension extensions))))
+                         (select-keys resource ks))
+        r          (apply dissoc resource ks)]
+    (if (not-empty extensions)
+      (assoc r :extension extensions)
+      r)))
 
 
 (defn transform [db mapping resource]
