@@ -400,7 +400,11 @@
    :mapping {:fhir.Patient/birthDate        {:value blaze.fhir.transforms/inst->date->str}
              :fhir.Patient/maritalStatus$cr {:key   :fhir.Patient/maritalStatus
                                              :value blaze.fhir.transforms/codeable-concept}
-             ;; These below can be moved to default
+             :breeze.Patient/ethnicity$cr   {:key   :extension/ethnicity
+                                             :value blaze.fhir.transforms/extension}
+             :breeze.Patient/race$cr   {:key   :extension/race
+                                             :value blaze.fhir.transforms/extension}
+             ;; TODO: Move human name stuff to default
              :fhir.HumanName/given          {:value blaze.fhir.transforms/null-separated-list->vec}
              }}
 

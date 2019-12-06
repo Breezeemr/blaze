@@ -93,11 +93,31 @@
   (str/split v #"\u001f"))
 
 
+(defn extension [{:keys [k v]}]
+  {:url       (case k
+                :extension/ethnicity "http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity"
+                :extension/race      "http://hl7.org/fhir/us/core/StructureDefinition/us-core-race")
+   :extension [{:url         "ombCategory"
+                :valueCoding (coding (str/split v #"\/"))}]})
+
+
+(defn merged-extensions [resource]
+  (let [ks         (into []
+                         (filter #(= "extension" (namespace %)))
+                         (keys resource))
+        extensions (into []
+                         (map second)
+                         (select-keys resource ks))]
+    (-> (apply dissoc resource ks)
+        (assoc :extension extensions))))
+
+
 (defn transform [db mapping resource]
-  (->> (prewalk (fn [node]
+  (->> resource
+       ;; Do mappings
+       (prewalk (fn [node]
                   (if (vector? node)
                     (let [[k v] node]
-                      ;; (prn k v node)
                       (if-let [mapper (get mapping k)]
                         (let [new-k (:key mapper k)
                               f     (:value mapper)
@@ -106,10 +126,8 @@
                                       v)]
                           [new-k new-v])
                         node))
-                    node))
-                resource)
-       ;; Remove nil values
-       ;; TODO: Figure out how to do this in one single walk
+                    node)))
+       ;; Remove nil values ;; TODO: Incorporate this into the previous walk
        (prewalk (fn [node]
                   (cond
                     (map? node)
@@ -123,4 +141,6 @@
                           node)
 
                     :else
-                    node)))))
+                    node)))
+       ;; Merge extensions
+       merged-extensions))
