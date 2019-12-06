@@ -213,7 +213,8 @@
    :mapping {:phi.element/type               {:key   :resourceType
                                               :value blaze.fhir.transforms/resource-type}
              :fhir.CodeableConcept/coding$cr {:key   :fhir.CodeableConcept/coding
-                                              :value blaze.fhir.transforms/coding$cr}}}
+                                              :value blaze.fhir.transforms/coding$cr}
+             :fhir.HumanName/given           {:value blaze.fhir.transforms/null-separated-list->vec}}}
 
   ;;
   ;; Consent
@@ -403,10 +404,7 @@
              :breeze.Patient/ethnicity$cr   {:key   :extension/ethnicity
                                              :value blaze.fhir.transforms/extension}
              :breeze.Patient/race$cr   {:key   :extension/race
-                                             :value blaze.fhir.transforms/extension}
-             ;; TODO: Move human name stuff to default
-             :fhir.HumanName/given          {:value blaze.fhir.transforms/null-separated-list->vec}
-             }}
+                                             :value blaze.fhir.transforms/extension}}}
 
   [:blaze.schema/pattern :blaze.fhir/Patient]
   {:fn      nil
