@@ -91,7 +91,6 @@
 
 
 (defn null-separated-list->vec [{:keys [v]}]
-  (prn v)
   (str/split v #"\u001f"))
 
 
