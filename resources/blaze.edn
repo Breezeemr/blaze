@@ -232,53 +232,48 @@
   [:blaze.schema/mapping :blaze.fhir/Consent]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
-   :mapping {:fhir.Consent/organization              {:value blaze.fhir.transforms/reference}
-             :fhir.Consent/patient                   {:value blaze.fhir.transforms/consent-patient-reference}
-             :fhir.Consent/performer                 {:value blaze.fhir.transforms/reference}
-             :fhir.Consent/sourceReference           {:value blaze.fhir.transforms/reference}
-             :fhir.Consent.provision.data/reference  {:value blaze.fhir.transforms/reference}
-             :fhir.Consent.provision.actor/reference {:value blaze.fhir.transforms/reference}
-             :fhir.Consent.verification/verifiedWith {:value blaze.fhir.transforms/reference}}}
+   :mapping {:fhir.Consent/patient {:value blaze.fhir.transforms/consent-patient-reference}}}
 
   [:blaze.schema/pattern :blaze.fhir/Consent]
   {:fn      nil
    :pattern [:db/id
              :fhir.Resource/id
              :phi.element/type
-             :fhir.Consent/category
-             :fhir.Consent/dateTime
-             :fhir.Consent/identifier
-             {:fhir.Consent/organization [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.Consent/category
+             ;; :fhir.Consent/dateTime
+             ;; :fhir.Consent/identifier
+             ;; {:fhir.Consent/organization [:fhir.Resource/id :phi.element/type]}
              {:fhir.Consent/patient [:fhir.Reference/reference :phi.element/type]}
-             {:fhir.Consent/performer [:fhir.Resource/id :phi.element/type]}
-             :fhir.Consent/policy
-             :fhir.Consent/policyRule
-             :fhir.Consent/provision
-             :fhir.Consent/scope
-             :fhir.Consent/sourceAttachment
-             {:fhir.Consent/sourceReference [:fhir.Resource/id :phi.element/type]}
-             :fhir.Consent/status
-             :fhir.Consent/verification
-             :fhir.Consent.policy/authority
-             :fhir.Consent.policy/uri
-             :fhir.Consent.provision/action
-             :fhir.Consent.provision/actor
-             :fhir.Consent.provision/class
-             :fhir.Consent.provision/code
-             :fhir.Consent.provision/data
-             :fhir.Consent.provision/dataPeriod
-             :fhir.Consent.provision/period
-             :fhir.Consent.provision/provision
-             :fhir.Consent.provision/purpose
-             :fhir.Consent.provision/securityLabel
-             :fhir.Consent.provision/type
-             {:fhir.Consent.provision.actor/reference [:fhir.Resource/id :phi.element/type]}
-             :fhir.Consent.provision.actor/role
-             :fhir.Consent.provision.data/meaning
-             {:fhir.Consent.provision.data/reference [:fhir.Resource/id :phi.element/type]}
-             :fhir.Consent.verification/verificationDate
-             :fhir.Consent.verification/verified
-             {:fhir.Consent.verification/verifiedWith [:fhir.Resource/id :phi.element/type]}]}
+             ;; {:fhir.Consent/performer [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.Consent/policy
+             ;; :fhir.Consent/policyRule
+             ;; :fhir.Consent/provision
+             ;; :fhir.Consent/scope
+             ;; :fhir.Consent/sourceAttachment
+             ;; {:fhir.Consent/sourceReference [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.Consent/status
+             ;; :fhir.Consent/verification
+             ;; :fhir.Consent.policy/authority
+             ;; :fhir.Consent.policy/uri
+             ;; :fhir.Consent.provision/action
+             ;; :fhir.Consent.provision/actor
+             ;; :fhir.Consent.provision/class
+             ;; :fhir.Consent.provision/code
+             ;; :fhir.Consent.provision/data
+             ;; :fhir.Consent.provision/dataPeriod
+             ;; :fhir.Consent.provision/period
+             ;; :fhir.Consent.provision/provision
+             ;; :fhir.Consent.provision/purpose
+             ;; :fhir.Consent.provision/securityLabel
+             ;; :fhir.Consent.provision/type
+             ;; {:fhir.Consent.provision.actor/reference [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.Consent.provision.actor/role
+             ;; :fhir.Consent.provision.data/meaning
+             ;; {:fhir.Consent.provision.data/reference [:fhir.Resource/id :phi.element/type]}
+             ;; :fhir.Consent.verification/verificationDate
+             ;; :fhir.Consent.verification/verified
+             ;; {:fhir.Consent.verification/verifiedWith [:fhir.Resource/id :phi.element/type]}
+             ]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/Consent]
   {:fn     nil
