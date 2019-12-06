@@ -111,8 +111,16 @@
        ;; Remove nil values
        ;; TODO: Figure out how to do this in one single walk
        (prewalk (fn [node]
-                  (if (map? node)
+                  (cond
+                    (map? node)
                     (apply dissoc
                            node
                            (for [[k v] node :when (nil? v)] k))
+
+                    (sequential? node)
+                    (into []
+                          (remove nil?)
+                          node)
+
+                    :else
                     node)))))
