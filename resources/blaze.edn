@@ -375,8 +375,7 @@
   [:blaze.schema/mapping :blaze.fhir/DiagnosticReport]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
-   :mapping {:fhir.DiagnosticReport/result    {:value blaze.fhir.transforms/reference-many}
-             :fhir.DiagnosticReport/performer {:value blaze.fhir.transforms/reference-many}}}
+   :mapping {:fhir.DiagnosticReport/result {:value blaze.fhir.transforms/reference-many}}}
 
   [:blaze.schema/pattern :blaze.fhir/DiagnosticReport]
   {:fn      nil
@@ -409,7 +408,7 @@
              ;; :fhir.DiagnosticReport/modifierExtension
              ;; :fhir.DiagnosticReport/name
              ;; :fhir.DiagnosticReport/name$cr
-             {:fhir.DiagnosticReport/performer [:fhir.Resource/id :phi.element/type]}
+             {:fhir.DiagnosticReport/performer [:fhir.Reference/display #_:fhir.Resource/id #_:phi.element/type]}
              ;; :fhir.DiagnosticReport/presentedForm
              ;; {:fhir.DiagnosticReport/request [:fhir.Resource/id :phi.element/type]}
              {:fhir.DiagnosticReport/result [:fhir.Resource/id :phi.element/type]}
@@ -848,10 +847,7 @@
   [:blaze.schema/mapping :blaze.fhir/Procedure]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
-   :mapping {:fhir.Procedure/asserter              {:value blaze.fhir.transforms/reference}
-             :fhir.Procedure/recorder              {:value blaze.fhir.transforms/reference}
-             :fhir.Procedure/performer             {:value blaze.fhir.transforms/reference}
-             :fhir.Procedure/reasonCodeableConcept {:key :fhir.Procedure/code}
+   :mapping {:fhir.Procedure/reasonCodeableConcept {:key :fhir.Procedure/code}
              :fhir.Procedure/notes                 {:key :fhir.Procedure/note}}}
 
   [:blaze.schema/pattern :blaze.fhir/Procedure]
@@ -859,7 +855,7 @@
    :pattern [:db/id
              :fhir.Resource/id
              :phi.element/type
-             {:fhir.Procedure/asserter [:fhir.Resource/id :phi.element/type]} ;; NOTE: We do not have this in Breeze yet
+             {:fhir.Procedure/asserter [:fhir.Reference/display #_:fhir.Resource/id #_:phi.element/type]} ;; NOTE: We do not have this in Breeze yet
              ;; :fhir.Procedure/bodySite
              ;; :fhir.Procedure/bodySite$cr
              ;; :fhir.Procedure/category
@@ -888,7 +884,7 @@
              ;; :fhir.Procedure/outcome$cr
              :fhir.Procedure/performedDateTime
              ;; :fhir.Procedure/performedPeriod
-             {:fhir.Procedure/performer [:fhir.Resource/id :phi.element/type]}
+             {:fhir.Procedure/performer [{:fhir.Procedure.performer/actor [:fhir.Reference/display]}]}
              {:fhir.Procedure/reasonCodeableConcept [:fhir.CodeableConcept/text]}
              ;; :fhir.Procedure/reasonCodeableConcept$cr
              ;; :fhir.Procedure/reasonNotPerformed
@@ -896,6 +892,7 @@
              ;; :fhir.Procedure/reasonReference
              ;; :fhir.Procedure/reasonReference$cr
              ;; :fhir.Procedure/relatedItem
+             {:fhir.Procedur/recorder [:fhir.Reference/display]}
              ;; :fhir.Procedure/report
              ;; :fhir.Procedure/request
              :fhir.Procedure/status
