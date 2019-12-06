@@ -276,8 +276,8 @@
              :fhir.Resource/id
              :phi.element/type
              :fhir.Condition/category$cr
-             {:fhir.v3.Condition/code [:fhir.CodeableConcept/text #_:fhir.CodeableConcept/coding$cr]}
              :fhir.v3.Condition/onsetDateTime
+             {:fhir.v3.Condition/code [:fhir.CodeableConcept/text #_:fhir.CodeableConcept/coding$cr]}
              ]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/Condition]
@@ -363,12 +363,12 @@
    :pattern [:db/id ;; Need :db/id to log when :fhir.Resource/id is missing
              :fhir.Resource/id
              :phi.element/type
-             {:fhir.Observation/code [:fhir.CodeableConcept/text #_:fhir.CodeableConcept/coding$cr]}
-             {:fhir.Observation/component [{:fhir.Observation.component/code [:fhir.CodeableConcept/text]}
-                                           {:fhir.Observation.component/valueQuantity [:fhir.Quantity/value]}]}
              :fhir.Observation/effectiveDateTime
              :fhir.Observation/status
-             {:fhir.Observation/valueQuantity [:fhir.Quantity/value :fhir.Quantity/code]}
+             {:fhir.Observation/code          [:fhir.CodeableConcept/text #_:fhir.CodeableConcept/coding$cr]
+              :fhir.Observation/component     [{:fhir.Observation.component/code [:fhir.CodeableConcept/text]}
+                                               {:fhir.Observation.component/valueQuantity [:fhir.Quantity/value]}]
+              :fhir.Observation/valueQuantity [:fhir.Quantity/value :fhir.Quantity/code]}
              ]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/Observation]
@@ -413,19 +413,20 @@
              :phi.element/type
              :breeze.Patient/ethnicity$cr
              :breeze.Patient/race$cr
-             {:fhir.Patient/address [:fhir.Address/use
-                                     :fhir.Address/postalCode
-                                     :fhir.Address/state
-                                     :fhir.Address/city
-                                     :fhir.Address/line]}
              :fhir.Patient/birthDate
-             {:fhir.Patient/communication [{:fhir.Patient.communication/language [:fhir.CodeableConcept/text]}]}
              :fhir.Patient/gender
              :fhir.Patient/maritalStatus$cr
-             {:fhir.Patient/name [:fhir.HumanName/use
-                                  :fhir.HumanName/family
-                                  :fhir.HumanName/given]}
-             {:fhir.Patient/telecom [:fhir.ContactPoint/system
+             {:fhir.Patient/address       [:fhir.Address/use
+                                           :fhir.Address/postalCode
+                                           :fhir.Address/state
+                                           :fhir.Address/city
+                                           :fhir.Address/line]
+              :fhir.Patient/communication [{:fhir.Patient.communication/language [:fhir.CodeableConcept/text]}]
+
+              :fhir.Patient/name    [:fhir.HumanName/use
+                                     :fhir.HumanName/family
+                                     :fhir.HumanName/given]
+              :fhir.Patient/telecom [:fhir.ContactPoint/system
                                      :fhir.ContactPoint/use
                                      :fhir.ContactPoint/value]}
              ]}
@@ -499,9 +500,8 @@
              :fhir.Resource/id
              :phi.element/type
              :fhir.v3.AllergyIntolerance/assertedDate
-             {:fhir.v3.AllergyIntolerance/code [:fhir.CodeableConcept/coding$cr]}
-             {:fhir.v3.AllergyIntolerance.reaction/note [:fhir.Annocation/text]}
-             ]}
+             {:fhir.v3.AllergyIntolerance/code [:fhir.CodeableConcept/coding$cr]
+              :fhir.v3.AllergyIntolerance.reaction/note [:fhir.Annocation/text]}]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/AllergyIntolerance]
   {:fn     nil
@@ -534,15 +534,15 @@
    :pattern [:db/id
              :fhir.Resource/id
              :phi.element/type
-             {:fhir.Procedure/asserter [:fhir.Reference/display #_:fhir.Resource/id #_:phi.element/type]} ;; NOTE: We do not have this in Breeze yet
-             {:fhir.Procedure/code [:fhir.CodeableConcept/text]}
-             {:fhir.Procedure/followUp [:fhir.CodeableConcept/text]}
-             {:fhir.Procedure/notes [:fhir.Annotation/text]}
              :fhir.Procedure/performedDateTime
-             {:fhir.Procedure/performer [{:fhir.Procedure.performer/actor [:fhir.Reference/display]}]}
-             {:fhir.Procedure/reasonCodeableConcept [:fhir.CodeableConcept/text]}
-             {:fhir.Procedur/recorder [:fhir.Reference/display]}
              :fhir.Procedure/status
+             {:fhir.Procedure/asserter              [:fhir.Reference/display #_:fhir.Resource/id #_:phi.element/type] ;; NOTE: We do not have this in Breeze yet
+              :fhir.Procedure/code                  [:fhir.CodeableConcept/text]
+              :fhir.Procedure/followUp              [:fhir.CodeableConcept/text]
+              :fhir.Procedure/notes                 [:fhir.Annotation/text]
+              :fhir.Procedure/performer             [{:fhir.Procedure.performer/actor [:fhir.Reference/display]}]
+              :fhir.Procedure/reasonCodeableConcept [:fhir.CodeableConcept/text]
+              :fhir.Procedur/recorder               [:fhir.Reference/display]}
              ]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/Procedure]
@@ -575,24 +575,24 @@
    :pattern [:db/id
              :fhir.Resource/id
              :phi.element/type
-             {:fhir.CarePlan/activity [{:fhir.CarePlan/outcomeCodeableConcept [{:fhir.CodeableConcept/coding [:fhir.Coding/display]}]
-                                        :fhir.CarePlan/outcomeReference       [:fhir.Reference/display]
-                                        :fhir.CarePlan.activity/detail
-                                        [{:fhir.CarePlan.activity.detail/code         [{:fhir.CodeableConcept/coding [:fhir.Coding/display]}]
-                                          :fhir.CarePlan.activity.detail/statusReason [{:fhir.CodeableConcept/coding [:fhir.Coding/display]}]
-                                          :fhir.CarePlan.activity.detail/scheduledTiming [{:fhir.Timing/repeat [:fhir.Timing.repeat/frequency
-                                                                                                                :fhir.Timing.repeat/period
-                                                                                                                :fhir.Timing.repeat/periodUnit]}]
-                                          :fhir.CarePlan.activity.detail/location [:fhir.Reference/display]
-                                          :fhir.CarePlan.activity.detail/performer [:fhir.Reference/display]}]}]}
-             {:fhir.CarePlan/addresses [:fhir.Address/display]}
-             {:fhir.CarePlan/author [:fhir.Reference/display]}
-             {:fhir.CarePlan/basedOn [:fhir.Reference/display]}
-             {:fhir.CarePlan/category [:fhir.CodeableConcept/text]}
              :fhir.CarePlan/created
-             {:fhir.CarePlan/partOf [:fhir.Reference/display]}
-             {:fhir.CarePlan/replaces [:fhir.Reference/display]}
              :fhir.CarePlan/status
+             {:fhir.CarePlan/activity  [{:fhir.CarePlan/outcomeCodeableConcept [{:fhir.CodeableConcept/coding [:fhir.Coding/display]}]
+                                         :fhir.CarePlan/outcomeReference       [:fhir.Reference/display]
+                                         :fhir.CarePlan.activity/detail
+                                         [{:fhir.CarePlan.activity.detail/code            [{:fhir.CodeableConcept/coding [:fhir.Coding/display]}]
+                                           :fhir.CarePlan.activity.detail/statusReason    [{:fhir.CodeableConcept/coding [:fhir.Coding/display]}]
+                                           :fhir.CarePlan.activity.detail/scheduledTiming [{:fhir.Timing/repeat [:fhir.Timing.repeat/frequency
+                                                                                                                 :fhir.Timing.repeat/period
+                                                                                                                 :fhir.Timing.repeat/periodUnit]}]
+                                           :fhir.CarePlan.activity.detail/location        [:fhir.Reference/display]
+                                           :fhir.CarePlan.activity.detail/performer       [:fhir.Reference/display]}]}]
+              :fhir.CarePlan/addresses [:fhir.Address/display]
+              :fhir.CarePlan/author    [:fhir.Reference/display]
+              :fhir.CarePlan/basedOn   [:fhir.Reference/display]
+              :fhir.CarePlan/category  [:fhir.CodeableConcept/text]
+              :fhir.CarePlan/partOf    [:fhir.Reference/display]
+              :fhir.CarePlan/replaces  [:fhir.Reference/display]}
              ]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/CarePlan]
