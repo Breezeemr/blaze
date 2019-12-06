@@ -36,18 +36,17 @@
 
 
 (defn reference [{:keys [v]}]
-  (let [prefix (-> (:phi.element/type v) (str/split #"\/") second)
-        id     (:fhir.Resource/id v)]
-    (when id
-      {:reference (str prefix "/" id)})))
+  (when (map? v)
+    (let [prefix (-> (:phi.element/type v) (str/split #"\/") second)
+          id     (:fhir.Resource/id v)]
+      (when (and prefix id)
+        {:reference (str prefix "/" id)}))))
 
 
 (defn reference-many [{:keys [v]}]
   (into []
         (map #(reference {:v %}))
-        (if (sequential? v)
-          v
-          [v])))
+        v))
 
 
 (defn consent-patient-reference [{:keys [v]}]

@@ -43,7 +43,25 @@
 
 (comment
 
-  (def d [])
+  (def d [{:db/id                         17592190724169,
+           :phi.element/type              "fhir-type/DiagnosticReport",
+           :fhir.DiagnosticReport/subject #:db{:id 17592186507202},
+           :fhir.DiagnosticReport/issued  #inst "2016-02-24T22:44:00.091-00:00",
+           :fhir.DiagnosticReport/status  "final",
+           :fhir.Resource/id              #uuid "66eb00b9-f451-5e97-a714-3195c0663d30",
+           :fhir.DiagnosticReport/result
+           [#:db{:id 17592190716161}
+            #:db{:id 17592190716166}
+            #:db{:id 17592190716169}
+            #:db{:id 17592190716174}
+            #:db{:id 17592190716179}
+            #:db{:id 17592190716182}
+            #:db{:id 17592190716185}
+            #:db{:id 17592190716188}],
+           :fhir.Resource/meta
+           {:db/id            17592228316897,
+            :phi.element/type "fhir-type/Meta",
+            :fhir.Meta/tag$cr ["breeze/reviewed"]}}])
 
   (require '[datomic.api :as d])
   (require '[blaze.fhir.transforms :as transforms])
