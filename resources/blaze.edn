@@ -947,99 +947,113 @@
    :pattern [:db/id
              :fhir.Resource/id
              :phi.element/type
-             :fhir.CarePlan/activity
-             :fhir.CarePlan/addresses
-             :fhir.CarePlan/author
-             :fhir.CarePlan/category
-             :fhir.CarePlan/category$cr
-             :fhir.CarePlan/concern
-             :fhir.CarePlan/contained
-             :fhir.CarePlan/context
-             :fhir.CarePlan/description
-             :fhir.CarePlan/extension
-             :fhir.CarePlan/goal
-             :fhir.CarePlan/id
-             :fhir.CarePlan/identifier
-             :fhir.CarePlan/identifier$id
-             :fhir.CarePlan/implicitRules
-             :fhir.CarePlan/language
-             :fhir.CarePlan/meta
-             :fhir.CarePlan/modified
-             :fhir.CarePlan/modifierExtension
-             :fhir.CarePlan/note
-             :fhir.CarePlan/participant
-             :fhir.CarePlan/period
-             :fhir.CarePlan/relatedPlan
+             {:fhir.CarePlan/activity [{:fhir.CarePlan/outcomeCodeableConcept [{:fhir.CodeableConcept/coding [:fhir.Coding/display]}]
+                                        :fhir.CarePlan/outcomeReference       [:fhir.Reference/display]
+                                        :fhir.CarePlan.activity/detail
+                                        [{:fhir.CarePlan.activity.detail/code         [{:fhir.CodeableConcept/coding [:fhir.Coding/display]}]
+                                          :fhir.CarePlan.activity.detail/statusReason [{:fhir.CodeableConcept/coding [:fhir.Coding/display]}]
+                                          :fhir.CarePlan.activity.detail/scheduledTiming [{:fhir.Timing/repeat [:fhir.Timing.repeat/frequency
+                                                                                                                :fhir.Timing.repeat/period
+                                                                                                                :fhir.Timing.repeat/periodUnit]}]
+                                          :fhir.CarePlan.activity.detail/location [:fhir.Reference/display]
+                                          :fhir.CarePlan.activity.detail/performer [:fhir.Reference/display]}]}]}
+             {:fhir.CarePlan/addresses [:fhir.Address/display]}
+             {:fhir.CarePlan/author [:fhir.Reference/display]}
+             {:fhir.CarePlan/basedOn [:fhir.Reference/display]}
+             {:fhir.CarePlan/category [:fhir.CodeableConcept/text]}
+             ;; :fhir.CarePlan/category$cr
+             ;; :fhir.CarePlan/concern
+             ;; :fhir.CarePlan/contained
+             ;; :fhir.CarePlan/context
+             :fhir.CarePlan/created
+             ;; :fhir.CarePlan/description
+             ;; :fhir.CarePlan/extension
+             ;; :fhir.CarePlan/goal
+             ;; :fhir.CarePlan/id
+             ;; :fhir.CarePlan/identifier
+             ;; :fhir.CarePlan/identifier$id
+             ;; :fhir.CarePlan/implicitRules
+             ;; :fhir.CarePlan/language
+             ;; :fhir.CarePlan/meta
+             ;; :fhir.CarePlan/modified
+             ;; :fhir.CarePlan/modifierExtension
+             ;; :fhir.CarePlan/note
+             ;; :fhir.CarePlan/participant
+             {:fhir.CarePlan/partOf [:fhir.Reference/display]}
+             ;; :fhir.CarePlan/period
+             ;; :fhir.CarePlan/relatedPlan
+             {:fhir.CarePlan/replaces [:fhir.Reference/display]}
              :fhir.CarePlan/status
-             :fhir.CarePlan/status$cr
-             :fhir.CarePlan/subject
-             :fhir.CarePlan/support
-             :fhir.CarePlan/text
-             :fhir.CarePlan.activity/actionResulting
-             :fhir.CarePlan.activity/detail
-             :fhir.CarePlan.activity/extension
-             :fhir.CarePlan.activity/goal
-             :fhir.CarePlan.activity/modifierExtension
-             :fhir.CarePlan.activity/notes
-             :fhir.CarePlan.activity/progress
-             :fhir.CarePlan.activity/prohibited
-             :fhir.CarePlan.activity/reference
-             :fhir.CarePlan.activity/simple
-             :fhir.CarePlan.activity/status
-             :fhir.CarePlan.activity/status$cr
-             :fhir.CarePlan.activity.detail/category
-             :fhir.CarePlan.activity.detail/category$cr
-             :fhir.CarePlan.activity.detail/code
-             :fhir.CarePlan.activity.detail/code$cr
-             :fhir.CarePlan.activity.detail/dailyAmount
-             :fhir.CarePlan.activity.detail/description
-             :fhir.CarePlan.activity.detail/extension
-             :fhir.CarePlan.activity.detail/goal
-             :fhir.CarePlan.activity.detail/location
-             :fhir.CarePlan.activity.detail/modifierExtension
-             :fhir.CarePlan.activity.detail/performer
-             :fhir.CarePlan.activity.detail/productCodeableConcept
-             :fhir.CarePlan.activity.detail/productCodeableConcept$cr
-             :fhir.CarePlan.activity.detail/productReference
-             :fhir.CarePlan.activity.detail/productReference$cr
-             :fhir.CarePlan.activity.detail/prohibited
-             :fhir.CarePlan.activity.detail/quantity
-             :fhir.CarePlan.activity.detail/reasonCode
-             :fhir.CarePlan.activity.detail/reasonCode$cr
-             :fhir.CarePlan.activity.detail/reasonReference
-             :fhir.CarePlan.activity.detail/scheduledPeriod
-             :fhir.CarePlan.activity.detail/scheduledString
-             :fhir.CarePlan.activity.detail/scheduledTiming
-             :fhir.CarePlan.activity.detail/status
-             :fhir.CarePlan.activity.detail/statusReason
-             :fhir.CarePlan.activity.detail/statusReason$cr
-             :fhir.CarePlan.goal/concern
-             :fhir.CarePlan.goal/description
-             :fhir.CarePlan.goal/notes
-             :fhir.CarePlan.goal/status
-             :fhir.CarePlan.goal/status$cr
-             :fhir.CarePlan.participant/extension
-             :fhir.CarePlan.participant/member
-             :fhir.CarePlan.participant/modifierExtension
-             :fhir.CarePlan.participant/role
-             :fhir.CarePlan.participant/role$cr
-             :fhir.CarePlan.relatedPlan/code
-             :fhir.CarePlan.relatedPlan/extension
-             :fhir.CarePlan.relatedPlan/modifierExtension
-             :fhir.CarePlan.relatedPlan/plan
-             :fhir.CarePlan.simple/category
-             :fhir.CarePlan.simple/category$cr
-             :fhir.CarePlan.simple/code
-             :fhir.CarePlan.simple/code$cr
-             :fhir.CarePlan.simple/dailyAmount
-             :fhir.CarePlan.simple/details
-             :fhir.CarePlan.simple/location
-             :fhir.CarePlan.simple/performer
-             :fhir.CarePlan.simple/product
-             :fhir.CarePlan.simple/quantity
-             :fhir.CarePlan.simple/timingPeriod
-             :fhir.CarePlan.simple/timingSchedule
-             :fhir.CarePlan.simple/timingString]}
+             ;; :fhir.CarePlan/status$cr
+             ;; :fhir.CarePlan/subject
+             ;; :fhir.CarePlan/support
+             ;; :fhir.CarePlan/text
+             ;; :fhir.CarePlan.activity/actionResulting
+             ;; :fhir.CarePlan.activity/detail
+             ;; :fhir.CarePlan.activity/extension
+             ;; :fhir.CarePlan.activity/goal
+             ;; :fhir.CarePlan.activity/modifierExtension
+             ;; :fhir.CarePlan.activity/notes
+             ;; :fhir.CarePlan.activity/progress
+             ;; :fhir.CarePlan.activity/prohibited
+             ;; :fhir.CarePlan.activity/reference
+             ;; :fhir.CarePlan.activity/simple
+             ;; :fhir.CarePlan.activity/status
+             ;; :fhir.CarePlan.activity/status$cr
+             ;; :fhir.CarePlan.activity.detail/category
+             ;; :fhir.CarePlan.activity.detail/category$cr
+             ;; :fhir.CarePlan.activity.detail/code
+             ;; :fhir.CarePlan.activity.detail/code$cr
+             ;; :fhir.CarePlan.activity.detail/dailyAmount
+             ;; :fhir.CarePlan.activity.detail/description
+             ;; :fhir.CarePlan.activity.detail/extension
+             ;; :fhir.CarePlan.activity.detail/goal
+             ;; :fhir.CarePlan.activity.detail/location
+             ;; :fhir.CarePlan.activity.detail/modifierExtension
+             ;; :fhir.CarePlan.activity.detail/performer
+             ;; :fhir.CarePlan.activity.detail/productCodeableConcept
+             ;; :fhir.CarePlan.activity.detail/productCodeableConcept$cr
+             ;; :fhir.CarePlan.activity.detail/productReference
+             ;; :fhir.CarePlan.activity.detail/productReference$cr
+             ;; :fhir.CarePlan.activity.detail/prohibited
+             ;; :fhir.CarePlan.activity.detail/quantity
+             ;; :fhir.CarePlan.activity.detail/reasonCode
+             ;; :fhir.CarePlan.activity.detail/reasonCode$cr
+             ;; :fhir.CarePlan.activity.detail/reasonReference
+             ;; :fhir.CarePlan.activity.detail/scheduledPeriod
+             ;; :fhir.CarePlan.activity.detail/scheduledString
+             ;; :fhir.CarePlan.activity.detail/scheduledTiming
+             ;; :fhir.CarePlan.activity.detail/status
+             ;; :fhir.CarePlan.activity.detail/statusReason
+             ;; :fhir.CarePlan.activity.detail/statusReason$cr
+             ;; :fhir.CarePlan.goal/concern
+             ;; :fhir.CarePlan.goal/description
+             ;; :fhir.CarePlan.goal/notes
+             ;; :fhir.CarePlan.goal/status
+             ;; :fhir.CarePlan.goal/status$cr
+             ;; :fhir.CarePlan.participant/extension
+             ;; :fhir.CarePlan.participant/member
+             ;; :fhir.CarePlan.participant/modifierExtension
+             ;; :fhir.CarePlan.participant/role
+             ;; :fhir.CarePlan.participant/role$cr
+             ;; :fhir.CarePlan.relatedPlan/code
+             ;; :fhir.CarePlan.relatedPlan/extension
+             ;; :fhir.CarePlan.relatedPlan/modifierExtension
+             ;; :fhir.CarePlan.relatedPlan/plan
+             ;; :fhir.CarePlan.simple/category
+             ;; :fhir.CarePlan.simple/category$cr
+             ;; :fhir.CarePlan.simple/code
+             ;; :fhir.CarePlan.simple/code$cr
+             ;; :fhir.CarePlan.simple/dailyAmount
+             ;; :fhir.CarePlan.simple/details
+             ;; :fhir.CarePlan.simple/location
+             ;; :fhir.CarePlan.simple/performer
+             ;; :fhir.CarePlan.simple/product
+             ;; :fhir.CarePlan.simple/quantity
+             ;; :fhir.CarePlan.simple/timingPeriod
+             ;; :fhir.CarePlan.simple/timingSchedule
+             ;; :fhir.CarePlan.simple/timingString
+             ]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/CarePlan]
   {:fn     nil
