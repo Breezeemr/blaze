@@ -99,7 +99,7 @@
                    (if (some? (:fhir.Resource/id resource))
                      true
                      (do
-                       ;; (log/info (str "Following " type " entity does not have :fhir.Resource/id: " (:db/id resource)))
+                       (log/info (str "Following " type " entity does not have :fhir.Resource/id: " (:db/id resource)))
                        false))))
          (map #(dissoc % :db/id))
          (take (fhir-util/page-size query-params))
