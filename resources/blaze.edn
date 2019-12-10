@@ -66,6 +66,7 @@
    :resource-patterns
    [#:blaze.rest-api.resource-pattern
     {:type :default
+     :middleware #blaze/refset :blaze/middleware
      :interactions
      {:read
       #:blaze.rest-api.interaction
@@ -94,6 +95,7 @@
     ;; breeze api
     #:blaze.rest-api.resource-pattern
     {:type "Consent"
+     :middleware #blaze/refset :blaze/middleware
      :interactions
      {:search-type
       #:blaze.rest-api.interaction
@@ -103,6 +105,7 @@
       {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/Consent]}}}
     #:blaze.rest-api.resource-pattern
     {:type "Condition"
+     :middleware #blaze/refset :blaze/middleware
      :interactions
      {:search-type
       #:blaze.rest-api.interaction
@@ -112,6 +115,7 @@
       {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/Condition]}}}
     #:blaze.rest-api.resource-pattern
     {:type "DiagnosticReport"
+     :middleware #blaze/refset :blaze/middleware
      :interactions
      {:search-type
       #:blaze.rest-api.interaction
@@ -121,6 +125,7 @@
       {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/DiagnosticReport]}}}
     #:blaze.rest-api.resource-pattern
     {:type "Observation"
+     :middleware #blaze/refset :blaze/middleware
      :interactions
      {:search-type
       #:blaze.rest-api.interaction
@@ -130,6 +135,7 @@
       {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/Observation]}}}
     #:blaze.rest-api.resource-pattern
     {:type "Patient"
+     :middleware #blaze/refset :blaze/middleware
      :interactions
      {:search-type
       #:blaze.rest-api.interaction
@@ -139,6 +145,7 @@
       {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/Patient]}}}
     #:blaze.rest-api.resource-pattern
     {:type "MedicationRequest"
+     :middleware #blaze/refset :blaze/middleware
      :interactions
      {:search-type
       #:blaze.rest-api.interaction
@@ -148,6 +155,7 @@
       {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/MedicationRequest]}}}
     #:blaze.rest-api.resource-pattern
     {:type "AllergyIntolerance"
+     :middleware #blaze/refset :blaze/middleware
      :interactions
      {:search-type
       #:blaze.rest-api.interaction
@@ -157,6 +165,7 @@
       {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/AllergyIntolerance]}}}
     #:blaze.rest-api.resource-pattern
     {:type "Procedure"
+     :middleware #blaze/refset :blaze/middleware
      :interactions
      {:search-type
       #:blaze.rest-api.interaction
@@ -166,6 +175,7 @@
       {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/Procedure]}}}
     #:blaze.rest-api.resource-pattern
     {:type "CarePlan"
+     :middleware #blaze/refset :blaze/middleware
      :interactions
      {:search-type
       #:blaze.rest-api.interaction
@@ -175,6 +185,7 @@
       {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/CarePlan]}}}
     #:blaze.rest-api.resource-pattern
     {:type "Immunization"
+     :middleware #blaze/refset :blaze/middleware
      :interactions
      {:search-type
       #:blaze.rest-api.interaction
@@ -184,6 +195,7 @@
       {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/Immunization]}}}
     #:blaze.rest-api.resource-pattern
     {:type "ServiceRequest"
+     :middleware #blaze/refset :blaze/middleware
      :interactions
      {:search-type
       #:blaze.rest-api.interaction
@@ -679,4 +691,9 @@
    :toggle "OPENID_PROVIDER_URL"
    :config
    {[:blaze.auth/backend :blaze.openid-auth/backend]
-    {:openid-provider/url #blaze/cfg ["OPENID_PROVIDER_URL" string?]}}}]}
+    {:openid-provider/url #blaze/cfg ["OPENID_PROVIDER_URL" string?]}}}
+  {:name "Authorization"
+   :toggle "AUTHORIZATION"
+   :config
+   {[:blaze/middleware :blaze-authorization-example/authorization]
+    {:database/conn #blaze/ref :blaze.datomic/conn}}}]}
