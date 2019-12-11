@@ -70,10 +70,28 @@
   (def db (d/db conn))
   (def mapping {})
 
+  (d/pull (d/db conn) '[*] [:fhir.Resource/id #uuid "57896222-94d8-4313-9500-ceeaea7d568c"])
+
+  (into [] (d/datoms (d/db conn) :avet :phi.element/type (str "fhir-type/" "AllergyIntolerance")))
+  (d/q '[:find [(pull ?e [*]) ...]
+         :in $
+         :where
+         [?e :fhir.v3.AllergyIntolerance/patient]]
+       (d/db conn))
+
+  (d/q '[:find (count ?e) .
+         :in $ ?type
+         :where
+         [?e :phi.element/type ?type]
+         [?e :fhir.Resource/id]]
+       (d/db conn)
+       (str "fhir-type/" "AllergyIntolerance"))
+
   (into []
         (comp
          (map #(transforms/transform db mapping %)))
         d)
+
 
   (d/q '[:find (pull ?e [* {:fhir.Condition/patient [:fhir.Resource/id]}])
          :in $ ?uuid

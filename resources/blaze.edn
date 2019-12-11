@@ -422,7 +422,7 @@
 
   [:blaze.schema/pattern :blaze.fhir/Patient]
   {:fn      nil
-   :pattern [:db/id
+   :pattern [;;:db/id
              :fhir.Resource/id
              :phi.element/type
              :breeze.Patient/ethnicity$cr
@@ -506,7 +506,8 @@
   [:blaze.schema/mapping :blaze.fhir/AllergyIntolerance]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
-   :mapping {:fhir.v3.AllergyIntolerance/assertedDate {:key :fhir.AllergyInolerance/recordedDate}}}
+   :mapping {:fhir.v3.AllergyIntolerance/assertedDate {:key :fhir.AllergyInolerance/recordedDate}
+             :fhir.v3.AllergyIntolerance/patient      {:value blaze.fhir.transforms/reference}}}
 
   [:blaze.schema/pattern :blaze.fhir/AllergyIntolerance]
   {:fn      nil
@@ -515,7 +516,8 @@
              :phi.element/type
              :fhir.v3.AllergyIntolerance/assertedDate
              {:fhir.v3.AllergyIntolerance/code [:fhir.CodeableConcept/coding$cr]
-              :fhir.v3.AllergyIntolerance.reaction/note [:fhir.Annocation/text]}]}
+              :fhir.v3.AllergyIntolerance.reaction/note [:fhir.Annocation/text]
+              :fhir.v3.AllergyIntolerance/patient [:fhir.Resource/id :phi.element/type]}]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/AllergyIntolerance]
   {:fn     nil
