@@ -257,6 +257,7 @@
 
   [:blaze.fhir/SearchParameter :blaze.fhir/Consent]
   {:fn     nil
+   ;; TODO: need to be able to search by "provision.actor"
    :params [{:blaze.fhir.SearchParameter/code       "_id"
              :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
              :blaze.fhir.SearchParameter/type       "uuid"}]}
@@ -289,7 +290,8 @@
              :phi.element/type
              :fhir.Condition/category$cr
              :fhir.v3.Condition/onsetDateTime
-             {:fhir.v3.Condition/code [:fhir.CodeableConcept/text #_:fhir.CodeableConcept/coding$cr]}
+             {:fhir.v3.Condition/code [:fhir.CodeableConcept/text #_:fhir.CodeableConcept/coding$cr]
+              :fhir.v3.Condition/subject [:fhir.Resource/id]}
              ]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/Condition]
@@ -696,4 +698,4 @@
    :toggle "AUTHORIZATION"
    :config
    {[:blaze/middleware :breezeehr.blaze-authorization.core/authorization]
-    {:database/conn #blaze/ref :blaze.datomic/conn}}}]}
+    {:database/conn #blaze/ref :consent-conn}}}]}
