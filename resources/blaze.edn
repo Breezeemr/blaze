@@ -284,7 +284,8 @@
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
    :mapping {:fhir.Condition/category$cr {:key   :fhir.Condition/category
-                                          :value blaze.fhir.transforms/codeable-concept-many}}}
+                                          :value blaze.fhir.transforms/codeable-concept-many}
+             :fhir.v3.Condition/subject  {:value blaze.fhir.transforms/reference}}}
 
   [:blaze.schema/pattern :blaze.fhir/Condition]
   {:fn      nil
@@ -293,8 +294,8 @@
              :phi.element/type
              :fhir.Condition/category$cr
              :fhir.v3.Condition/onsetDateTime
-             {:fhir.v3.Condition/code [:fhir.CodeableConcept/text #_:fhir.CodeableConcept/coding$cr]
-              :fhir.v3.Condition/subject [:fhir.Resource/id]}
+             {:fhir.v3.Condition/code    [:fhir.CodeableConcept/text #_:fhir.CodeableConcept/coding$cr]
+              :fhir.v3.Condition/subject [:fhir.Resource/id :phi.element/type]}
              ]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/Condition]
