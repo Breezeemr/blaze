@@ -523,6 +523,9 @@
   {:fn     nil
    :params [{:blaze.fhir.SearchParameter/code       "_id"
              :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}
+            {:blaze.fhir.SearchParameter/code       "patient"
+             :blaze.fhir.SearchParameter/expression [:fhir.v3.AllergyIntolerance/patient :fhir.Resource/id]
              :blaze.fhir.SearchParameter/type       "uuid"}]}
 
   ;;
@@ -636,8 +639,9 @@
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
    :mapping {#_#_:fhir.Immunization/vaccineCode$cr {:key   :fhir.Immunization/vaccineCode
-                                                :value blaze.fhir.transforms/codeable-concept}
-             :fhir.Immunization/date           {:key :fhir.Immunization/occurenceDateTime}}}
+                                                    :value blaze.fhir.transforms/codeable-concept}
+             :fhir.Immunization/date               {:key :fhir.Immunization/occurenceDateTime}
+             :fhir.Immunization/patient            {:value blaze.fhir.transforms/reference}}}
 
   [:blaze.schema/pattern :blaze.fhir/Immunization]
   {:fn      nil
@@ -645,13 +649,17 @@
              :fhir.Resource/id
              :phi.element/type
              :fhir.Immunization/date
-             {:fhir.Immunization/vaccineCode [:fhir.CodeableConcept/text]}
+             {:fhir.Immunization/vaccineCode [:fhir.CodeableConcept/text]
+              :fhir.Immunization/patient     [:fhir.Resource/id :phi.element/type]}
              ]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/Immunization]
   {:fn     nil
    :params [{:blaze.fhir.SearchParameter/code       "_id"
              :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}
+            {:blaze.fhir.SearchParameter/code       "patient"
+             :blaze.fhir.SearchParameter/expression [:fhir.Immunization/patient :fhir.Resource/id]
              :blaze.fhir.SearchParameter/type       "uuid"}]}
 
   ;;
