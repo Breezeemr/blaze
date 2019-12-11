@@ -80,13 +80,14 @@
        (d/db conn)
        (str "fhir-type/" "Observation"))
 
-  (d/q '[:find (count ?e) .
+  (d/q '[:find [(pull ?e [*]) ...]
          :in $ ?type ?uuid
          :where
-         [?e :phi.element/type ?type]
-         [?e :fhir.Resource/id ?uuid]]
+         ;; [?e :phi.element/type ?type]
+         [?subject :fhir.Resource/id ?uuid]
+         [?e :fhir.DiagnosticReport/subject ?subject]]
        (d/db conn)
-       (str "fhir-type/" "Observation")
+       (str "fhir-type/" "DiagnosticReport")
        #uuid "55776ed1-2072-4d0c-b19f-a2d725aadf15")
 
   (into []

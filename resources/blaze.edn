@@ -326,7 +326,8 @@
   [:blaze.schema/mapping :blaze.fhir/DiagnosticReport]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
-   :mapping {:fhir.DiagnosticReport/result {:value blaze.fhir.transforms/reference-many}}}
+   :mapping {:fhir.DiagnosticReport/result {:value blaze.fhir.transforms/reference-many}
+             :fhir.DiagnosticReport/subject {:value blaze.fhir.transforms/reference}}}
 
   [:blaze.schema/pattern :blaze.fhir/DiagnosticReport]
   {:fn      nil
@@ -340,6 +341,7 @@
              {:fhir.DiagnosticReport/performer [:fhir.Reference/display #_:fhir.Resource/id #_:phi.element/type]}
              {:fhir.DiagnosticReport/result [:fhir.Resource/id :phi.element/type]}
              :fhir.DiagnosticReport/status
+             {:fhir.DiagnosticReport/subject [:fhir.Resource/id :phi.element/type]}
              ]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/DiagnosticReport]
@@ -348,9 +350,6 @@
              :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
              :blaze.fhir.SearchParameter/type       "uuid"} ;; uuid is not actually a valid FHIR SearchParameter type
             {:blaze.fhir.SearchParameter/code       "subject"
-             :blaze.fhir.SearchParameter/expression [:fhir.DiagnosticReport/subject :fhir.Resource/id]
-             :blaze.fhir.SearchParameter/type       "uuid"}
-            {:blaze.fhir.SearchParameter/code       "patient"  ;; patient also searches for subject
              :blaze.fhir.SearchParameter/expression [:fhir.DiagnosticReport/subject :fhir.Resource/id]
              :blaze.fhir.SearchParameter/type       "uuid"}]}
 
