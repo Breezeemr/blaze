@@ -26,11 +26,11 @@
   (let [k       (first path)
         subtree (get tree k)]
     (cond
-      (nil? k)       (= search tree)
-      (nil? subtree) false
-      (set? subtree) (some (fn [st] (match? st (rest path) search))
-                           subtree)
-      :else          (match? subtree (rest path) search))))
+      (nil? k)              (= search tree)
+      (nil? subtree)        false
+      (sequential? subtree) (some (fn [st] (match? st (rest path) search))
+                                  subtree)
+      :else                 (match? subtree (rest path) search))))
 
 (defn- resource-pred [query-params config]
   (let [valid-query-params  (select-keys query-params (map :blaze.fhir.SearchParameter/code config))
