@@ -74,10 +74,11 @@
 
   (into [] (d/datoms (d/db conn) :avet :phi.element/type (str "fhir-type/" "AllergyIntolerance")))
   (d/q '[:find [(pull ?e [*]) ...]
-         :in $
+         :in $ ?type
          :where
-         [?e :fhir.v3.AllergyIntolerance/patient]]
-       (d/db conn))
+         [?e :phi.element/type ?type]]
+       (d/db conn)
+       (str "fhir-type/" "Observation"))
 
   (d/q '[:find (count ?e) .
          :in $ ?type ?uuid
@@ -85,7 +86,7 @@
          [?e :phi.element/type ?type]
          [?e :fhir.Resource/id ?uuid]]
        (d/db conn)
-       (str "fhir-type/" "Condition")
+       (str "fhir-type/" "Observation")
        #uuid "55776ed1-2072-4d0c-b19f-a2d725aadf15")
 
   (into []

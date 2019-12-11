@@ -371,7 +371,7 @@
   [:blaze.schema/mapping :blaze.fhir/Observation]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
-   :mapping {}}
+   :mapping {:fhir.Observation/subject {:value blaze.fhir.transforms/reference}}}
 
   [:blaze.schema/pattern :blaze.fhir/Observation]
   {:fn      nil
@@ -383,7 +383,8 @@
              {:fhir.Observation/code          [:fhir.CodeableConcept/text #_:fhir.CodeableConcept/coding$cr]
               :fhir.Observation/component     [{:fhir.Observation.component/code [:fhir.CodeableConcept/text]}
                                                {:fhir.Observation.component/valueQuantity [:fhir.Quantity/value]}]
-              :fhir.Observation/valueQuantity [:fhir.Quantity/value :fhir.Quantity/code]}
+              :fhir.Observation/valueQuantity [:fhir.Quantity/value :fhir.Quantity/code]
+              :fhir.Observation/subject       [:fhir.Resource/id :phi.element/type]}
              ]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/Observation]
