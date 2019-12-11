@@ -121,30 +121,38 @@
                 ...]
          :in $
          :where [?e :fhir.Consent/patient]]
-       (d/db consent-conn))
+       (d/db local-consent-conn))
 
+  (d/pull (d/db consent-conn) '[*] :phi.element/type)
 
   ;; Schema updates
   @(d/transact consent-conn [{:db/id :fhir.Consent/status :db/ident :DEPRECATED_fhir.Consent/status}])
   @(d/transact consent-conn [{:db/ident       :fhir.Consent/status
                               :db/valueType   :db.type/string
                               :db/cardinality :db.cardinality/one}])
+  @(d/transact consent-conn [{:db/ident       :phi.element/type
+                              :db/valueType   :db.type/string
+                              :db/cardinality :db.cardinality/one
+                              :db/index       true}])
 
   ;; Add provision.actor to consents
   @(d/transact consent-conn [{:db/id                  17592186045505,
                               :fhir.Consent/provision {:fhir.Consent.provision/actor
                                                        {:fhir.Consent.provision.actor/reference 17592186045500}}
                               :fhir.Consent/status    "active"
+                              :phi.element/type       "fhir-type/Consent"
                               }
                              {:db/id                  17592186045499,
                               :fhir.Consent/provision {:fhir.Consent.provision/actor
                                                        {:fhir.Consent.provision.actor/reference 17592186045500}}
                               :fhir.Consent/status    "active"
+                              :phi.element/type       "fhir-type/Consent"
                               }
                              {:db/id                  17592186045502,
                               :fhir.Consent/provision {:fhir.Consent.provision/actor
                                                        {:fhir.Consent.provision.actor/reference 17592186045500}}
                               :fhir.Consent/status    "active"
+                              :phi.element/type       "fhir-type/Consent"
                               }])
 
   (d/pull (d/db consent-conn) '[* {:db/valueType [*] :db/cardinality [*]}] :fhir.Consent/category)
@@ -162,5 +170,9 @@
          [?consent :fhir.Consent/provision ?provision]]
        (d/db consent-conn)
        "55776ed1-2072-4d0c-b19f-a2d725aadf15")
+
+
+  (def local-consent-conn (d/connect "datomic:dev://localhost:4334/bundle-test"))
+  ()
 
   )
