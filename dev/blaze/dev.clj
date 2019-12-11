@@ -112,6 +112,7 @@
   (d/q '[:find [(pull ?e [:db/id
                           :fhir.Resource/id
                           :phi.element/type
+                          :fhir.Consent/status
                           {:fhir.Consent/patient [:fhir.Reference/reference :phi.element/type]
                            :fhir.Consent/provision
                            [{:fhir.Consent.provision/actor
@@ -134,19 +135,16 @@
                               :fhir.Consent/provision {:fhir.Consent.provision/actor
                                                        {:fhir.Consent.provision.actor/reference 17592186045500}}
                               :fhir.Consent/status    "active"
-                              :fhir.Consent/scope     "patient-privacy"
                               }
                              {:db/id                  17592186045499,
                               :fhir.Consent/provision {:fhir.Consent.provision/actor
                                                        {:fhir.Consent.provision.actor/reference 17592186045500}}
                               :fhir.Consent/status    "active"
-                              :fhir.Consent/scope     "patient-privacy"
                               }
                              {:db/id                  17592186045502,
                               :fhir.Consent/provision {:fhir.Consent.provision/actor
                                                        {:fhir.Consent.provision.actor/reference 17592186045500}}
                               :fhir.Consent/status    "active"
-                              :fhir.Consent/scope     "patient-privacy"
                               }])
 
   (d/pull (d/db consent-conn) '[* {:db/valueType [*] :db/cardinality [*]}] :fhir.Consent/category)
