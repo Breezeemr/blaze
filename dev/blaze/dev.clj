@@ -85,10 +85,18 @@
 
   (def consent-conn (d/connect (System/getenv "CONSENT_DATABASE_URI")))
 
-  (d/pull (d/db consent-conn) '[* {:fhir.Consent/patient [*]}] [:fhir.Resource/id #uuid "32805f34-46a6-43a3-8286-5040702680e1"])
+  (d/pull (d/db conn) '[* {:fhir.Consent/patient [*]}] [:fhir.Resource/id #uuid "59ddd097-8acb-413c-ba7a-8ddc630994b3"])
 
   ;; All consents
-  (d/q '[:find [(pull ?e [*]) ...]
+  (d/q '[:find [(pull ?e [:db/id
+                          :fhir.Resource/id
+                          :phi.element/type
+                          {:fhir.Consent/patient [:fhir.Reference/reference :phi.element/type]
+                           :fhir.Consent/provision
+                           [{:fhir.Consent.provision/actor
+                             [{:fhir.Consent.provision.actor/reference [:fhir.Reference/reference]}]}]}
+                          ])
+                ...]
          :in $
          :where [?e :fhir.Consent/patient]]
        (d/db consent-conn))
@@ -101,7 +109,7 @@
                               :db/cardinality :db.cardinality/one}])
 
   ;; Add provision.actor to consents
-  @(d/transact consent-conn [{:db/id                 17592186045505,
+  @(d/transact consent-conn [{:db/id                  17592186045505,
                               :fhir.Consent/provision {:fhir.Consent.provision/actor
                                                        {:fhir.Consent.provision.actor/reference 17592186045500}}
                               :fhir.Consent/status    "active"

@@ -252,15 +252,18 @@
    :pattern [:db/id
              :fhir.Resource/id
              :phi.element/type
-             {:fhir.Consent/patient [:fhir.Reference/reference :phi.element/type]}
+             {:fhir.Consent/patient   [:fhir.Reference/reference :phi.element/type]
+              :fhir.Consent/provision [{:fhir.Consent.provision/actor
+                                        [{:fhir.Consent.provision.actor/reference [:fhir.Reference/reference]}]}]}
              ]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/Consent]
   {:fn     nil
-   ;; TODO: need to be able to search by "provision.actor"
    :params [{:blaze.fhir.SearchParameter/code       "_id"
              :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
-             :blaze.fhir.SearchParameter/type       "uuid"}]}
+             :blaze.fhir.SearchParameter/type       "uuid"}
+            {:blaze.fhir.SearchParameter/code       "provision.actor"
+             :blaze.fhir.SearchParameter/expression [:fhir.Consent/provision :fhir.Consent.provision/actor :fhir.Consent.provision.actor/reference :fhir.Reference/reference]}]}
 
 
   ;;
@@ -698,4 +701,5 @@
    :toggle "AUTHORIZATION"
    :config
    {[:blaze/middleware :breezeehr.blaze-authorization.core/authorization]
-    {:database/conn #blaze/ref :consent-conn}}}]}
+    {:database/conn         #blaze/ref :blaze.datomic/conn
+     :database/consent-conn #blaze/ref :consent-conn}}}]}
