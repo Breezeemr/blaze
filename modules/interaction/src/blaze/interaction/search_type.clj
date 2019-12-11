@@ -42,6 +42,8 @@
     (when (seq valid-query-params)
       (fn [resource]
         (every? (fn [[path search]]
+                  ;; (clojure.pprint/pprint resource)
+                  ;; (prn search path (get-in resource path))
                   (match? resource path search))
                 (mapv (fn [[k v]]
                         (let [params (select-params-by-code config k)
