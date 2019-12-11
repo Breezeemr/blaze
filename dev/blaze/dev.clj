@@ -75,4 +75,65 @@
          (map #(transforms/transform db mapping %)))
         d)
 
+  (d/q '[:find (pull ?e [* {:fhir.Condition/patient [:fhir.Resource/id]}])
+         :in $ ?uuid
+         :where
+         [?id :fhir.Resource/id ?uuid]
+         [?e :fhir.Condition/patient ?id]]
+       (d/db conn)
+       #uuid "55776ed1-2072-4d0c-b19f-a2d725aadf15")
+
+  (def consent-conn (d/connect (System/getenv "CONSENT_DATABASE_URI")))
+
+  (d/pull (d/db consent-conn) '[* {:fhir.Consent/patient [*]}] [:fhir.Resource/id #uuid "32805f34-46a6-43a3-8286-5040702680e1"])
+
+  ;; All consents
+  (d/q '[:find [(pull ?e [*]) ...]
+         :in $
+         :where [?e :fhir.Consent/patient]]
+       (d/db consent-conn))
+
+
+  ;; Schema updates
+  @(d/transact consent-conn [{:db/id :fhir.Consent/status :db/ident :DEPRECATED_fhir.Consent/status}])
+  @(d/transact consent-conn [{:db/ident       :fhir.Consent/status
+                              :db/valueType   :db.type/string
+                              :db/cardinality :db.cardinality/one}])
+
+  ;; Add provision.actor to consents
+  @(d/transact consent-conn [{:db/id                 17592186045505,
+                              :fhir.Consent/provision {:fhir.Consent.provision/actor
+                                                       {:fhir.Consent.provision.actor/reference 17592186045500}}
+                              :fhir.Consent/status    "active"
+                              :fhir.Consent/scope     "patient-privacy"
+                              }
+                             {:db/id                  17592186045499,
+                              :fhir.Consent/provision {:fhir.Consent.provision/actor
+                                                       {:fhir.Consent.provision.actor/reference 17592186045500}}
+                              :fhir.Consent/status    "active"
+                              :fhir.Consent/scope     "patient-privacy"
+                              }
+                             {:db/id                  17592186045502,
+                              :fhir.Consent/provision {:fhir.Consent.provision/actor
+                                                       {:fhir.Consent.provision.actor/reference 17592186045500}}
+                              :fhir.Consent/status    "active"
+                              :fhir.Consent/scope     "patient-privacy"
+                              }])
+
+  (d/pull (d/db consent-conn) '[* {:db/valueType [*] :db/cardinality [*]}] :fhir.Consent/category)
+  (d/pull (d/db consent-conn) '[*] 17592186045500)
+
+  (d/q '[:find [(pull ?consent [:fhir.Resource/id
+                                :fhir.Consent/status
+                                {:fhir.Consent/patient [:fhir.Reference/reference]}])
+                ...]
+         :in $ ?actor-id
+         :where
+         [?actor :fhir.Reference/reference ?actor-id]
+         [?ref :fhir.Consent.provision.actor/reference ?actor]
+         [?provision :fhir.Consent.provision/actor ?ref]
+         [?consent :fhir.Consent/provision ?provision]]
+       (d/db consent-conn)
+       "55776ed1-2072-4d0c-b19f-a2d725aadf15")
+
   )
