@@ -547,7 +547,8 @@
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
    :mapping {:fhir.Procedure/reasonCodeableConcept {:key :fhir.Procedure/code}
-             :fhir.Procedure/notes                 {:key :fhir.Procedure/note}}}
+             :fhir.Procedure/notes                 {:key :fhir.Procedure/note}
+             :fhir.Procedure/subject               {:value blaze.fhir.transforms/reference}}}
 
   [:blaze.schema/pattern :blaze.fhir/Procedure]
   {:fn      nil
@@ -562,13 +563,17 @@
               :fhir.Procedure/notes                 [:fhir.Annotation/text]
               :fhir.Procedure/performer             [{:fhir.Procedure.performer/actor [:fhir.Reference/display]}]
               :fhir.Procedure/reasonCodeableConcept [:fhir.CodeableConcept/text]
-              :fhir.Procedur/recorder               [:fhir.Reference/display]}
+              :fhir.Procedur/recorder               [:fhir.Reference/display]
+              :fhir.Procedure/subject               [:fhir.Resource/id :phi.element/type]}
              ]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/Procedure]
   {:fn     nil
    :params [{:blaze.fhir.SearchParameter/code       "_id"
              :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}
+            {:blaze.fhir.SearchParameter/code       "subject"
+             :blaze.fhir.SearchParameter/expression [:fhir.Procedure/subject :fhir.Resource/id]
              :blaze.fhir.SearchParameter/type       "uuid"}]}
 
   ;;
