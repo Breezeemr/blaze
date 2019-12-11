@@ -56,7 +56,6 @@
 
 (defn- entry
   [router {type "resourceType" id "id" :as resource}]
-  ;; (clojure.pprint/pprint resource)
   {:fullUrl (fhir-util/instance-url router type id)
    :resource resource
    :search {:mode "match"}})
