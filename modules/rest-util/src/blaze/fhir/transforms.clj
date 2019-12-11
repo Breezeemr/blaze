@@ -50,7 +50,7 @@
 
 
 (defn consent-patient-reference [{:keys [v]}]
-  (let [prefix (-> (:phi.element/type v) (str/split #"\/") second)
+  (let [prefix "Patient" ;; (-> (:phi.element/type v) (str/split #"\/") second)
         id     (:fhir.Reference/reference v)]
     (when id
       {:reference (str prefix "/" id)})))
