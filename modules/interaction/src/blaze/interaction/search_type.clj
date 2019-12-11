@@ -55,6 +55,7 @@
 
 (defn- entry
   [router {type "resourceType" id "id" :as resource}]
+  (clojure.pprint/pprint resource)
   {:fullUrl (fhir-util/instance-url router type id)
    :resource resource
    :search {:mode "match"}})
@@ -93,9 +94,10 @@
         (comp
          (map :e)
          (map #(d/pull db pattern %))
+         ;; (map #(doto % clojure.pprint/pprint))
          (filter #(not (:deleted (meta %))))
          (filter (or pred (fn [_] true)))
-         (filter (fn [resource]
+         #_(filter (fn [resource]
                    (if (some? (:fhir.Resource/id resource))
                      true
                      (do
