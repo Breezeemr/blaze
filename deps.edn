@@ -37,8 +37,10 @@
   {:git/url "https://github.com/Breezeemr/blaze-authorization-example"
    :sha "62286d49c15d34bc7c82cb442368a9757ce00ae3"}
 
-  breezeehr/blaze-authorization
-  {:local/root "../blaze-authorization"}
+  com.breezeehr/blaze-authorization
+  ;; {:local/root "../blaze-authorization"}
+  {:git/url "git@github.com:Breezeemr/blaze-authorization.git"
+   :sha     "8a3ca6cc750cc1fe96aeed83493f4b1aa95eacbc"}
 
   com.cognitect/anomalies
   {:mvn/version "0.1.12"}
