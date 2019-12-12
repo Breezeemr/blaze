@@ -713,6 +713,6 @@
   {:name "Authorization"
    :toggle "AUTHORIZATION"
    :config
-   {[:blaze/middleware :breezeehr.blaze-authorization.core/authorization]
+   {[:blaze/middleware :com.breezeehr.blaze-authorization.core/authorization]
     {:database/conn         #blaze/ref :blaze.datomic/conn
      :database/consent-conn #blaze/ref :consent-conn}}}]}
