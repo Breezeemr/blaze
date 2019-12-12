@@ -7,7 +7,7 @@
     [buddy.auth.protocols IAuthentication]))
 
 
-(s/def :blaze.rest-api/auth-backends
+#_(s/def :blaze.rest-api/auth-backends
   (s/coll-of #(satisfies? IAuthentication %)))
 
 
