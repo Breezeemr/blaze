@@ -471,17 +471,22 @@
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
    :mapping {:type                                   "MedicationPrescription"
-             :fhir.MedicationPrescription/medication {:key   :fhir.MedicationRequest/medicationCodeableConcept
-                                                      :value blaze.fhir.transforms/medication-request-medication-reference->codeable-concept}}}
+             :fhir.MedicationPrescription/dateWritten {:key :fhir.MedicationRequest/authoredOn
+                                                       }
+             :fhir.MedicationPrescription/medication {:key :fhir.MedicationRequest/medicationReference}
+             :fhir.Medication/code$cr                {:key :fhir.MedicationRequest/code
+                                                      :value blaze.fhir.transforms/codeable-concept}
+             :fhir.MedicationPrescription/prescriber {:key :fhir.MedicationRequest/requester}}}
 
   [:blaze.schema/pattern :blaze.fhir/MedicationRequest]
   {:fn      nil
    :pattern [:db/id
              :fhir.Resource/id
              :phi.element/type
+             :fhir.MedicationPrescription/dateWritten
              :fhir.MedicationPrescription/dosageInstruction
-             {:fhir.MedicationPrescription/medication [:fhir.Resource/id :phi.element/type]}
-             ]}
+             {:fhir.MedicationPrescription/medication [:fhir.Medication/code$cr]
+              :fhir.MedicationPrescription/prescriber [:fhir.Reference/display]}]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/MedicationRequest]
   {:fn     nil
