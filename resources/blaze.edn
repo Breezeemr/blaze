@@ -470,12 +470,16 @@
   [:blaze.schema/mapping :blaze.fhir/MedicationRequest]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
-   :mapping {:type                                   "MedicationPrescription"
-             :fhir.MedicationPrescription/dateWritten {:key :fhir.MedicationRequest/authoredOn}
-             :fhir.MedicationPrescription/medication {:key :fhir.MedicationRequest/medicationReference}
-             :fhir.Medication/code$cr                {:key :fhir.MedicationRequest/code
-                                                      :value blaze.fhir.transforms/codeable-concept}
-             :fhir.MedicationPrescription/prescriber {:key :fhir.MedicationRequest/requester}}}
+   :mapping {:type                                                  "MedicationPrescription"
+             :fhir.MedicationPrescription/dateWritten               {:key :fhir.MedicationRequest/authoredOn}
+             :fhir.MedicationPrescription/medication                {:key :fhir.MedicationRequest/medicationReference}
+             :fhir.Medication/code$cr                               {:key   :fhir.MedicationRequest/code
+                                                                     :value blaze.fhir.transforms/codeable-concept}
+             :fhir.MedicationPrescription/prescriber                {:key :fhir.MedicationRequest/requester}
+             :fhir.MedicationPrescription/additionalInstructions$cr {:key   :fhir.Dosage/additionalInstructions
+                                                                     :value blaze.fhir.transforms/codeable-concept}
+             :fhir.MedicationPrescription.dosageInsruction/rate     {:key :fhir.Dosage.rateAndQuantity/rateRatio}}}
+  ;; TODO: Figure out how to nest rate and dose inside
 
   [:blaze.schema/pattern :blaze.fhir/MedicationRequest]
   {:fn      nil
@@ -486,10 +490,10 @@
              {:fhir.MedicationPrescription/medication [:fhir.Medication/code$cr]
               :fhir.MedicationPrescription/prescriber [:fhir.Reference/display]
               :fhir.MedicationPrescription/dosageInstruction [:fhir.MedicationPrescription.dosageInstruction/rate
-                                                              :fhir.MedicationPrescription.dosageInstruction/doseQuantity
                                                               :fhir.MedicationPrescription.dosageInstruction/text
                                                               :fhir.MedicationPrescription.dosageInstruction/additionalInstructions$cr
-                                                              {:fhir.MedicationPrescription.dosageInstruction/additionalInstructions [:fhir.CodeableConcept/coding]}]}]}
+                                                              {;; :fhir.MedicationPrescription.dosageInstruction/additionalInstructions [:fhir.CodeableConcept/coding]
+                                                               :fhir.MedicationPrescription.dosageInstruction/doseQuantity [:fhir.Quantity/value :fhir.Quantity/units]}]}]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/MedicationRequest]
   {:fn     nil
