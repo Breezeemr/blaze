@@ -56,16 +56,6 @@
       {:reference (str prefix "/" id)})))
 
 
-(defn medication-request-medication-reference->codeable-concept [{:keys [db v]}]
-  (when-let [id (:fhir.Resource/id v)]
-    (->> (d/pull db '[:fhir.Medication/code] [:fhir.Resource/id id])
-         :fhir.Medication/code
-         :fhir.CodeableConcept/coding$cr
-         (into []
-               (map (fn [coding$cr]
-                      {:display coding$cr}))))))
-
-
 (defn medication-request-dosage-instruction [{:keys [v]}]
   (let [dosage-instruction      (first v)
         sequence                nil ;; Cabotage wants this but does not exist in this old version of FHIR
