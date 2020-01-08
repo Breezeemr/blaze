@@ -6,7 +6,15 @@
     [datomic.api :as d]
     [datomic-spec.core :as ds]
     [datomic-tools.schema :refer [defattr defunc defpart]]
+    [blaze.datomic.search-parameter]
     [blaze.datomic.element-definition]))
+
+
+(defattr :resource/search-parameter
+  "References to all search parameter of a resource."
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/many
+  :db/isComponent true)
 
 
 (defattr :type/elements
@@ -179,18 +187,20 @@
 (defn- fhir-type-code->db-type
   "http://hl7.org/fhir/datatypes.html"
   [code]
-  ;; TODO: the Extension StructureDefinition misses a value for `code`
-  (case (or code "string")
+  (case code
     "boolean" :db.type/boolean
     ("integer" "unsignedInt" "positiveInt") :db.type/long
     "code" :db.type/ref
-    ("string" "id" "markdown" "uri" "url" "canonical" "oid" "xhtml") :db.type/string
+    ("string" "id" "markdown" "uri" "url" "canonical" "oid" "xhtml"
+      "http://hl7.org/fhirpath/System.String") :db.type/string
     ("date" "dateTime" "time") :db.type/bytes
     "decimal" :db.type/bigdec
     "base64Binary" :db.type/bytes
     "instant" :db.type/instant
     "uuid" :db.type/uuid
-    "Quantity" :db.type/bytes
+    ;; TODO: Remove direct references to special Quantity types
+    ("Age" "Count" "Distance" "Duration"
+      "MoneyQuantity" "SimpleQuantity" "Quantity") :db.type/bytes
     :db.type/ref))
 
 
@@ -218,7 +228,7 @@
   (if (= 1 (count type))
     (let [code (-> type first :code)]
       (and (= :db.type/ref (fhir-type-code->db-type code))
-           (not (#{"code" "Reference"} code))))
+           (not (#{"code"} code))))
     false))
 
 
@@ -243,9 +253,12 @@
        (not (has-content-reference? element))))
 
 
-;; TODO: the Extension StructureDefinition misses a value for `code`
-(defn primitive? [{:keys [code] :or {code "string"}}]
-  (or (Character/isLowerCase ^char (first code)) (= "Quantity" code)))
+(defn primitive? [{:keys [code]}]
+  (or (Character/isLowerCase ^char (first code))
+      (some?
+        ;; TODO: Remove direct references to special Quantity types
+        (#{"Age" "Count" "Distance" "Duration"
+           "MoneyQuantity" "SimpleQuantity" "Quantity"} code))))
 
 
 (defn parent-path [path]
@@ -273,6 +286,12 @@
        (some #(when (= (subs reference 1) (:id %)) %))))
 
 
+(defn direct-reference-attr
+  "Returns an attribute where its namespace is prefixed with `Reference.`."
+  [attr]
+  (keyword (str "Reference." (namespace attr)) (name attr)))
+
+
 (s/fdef element-definition-tx-data
   :args (s/cat :structure-definition :fhir.un/StructureDefinition
                :element-definition :fhir.un/ElementDefinition)
@@ -288,17 +307,18 @@
         ident (path->ident path)
         choice-type? (str/ends-with? path "[x]")
         content-element (some->> content-reference (resolve-element structure-definition))
-        type (if content-element (:type content-element) type)]
+        type (if content-element (:type content-element) type)
+        cardinality
+        (if (= "*" max)
+          :db.cardinality/many
+          :db.cardinality/one)]
     (cond->
       [(cond->
          (if type
            (cond->
              {:db/id path
               :db/ident ident
-              :db/cardinality
-              (if (= "*" max)
-                :db.cardinality/many
-                :db.cardinality/one)
+              :db/cardinality cardinality
               :element/choice-type? choice-type?}
 
              (and (not choice-type?) (component? type))
@@ -339,19 +359,24 @@
             [{:db/id (str/join "." choice-path)
               :db/ident (keyword ns name)
               :db/valueType (fhir-type-code->db-type code)
-              :db/cardinality
-              (if (= "*" max)
-                :db.cardinality/many
-                :db.cardinality/one)
+              :db/cardinality cardinality
               :element/primitive? (primitive? {:code code})
               :element/part-of-choice-type? true
               :element/type-attr-ident ident
               :element/type-code code
               :element/json-key name}
              [:db/add path :element/type-choices (str/join "." choice-path)]]
+
             (and (not (primitive? {:code code}))
                  (not (#{"BackboneElement" "Bundle"} code)))
-            (conj [:db/add (str/join "." choice-path) :element/type code]))))
+            (conj [:db/add (str/join "." choice-path) :element/type code])
+
+            ;; extra attribute consisting of direct references
+            (= "Reference" code)
+            (conj
+              {:db/ident (direct-reference-attr (keyword ns name))
+               :db/valueType :db.type/ref
+               :db/cardinality cardinality}))))
 
       (needs-partition? element)
       (conj
@@ -376,15 +401,19 @@
       (conj
         {:db/ident (keyword (str (namespace ident) ".index") (name ident))
          :db/valueType :db.type/ref
-         :db/cardinality :db.cardinality/many}))))
+         :db/cardinality :db.cardinality/many})
 
+      ;; extra attribute consisting of direct references
+      (and (not choice-type?) (= "Reference" (-> type first :code)))
+      (conj
+        {:db/ident (direct-reference-attr ident)
+         :db/valueType :db.type/ref
+         :db/cardinality cardinality}))))
 
-(s/fdef structure-definition-tx-data
-  :args (s/cat :structure-definition :fhir.un/StructureDefinition)
-  :ret ::ds/tx-data)
 
 (defn structure-definition-tx-data
-  "Returns transaction data which can be used to upsert `structure-definition`."
+  "Returns transaction data which creates the Datomic schema of a resource or
+  a data-type."
   [{{elements :element} :snapshot :as structure-definition}]
   (into [] (mapcat #(element-definition-tx-data structure-definition %)) elements))
 
@@ -401,3 +430,45 @@
       (remove :experimental)
       (mapcat structure-definition-tx-data))
     structure-definitions))
+
+
+
+;; ---- Search Parameter ------------------------------------------------------
+
+(defn search-parameter-tx-data
+  "Returns transaction data of indices required to support a search parameter."
+  [{:keys [id base type code expression]}]
+  (when expression
+    (let [[_ json-key & more] (str/split expression ".")]
+      (when (and json-key (empty? more))
+        (condp = type
+          "string"
+          (let [db-id (str "SearchParameter." id)]
+            (into
+              [{:db/id db-id
+                :db/ident (keyword "SearchParameter" id)
+                :db/valueType :db.type/string
+                :db/cardinality :db.cardinality/one
+                :db/index true
+                :search-parameter/type :search-parameter.type/string
+                :search-parameter/code code
+                :search-parameter/json-key json-key}]
+              (map
+                (fn [base]
+                  [:db/add base :resource/search-parameter db-id]))
+              base))
+          nil)))))
+
+
+(s/fdef search-parameter-schemas
+  :args (s/cat :search-parameters (s/coll-of :fhir.un/SearchParameter))
+  :ret ::ds/tx-data)
+
+(defn search-parameter-schemas [search-parameters]
+  (into
+    []
+    (comp
+      (remove :experimental)
+      (filter (comp #{"Measure-title"} :id))
+      (mapcat search-parameter-tx-data))
+    search-parameters))

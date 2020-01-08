@@ -3,6 +3,8 @@
     [blaze.anomaly :refer [throw-anom]]
     [blaze.datomic.quantity :as quantity]
     [blaze.datomic.pull :as pull]
+    [blaze.datomic.schema :as schema]
+    [blaze.datomic.search-parameter :as search-parameter]
     [blaze.datomic.spec]
     [blaze.datomic.value :as value]
     [blaze.datomic.util :as util]
@@ -44,6 +46,12 @@
       :value value)))
 
 
+(defn- coerce-decimal-for-quantity [element value]
+  (if (int? value)
+    value
+    (coerce-decimal element value)))
+
+
 (defn- coerce-date-time [^String value]
   (case (.length value)
     4
@@ -79,15 +87,22 @@
         :fhir.issue/expression (ident->path ident)))))
 
 
-(defn- quantity [element {:strs [value code unit]}]
-  (let [value (coerce-decimal element value)]
-    (try
-      (if code
-        (quantity/quantity value code)
-        (quantity/quantity value unit))
-      (catch Exception _
-        ;; TODO: find a better solution as to skip the unit
-        (quantity/quantity value "")))))
+(defn- quantity [element {:strs [value comparator unit system code]}]
+  (when (some? comparator)
+    (throw-anom
+      ::anom/unsupported
+      "Unsupported comparator on Quantity type."
+      :fhir/issue "not-supported"))
+  (let [value (coerce-decimal-for-quantity element value)]
+    (if (= "http://unitsofmeasure.org" system)
+      (cond
+        (nil? unit)
+        (quantity/ucum-quantity-without-unit value code)
+        (= unit code)
+        (quantity/ucum-quantity-with-same-unit value code)
+        :else
+        (quantity/ucum-quantity-with-different-unit value unit code))
+      (quantity/custom-quantity value unit system code))))
 
 
 (defn coerce-value
@@ -105,7 +120,8 @@
       "markdown"
       "unsignedInt"
       "positiveInt"
-      "xhtml") value
+      "xhtml"
+      "http://hl7.org/fhirpath/System.String") value
     "decimal" (coerce-decimal element value)
     "instant" (Date/from (Instant/from (.parse DateTimeFormatter/ISO_DATE_TIME value)))
     "date" (coerce-date value)
@@ -113,7 +129,9 @@
     "time" (LocalTime/parse value)
     "base64Binary" (.decode (Base64/getDecoder) ^String value)
     "uuid" (uuid element value)
-    "Quantity" (quantity element value)))
+    ;; TODO: Remove direct references to special Quantity types
+    ("Age" "Count" "Distance" "Duration"
+      "MoneyQuantity" "SimpleQuantity" "Quantity") (quantity element value)))
 
 
 (defn- write
@@ -146,7 +164,12 @@
 
 (defn- check-primitive [{:element/keys [primitive? type-code] :db/keys [ident]} value]
   (when-not (= "code" type-code)
-    (if (and primitive? (not (= "Quantity" type-code)))
+    (if
+      (and
+        primitive?
+        ;; TODO: Remove direct references to special Quantity types
+        (not (#{"Age" "Count" "Distance" "Duration"
+                "MoneyQuantity" "SimpleQuantity" "Quantity"} type-code)))
       (when (map? value)
         (throw-anom
           ::anom/incorrect
@@ -213,9 +236,12 @@
 
 
 (defn- subject-index
-  [{{resource-type "resourceType" :as resource} :resource :keys [code-ident]
+  "Returns tx-data."
+  {:arglists '([context code-id])}
+  [{{resource-type "resourceType" :as resource} :resource
+    :keys [code-ident]
     :as context}
-   code-id]
+   system code]
   (when (supported-subject-indices code-ident)
     (when (= resource-type (namespace code-ident))
       (when-let [subject (get resource "subject")]
@@ -225,18 +251,19 @@
               (when-let [sub-eid (resolve-reference context type sub-id)]
                 [[:db/add sub-eid
                   (keyword (str "Patient." resource-type "." (name code-ident))
-                           code-id)
+                           (str system "|" code))
                   (resolve-reference context resource-type (get resource "id"))]]))))))))
 
 
 (defn- add-code
   "Returns tx-data for adding a code. All of `system`, `version` and `code` are
   optional."
+  {:arglists '([context element parent-id system version code])}
   [{:keys [db] :as context} {:db/keys [ident] :as element} parent-id system
    version code]
   (let [code-id (str system "|" version "|" code)]
     (if-let [{:db/keys [id]} (d/entity db [:code/id code-id])]
-      (into [[:db/add parent-id ident id]] (subject-index context code-id))
+      (into [[:db/add parent-id ident id]] (subject-index context system code))
       (throw-anom
         ::anom/fault
         (str "Can't find code with id `" code-id "`.")
@@ -288,19 +315,6 @@
   (get contained-resource-eids id))
 
 
-(defn- resolve-referenced-entity
-  [{:keys [db] :as context} {:strs [reference] :as value}]
-  (if (str/starts-with? reference "#")
-    (if-let [eid (resolve-local-reference context (subs reference 1))]
-      (d/entity db eid)
-      (throw (ex-info (str "Local reference `" reference "` can't be resolved.")
-                      {::anom/category ::anom/incorrect
-                       :fhir/issue "value"
-                       :reference value})))
-    (let [[type id] (str/split reference #"/")]
-      (util/resource db type id))))
-
-
 (defn- add-contained-resource
   {:arglists '([context element id value])}
   [context
@@ -326,46 +340,67 @@
                      :contained-resource value}))))
 
 
+(defn- add-non-primitive-element'
+  [context
+   {:element/keys [type-code part-of-choice-type? type-attr-ident]
+    :db/keys [ident]}
+   id value]
+  (let [tid (d/tempid (keyword "part" type-code))
+        tx-data (upsert context (keyword type-code) {:db/id tid} value)]
+    (when-not (empty? tx-data)
+      (cond->
+        (conj tx-data [:db/add id ident tid])
+        part-of-choice-type?
+        (conj [:db/add id type-attr-ident ident])))))
+
+
+(defn- add-direct-reference
+  [{:keys [db] :as context} {:db/keys [ident]} id value]
+  (let [ident (schema/direct-reference-attr ident)
+        {:strs [reference]} value]
+    (cond
+      reference
+      (if (str/starts-with? reference "#")
+        (if-let [eid (resolve-local-reference context (subs reference 1))]
+          [[:db/add id ident eid]]
+          (throw (ex-info (str "Local reference `" reference "` can't be resolved.")
+                          {::anom/category ::anom/incorrect
+                           :fhir/issue "value"
+                           :reference value
+                           :fhir.issue/expression (ident->path ident)})))
+        (let [[type ref-id] (str/split reference #"/")]
+          (if (util/cached-entity db (keyword type))
+            (if-let [eid (resolve-reference context type ref-id)]
+              [[:db/add id ident eid]]
+              (throw-anom
+                ::anom/incorrect
+                (format "Reference `%s` can't be resolved." reference)
+                :fhir/issue "value"
+                :reference value
+                :fhir.issue/expression (ident->path ident)))
+            (throw-anom
+              ::anom/incorrect
+              (format "Invalid reference `%s`. The type `%s` is unknown."
+                      reference type)
+              :fhir/issue "value"
+              :reference value
+              :fhir.issue/expression (ident->path ident))))))))
+
+
 (defn- add-non-primitive-element
   "Returns tx-data for adding the non-primitive `value` as child of the
   existing entity with `id`."
   {:arglists '([context element id value])}
-  [{:keys [db] :as context}
+  [context
    {:element/keys [type-code type part-of-choice-type? type-attr-ident]
-    :db/keys [ident]}
+    :db/keys [ident]
+    :as element}
    id value]
   (case type-code
     "Reference"
-    (let [{:strs [reference identifier]} value]
-      (cond
-        reference
-        (if (str/starts-with? reference "#")
-          (if-let [eid (resolve-local-reference context (subs reference 1))]
-            [[:db/add id ident eid]]
-            (throw (ex-info (str "Local reference `" reference "` can't be resolved.")
-                            {::anom/category ::anom/incorrect
-                             :fhir/issue "value"
-                             :reference value
-                             :fhir.issue/expression (ident->path ident)})))
-          (let [[type ref-id] (str/split reference #"/")]
-            (if (util/cached-entity db (keyword type))
-              (if-let [eid (resolve-reference context type ref-id)]
-                [[:db/add id ident eid]]
-                (throw (ex-info (str "Reference `" reference "` can't be resolved.")
-                                {::anom/category ::anom/incorrect
-                                 :fhir/issue "value"
-                                 :reference value
-                                 :fhir.issue/expression (ident->path ident)})))
-              (throw (ex-info (str "Invalid reference `" reference `". The type `"
-                                   type "` is unknown.")
-                              {::anom/category ::anom/incorrect
-                               :fhir/issue "value"
-                               :reference value
-                               :fhir.issue/expression (ident->path ident)})))))
-        identifier
-        (do (log/warn (str "Unsupported logical reference in element `"
-                           (ident->path ident) "`. Skip storing it."))
-            [])))
+    (let [tx-data (add-non-primitive-element' context element id value)]
+      (when-not (empty? tx-data)
+        (into tx-data (add-direct-reference context element id value))))
 
     "BackboneElement"
     (let [tid (d/tempid (keyword "part" (str (namespace type) "." (name type))))
@@ -387,13 +422,7 @@
           (map (fn [tid] [:db/add id (index-ident ident) tid]))
           (if part-of-choice-type? [] code-tids))))
 
-    (let [tid (d/tempid (keyword "part" type-code))
-          tx-data (upsert context (keyword type-code) {:db/id tid} value)]
-      (when-not (empty? tx-data)
-        (cond->
-          (conj tx-data [:db/add id ident tid])
-          part-of-choice-type?
-          (conj [:db/add id type-attr-ident ident]))))))
+    (add-non-primitive-element' context element id value)))
 
 
 (defn- add-element
@@ -441,20 +470,15 @@
           add))))
 
 
-(defn- upsert-reference
-  [context {:db/keys [ident] :as element} entity reference]
-  (when-not (= (ident entity) (resolve-referenced-entity context reference))
-    (add-non-primitive-element context element (:db/id entity) reference)))
-
-
 (defn- upsert-non-primitive-card-one-element
-  [context {:db/keys [ident] :element/keys [type-code type] :as element}
+  [context {:db/keys [ident] :element/keys [type] :as element}
    old-entity new-value]
   (if-let [old-value (ident old-entity)]
-    (case type-code
-      "Reference"
-      (upsert-reference context element old-entity new-value)
-      (upsert context type old-value new-value))
+    (let [tx-data (upsert context type old-value new-value)]
+      (if (= :Reference type)
+        (when-not (empty? tx-data)
+          (into tx-data (add-direct-reference context element (:db/id old-entity) new-value)))
+        tx-data))
     (add-non-primitive-element context element (:db/id old-entity) new-value)))
 
 
@@ -471,7 +495,7 @@
      :new-entity new-entity
      :retract-count
      (transduce
-       (comp (filter #(= :db/retract (first %))) (map (constantly 1)))
+       (comp (filter (comp #{:db/retract} first)) (map (constantly 1)))
        +
        (upsert context type (:entity (meta old-entity)) new-entity))}))
 
@@ -486,7 +510,7 @@
      :new-entity new-entity
      :retract-count
      (transduce
-       (comp (filter #(= :db/retract (first %))) (map (constantly 1)))
+       (comp (filter (comp #{:db/retract} first)) (map (constantly 1)))
        +
        (upsert context new-type (:entity (meta old-entity)) new-entity))}))
 
@@ -508,22 +532,12 @@
        (take num-reuse)))
 
 
-(defn- remove-non-stored-elements
-  "Removes elements with are not stored by design like Reference.display from
-  values."
-  [type-code values]
-  (case type-code
-    "Reference"
-    (mapv #(dissoc % "display") values)
-    values))
-
-
 (defn- upsert-non-primitive-card-many-element
   [{:keys [db] :as context}
-   {:db/keys [ident] :element/keys [type-code type] :as element}
+   {:db/keys [ident] :element/keys [type] :as element}
    {:db/keys [id] :as old-entity} new-values]
   (let [old-entities (postwalk vector->set (second (pull/pull-element db element old-entity)))
-        new-entities (postwalk vector->set (remove-non-stored-elements type-code new-values))
+        new-entities (postwalk vector->set new-values)
         retract (set/difference old-entities new-entities)
         add (set/difference new-entities old-entities)
         num-reuse (min (count retract) (count add))
@@ -543,9 +557,7 @@
           (mapcat
             (fn [{:keys [old-entity new-entity]}]
               (let [type (if (= :Resource type) (keyword (get new-entity "resourceType")) type)]
-                (if (= :Reference type)
-                  (upsert-reference context element (:entity (meta old-entity)) new-entity)
-                  (upsert context type (:entity (meta old-entity)) new-entity)))))
+                (upsert context type (:entity (meta old-entity)) new-entity))))
           reuse)
         (into
           (mapcat #(add-non-primitive-element context element id %))
@@ -623,27 +635,52 @@
     value))
 
 
-(defn- retract-non-primitive-card-one-element
-  [context {:element/keys [type] :db/keys [ident]}
-   {:db/keys [id]} value]
+(defn- retract-non-primitive-element
+  [context {:element/keys [type] :db/keys [ident]} {:db/keys [id]} value]
   (assert (:db/id value))
-  (conj
-    (upsert context type value nil)
-    [:db/retract id ident (:db/id value)]))
+  (conj (upsert context type value nil) [:db/retract id ident (:db/id value)]))
+
+
+(defn- retract-direct-reference
+  [{:db/keys [id]} attr referenced-entity]
+  (assert (:db/id referenced-entity))
+  [:db/retract id attr (:db/id referenced-entity)])
+
+
+(defn- retract-card-one-direct-reference [tx-data entity attr]
+  (cond-> tx-data
+    (attr entity)
+    (conj (retract-direct-reference entity attr (attr entity)))))
+
+
+(defn- retract-non-primitive-card-one-element
+  [context {:element/keys [type] :db/keys [ident] :as element} entity value]
+  (cond->
+    (retract-non-primitive-element context element entity value)
+
+    (= :Reference type)
+    (retract-card-one-direct-reference
+      entity (schema/direct-reference-attr ident))))
+
+
+(defn- retract-card-many-direct-reference [tx-data entity attr]
+  (into
+    tx-data
+    (map #(retract-direct-reference entity attr %))
+    (attr entity)))
 
 
 (defn- retract-non-primitive-card-many-element
-  [context {:element/keys [type] :db/keys [ident]}
-   {:db/keys [id]} value]
-  (into
-    []
-    (mapcat
-      (fn [value]
-        (assert (:db/id value))
-        (conj
-          (upsert context type value nil)
-          [:db/retract id ident (:db/id value)])))
-    value))
+  [context {:element/keys [type] :db/keys [ident] :as element} entity value]
+  (cond->
+    (transduce
+      (mapcat #(retract-non-primitive-element context element entity %))
+      conj
+      value)
+
+    (= :Reference type)
+    (retract-card-many-direct-reference
+      entity (schema/direct-reference-attr ident))))
 
 
 (defn- retract-single-typed-element
@@ -746,6 +783,32 @@
       (:type/elements (util/cached-entity db type-ident)))))
 
 
+(defn- upsert-search-parameter
+  [{:db/keys [ident] :as search-parameter} old-resource new-value]
+  (let [normalized-value (search-parameter/normalize search-parameter new-value)]
+    (when (not= normalized-value (ident old-resource))
+      [[:db/add (:db/id old-resource) ident normalized-value]])))
+
+
+(defn- retract-search-parameter [{:db/keys [ident]} old-resource]
+  (when-some [value (ident old-resource)]
+    [[:db/retract (:db/id old-resource) ident value]]))
+
+
+(defn- upsert-search-parameters
+  {:arglists '([context resource-type old-resource new-resource])}
+  [{:keys [db]} resource-type old-resource new-resource]
+  (into
+    []
+    (comp
+      (map #(util/cached-entity db %))
+      (mapcat
+        (fn [{:search-parameter/keys [json-key] :as search-parameter}]
+          (if-let [new-value (get new-resource json-key)]
+            (upsert-search-parameter search-parameter old-resource new-value)
+            (retract-search-parameter search-parameter old-resource)))))
+    (:resource/search-parameter (util/cached-entity db (keyword resource-type)))))
+
 (defn- upsert-contained-resource
   [context old-entity new-entity]
   (let [type (keyword (util/entity-type old-entity))]
@@ -830,7 +893,8 @@
           eids
           (assoc :contained-resource-eids eids))]
     (-> (or tx-data [])
-        (into (upsert context (keyword type) old-resource new-resource)))))
+        (into (upsert context (keyword type) old-resource new-resource))
+        (into (upsert-search-parameters context type old-resource new-resource)))))
 
 
 (defn- prepare-resource
@@ -911,12 +975,14 @@
     (let [resource (prepare-resource resource)]
       (if-let [old-resource (util/resource db type id)]
 
+        ;; update
         (let [tx-data (upsert-resource {:db db :tempids tempids} type
                                        old-resource resource)
               {:db/keys [id] :instance/keys [version]} old-resource]
           (when (or (seq tx-data) (util/deleted? old-resource))
             (conj tx-data (version-decrement-upsert id version))))
 
+        ;; create
         (let [tempid (get-in tempids [type id])]
           (assert tempid)
           (conj (upsert-resource {:db db :tempids tempids} type
@@ -957,15 +1023,20 @@
   [db type id]
   (when-let [resource (util/resource db type id)]
     (when-not (util/deleted? resource)
-      (into
-        [(version-decrement-delete resource)]
-        (comp
-          (map #(util/cached-entity db %))
-          contained-resource-element-remover
-          coding-system-version-remover
-          (resource-id-remover type)
-          (mapcat #(retract-element {:db db} % resource)))
-        (:type/elements (util/cached-entity db (keyword type)))))))
+      (-> [(version-decrement-delete resource)]
+          (into
+            (comp
+              (map #(util/cached-entity db %))
+              contained-resource-element-remover
+              coding-system-version-remover
+              (resource-id-remover type)
+              (mapcat #(retract-element {:db db} % resource)))
+            (:type/elements (util/cached-entity db (keyword type))))
+          (into
+            (comp
+              (map #(util/cached-entity db %))
+              (mapcat #(retract-search-parameter % resource)))
+            (:resource/search-parameter (util/cached-entity db (keyword type))))))))
 
 
 (defn- category [e]
@@ -1001,8 +1072,7 @@
   "Like `datomic.api/transact-async` but returns a deferred instead of a future
   and an error deferred with an anomaly in case of errors.
 
-  Uses an executor with a maximum parallelism of 20 and times out after 10
-  seconds."
+  Uses `executor` to carry out the transactions."
   [executor conn tx-data]
   (try
     (-> (md/future-with executor
@@ -1049,19 +1119,20 @@
 
 ;; ---- Create Codes ----------------------------------------------------------
 
-(defn- create-subject-index-attr [resource-type data-element-name code-id]
+(defn- create-subject-index-attr [resource-type data-element-name system code]
   {:db/ident
-   (keyword (format "Patient.%s.%s" resource-type data-element-name) code-id)
+   (keyword (format "Patient.%s.%s" resource-type data-element-name)
+            (str system "|" code))
    :db/valueType :db.type/ref
    :db/cardinality :db.cardinality/many})
 
 
-(defn- create-subject-index-attrs [code-id]
+(defn- create-subject-index-attrs [system code]
   (mapv
     (fn [subject-index]
       (let [resource-type (namespace subject-index)
             data-element-name (name subject-index)]
-        (create-subject-index-attr resource-type data-element-name code-id)))
+        (create-subject-index-attr resource-type data-element-name system code)))
     supported-subject-indices))
 
 
@@ -1073,7 +1144,7 @@
     (when-not (d/entity db [:code/id id])
       (let [tid (d/tempid :part/code)]
         (conj
-          (create-subject-index-attrs id)
+          (create-subject-index-attrs system code)
           (cond->
             {:db/id tid
              :code/id id}

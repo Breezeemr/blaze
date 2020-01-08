@@ -1,6 +1,6 @@
 (ns blaze.elm.spec
   (:require
-    [blaze.elm.quantity :refer [print-unit]]
+    [blaze.elm.quantity :refer [format-unit]]
     [clojure.set :as set]
     [clojure.spec.alpha :as s]
     [clojure.spec.gen.alpha :as gen]
@@ -23,8 +23,8 @@
 
 (def defined-units
   "All defined units from ucum-service."
-  (into #{} (comp (remove #(= TransformedUnit (class %)))
-                  (map print-unit))
+  (into #{} (comp (remove (comp #{TransformedUnit} class))
+                  (map format-unit))
         (.getUnits ucum-service)))
 
 
@@ -478,7 +478,7 @@
   (s/coll-of :elm/code-system-def))
 
 
-(s/def :elm.library/code-systems
+(s/def :elm.library/codeSystems
   (s/keys :req-un [:elm.library.code-systems/def]))
 
 
@@ -500,7 +500,7 @@
 
 (s/def :elm/library
   (s/keys :req-un [:elm.library/identifier :elm.library/schemaIdentifier]
-          :opt-un [:elm.library/code-systems
+          :opt-un [:elm.library/codeSystems
                    :elm.library/codes
                    :elm.library/statements]))
 

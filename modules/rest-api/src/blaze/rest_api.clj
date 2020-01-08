@@ -4,12 +4,16 @@
     [blaze.middleware.fhir.metrics :as metrics]
     [blaze.module :refer [reg-collector]]
     [blaze.rest-api.middleware.auth-guard :refer [wrap-auth-guard]]
+    [blaze.rest-api.middleware.cors :refer [wrap-cors]]
     [blaze.rest-api.middleware.json :as json :refer [wrap-json]]
     [blaze.rest-api.spec]
     [blaze.spec]
     [buddy.auth.middleware :refer [wrap-authentication]]
     [clojure.spec.alpha :as s]
+    [clojure.string :as str]
     [integrant.core :as ig]
+    [reitit.core :as reitit]
+    [reitit.impl :as impl]
     [reitit.ring]
     [reitit.ring.spec]
     [ring.util.response :as ring]
@@ -92,9 +96,29 @@
                           :blaze.rest-api.interaction/handler)))]]]]))
 
 
+(def structure-definition-filter
+  (comp
+    (filter (comp #{"resource"} :kind))
+    (remove (comp #{"Bundle"} :name))
+    (remove :experimental)
+    (remove :abstract)))
+
+
 (s/def ::structure-definitions
   (s/coll-of :fhir.un/StructureDefinition))
 
+
+(defn- non-conflict-detecting-router
+  "Like reitit.core/router but without conflict detection."
+  ([raw-routes opts]
+   (let [{:keys [router] :as opts} (merge (reitit/default-router-options) opts)
+         routes (impl/resolve-routes raw-routes opts)
+         compiled-routes (impl/compile-routes routes opts)]
+
+     (when-let [validate (:validate opts)]
+       (validate compiled-routes opts))
+
+     (router compiled-routes opts))))
 
 (defn router
   {:arglists '([config capabilities-handler])}
@@ -109,11 +133,12 @@
      operations]
     :or {context-path ""}}
    capabilities-handler]
-  (reitit.ring/router
+  (non-conflict-detecting-router
     (-> [""
          {:blaze/base-url base-url
+          :blaze/context-path context-path
           :middleware
-          (cond-> []
+          (cond-> [wrap-cors]
             (seq auth-backends)
             (conj #(apply wrap-authentication % auth-backends)))}
          [""
@@ -136,9 +161,7 @@
             (assoc :get history-system-handler))]]
         (into
           (comp
-            (filter #(= "resource" (:kind %)))
-            (remove :experimental)
-            (remove :abstract)
+            structure-definition-filter
             (map #(resource-route auth-backends resource-patterns %))
             (remove nil?))
           structure-definitions)
@@ -189,12 +212,18 @@
           operations))
     {:path context-path
      :syntax :bracket
-     :conflicts nil
+     :router reitit/mixed-router
      :validate reitit.ring.spec/validate
+     :coerce reitit.ring/coerce-handler
+     :compile reitit.ring/compile-result
      :reitit.ring/default-options-handler
-     (fn [_]
-       (-> (ring/response nil)
-           (ring/status 405)))}))
+     (fn [{::reitit/keys [match]}]
+       (let [methods (->> match :result (keep (fn [[k v]] (when v k))))
+             allowed-methods
+             (->> methods (map (comp str/upper-case name)) (str/join ","))]
+         (-> (ring/response {})
+             (ring/header "Access-Control-Allow-Methods" allowed-methods)
+             (ring/header "Access-Control-Allow-Headers" "content-type"))))}))
 
 
 (defn- capability-resource
@@ -275,7 +304,7 @@
         {:resourceType "CapabilityStatement"
          :status "active"
          :kind "instance"
-         :date "2019-08-28T00:00:00Z"
+         :date "2019-12-15"
          :software
          {:name "Blaze"
           :version version}
@@ -290,9 +319,7 @@
            (into
              []
              (comp
-               (filter #(= "resource" (:kind %)))
-               (remove :experimental)
-               (remove :abstract)
+               structure-definition-filter
                (map #(capability-resource resource-patterns operations %))
                (remove nil?))
              structure-definitions)

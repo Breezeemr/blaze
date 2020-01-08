@@ -1,7 +1,8 @@
 (ns blaze.datomic.transaction-test
   (:require
-    [blaze.datomic.quantity :refer [quantity]]
+    [blaze.datomic.quantity :as quantity]
     [blaze.datomic.test-util :as test-util]
+    [blaze.datomic.pull :as pull]
     [blaze.datomic.transaction
      :refer [annotate-codes resource-upsert resource-deletion
              coerce-value transact-async resource-codes-creation]]
@@ -42,7 +43,7 @@
       (case url
         "http://hl7.org/fhir/ValueSet/administrative-gender"
         (case valueSetVersion
-          "4.0.0"
+          "4.0.1"
           (md/success-deferred
             {:expansion
              {:contains
@@ -52,7 +53,7 @@
                 :code "female"}]}}))
         "http://hl7.org/fhir/ValueSet/allergy-intolerance-category"
         (case valueSetVersion
-          "4.0.0"
+          "4.0.1"
           (md/success-deferred
             {:expansion
              {:contains
@@ -62,7 +63,7 @@
                 :code "food"}]}}))
         "http://hl7.org/fhir/ValueSet/filter-operator"
         (case valueSetVersion
-          "4.0.0"
+          "4.0.1"
           (md/success-deferred
             {:expansion
              {:contains
@@ -70,7 +71,7 @@
                 :code "="}]}}))
         "http://hl7.org/fhir/ValueSet/narrative-status"
         (case valueSetVersion
-          "4.0.0"
+          "4.0.1"
           (md/success-deferred
             {:expansion
              {:contains
@@ -187,6 +188,7 @@
 
 
 (deftest resource-upsert-test
+  (st/unstrument `pull/pull-element)
 
   (testing "Version handling"
     (testing "Starts with initial version -3 at creation mode :server-assigned-id"
@@ -546,9 +548,11 @@
                       "code" "39156-5"}]}
                    "subject"
                    {"reference" "Patient/0"}}))
-              [[:db/add obs-id :Observation/subject pat-id]
+              [[:db/add :part/Reference :Reference/reference "Patient/0"]
+               [:db/add obs-id :Observation/subject :part/Reference]
+               [:db/add obs-id :Reference.Observation/subject pat-id]
                [:db/add :part/Coding :Coding/code code-id]
-               [:db/add pat-id (keyword "Patient.Observation.code" "http://loinc.org||39156-5") obs-id]
+               [:db/add pat-id (keyword "Patient.Observation.code" "http://loinc.org|39156-5") obs-id]
                [:db/add :part/CodeableConcept :CodeableConcept/coding :part/Coding]
                [:db/add obs-id :Observation/code :part/CodeableConcept]
                [:db/add obs-id :Observation.index/code code-id]
@@ -574,7 +578,7 @@
 
 
     (testing "CodeSystem with version and code in concept"
-      (let [[db code-id] (test-util/with-code db "http://hl7.org/fhir/administrative-gender" "4.0.0" "male")
+      (let [[db code-id] (test-util/with-code db "http://hl7.org/fhir/administrative-gender" "4.0.1" "male")
             [db id] (test-util/with-resource db "CodeSystem" "0")]
         (is
           (=
@@ -584,10 +588,10 @@
                 {"id" "0"
                  "resourceType" "CodeSystem"
                  "url" "http://hl7.org/fhir/administrative-gender"
-                 "version" "4.0.0"
+                 "version" "4.0.1"
                  "concept"
                  [{"code" "male"}]}))
-            [[:db/add id :CodeSystem/version "4.0.0"]
+            [[:db/add id :CodeSystem/version "4.0.1"]
              [:db/add id :CodeSystem/url "http://hl7.org/fhir/administrative-gender"]
              [:db/add :part/CodeSystem.concept :CodeSystem.concept/code code-id]
              [:db/add id :CodeSystem/concept :part/CodeSystem.concept]
@@ -604,11 +608,11 @@
               {"id" "0"
                "resourceType" "CodeSystem"
                "url" "http://hl7.org/fhir/administrative-gender"
-               "version" "4.0.0"
+               "version" "4.0.1"
                "content"
                (with-meta 'complete {:system "http://hl7.org/fhir/codesystem-content-mode"})})
             [[:db/add id :CodeSystem/content code-id]
-             [:db/add id :CodeSystem/version "4.0.0"]
+             [:db/add id :CodeSystem/version "4.0.1"]
              [:db/add id :CodeSystem/url "http://hl7.org/fhir/administrative-gender"]
              [:db.fn/cas id :instance/version -3 -7]]))))
 
@@ -700,7 +704,8 @@
                  {"value" 1M
                   "system" "http://unitsofmeasure.org"
                   "code" "m"}}))
-            [[:db/add id :Observation/valueQuantity (quantity 1M "m")]
+            [[:db/add id :Observation/valueQuantity
+              (quantity/ucum-quantity-without-unit 1M "m")]
              [:db/add id :Observation/value :Observation/valueQuantity]
              [:db.fn/cas id :instance/version -3 -7]]))))
 
@@ -719,7 +724,8 @@
                  {"value" 1
                   "system" "http://unitsofmeasure.org"
                   "code" "m"}}))
-            [[:db/add id :Observation/valueQuantity (quantity 1M "m")]
+            [[:db/add id :Observation/valueQuantity
+              (quantity/ucum-quantity-without-unit 1 "m")]
              [:db/add id :Observation/value :Observation/valueQuantity]
              [:db.fn/cas id :instance/version -3 -7]]))))
 
@@ -736,23 +742,48 @@
                  "resourceType" "Observation"
                  "valueQuantity"
                  {"value" 1 "unit" "a"}}))
-            [[:db/add id :Observation/valueQuantity (quantity 1M "a")]
+            [[:db/add id :Observation/valueQuantity
+              (quantity/custom-quantity 1 "a" nil nil)]
              [:db/add id :Observation/value :Observation/valueQuantity]
              [:db.fn/cas id :instance/version -3 -7]]))))
 
 
-    (testing "single-valued special Reference type"
+    (testing "special Age type"
+      (let [[db id] (test-util/with-resource db "ActivityDefinition" "0")]
+        (is
+          (=
+            (mapv
+              read-value
+              (resource-upsert
+                db nil :server-assigned-id
+                {"id" "0"
+                 "resourceType" "ActivityDefinition"
+                 "timingAge"
+                 {"value" 12
+                  "unit" "yr"
+                  "system" "http://unitsofmeasure.org"
+                  "code" "a"}}))
+            [[:db/add id :ActivityDefinition/timingAge
+              (quantity/ucum-quantity-with-different-unit 12 "yr" "a")]
+             [:db/add id :ActivityDefinition/timing :ActivityDefinition/timingAge]
+             [:db.fn/cas id :instance/version -3 -7]]))))
+
+
+    (testing "single-valued reference element"
       (testing "with resource resolvable in db"
         (let [[db patient-id] (test-util/with-resource db "Patient" "0")
               [db observation-id] (test-util/with-resource db "Observation" "0")]
           (is
             (=
-              (resource-upsert
-                db nil :server-assigned-id
-                {"id" "0"
-                 "resourceType" "Observation"
-                 "subject" {"reference" "Patient/0"}})
-              [[:db/add observation-id :Observation/subject patient-id]
+              (with-redefs [d/tempid (fn [partition] partition)]
+                (resource-upsert
+                  db nil :server-assigned-id
+                  {"id" "0"
+                   "resourceType" "Observation"
+                   "subject" {"reference" "Patient/0"}}))
+              [[:db/add :part/Reference :Reference/reference "Patient/0"]
+               [:db/add observation-id :Observation/subject :part/Reference]
+               [:db/add observation-id :Reference.Observation/subject patient-id]
                [:db.fn/cas observation-id :instance/version -3 -7]]))))
 
       (testing "with resource resolvable in tempids"
@@ -760,27 +791,33 @@
               [db observation-id] (test-util/with-resource db "Observation" "0")]
           (is
             (=
-              (resource-upsert
-                db {"Patient" {"0" patient-id}} :server-assigned-id
-                {"id" "0"
-                 "resourceType" "Observation"
-                 "subject" {"reference" "Patient/0"}})
-              [[:db/add observation-id :Observation/subject patient-id]
+              (with-redefs [d/tempid (fn [partition] partition)]
+                (resource-upsert
+                  db {"Patient" {"0" patient-id}} :server-assigned-id
+                  {"id" "0"
+                   "resourceType" "Observation"
+                   "subject" {"reference" "Patient/0"}}))
+              [[:db/add :part/Reference :Reference/reference "Patient/0"]
+               [:db/add observation-id :Observation/subject :part/Reference]
+               [:db/add observation-id :Reference.Observation/subject patient-id]
                [:db.fn/cas observation-id :instance/version -3 -7]])))))
 
 
-    (testing "multi-valued special Reference type"
+    (testing "multi-valued reference element"
       (let [[db organization-id] (test-util/with-resource db "Organization" "0")
             [db patient-id] (test-util/with-resource db "Patient" "0")]
         (is
           (=
-            (resource-upsert
-              db nil :server-assigned-id
-              {"id" "0"
-               "resourceType" "Patient"
-               "generalPractitioner"
-               [{"reference" "Organization/0"}]})
-            [[:db/add patient-id :Patient/generalPractitioner organization-id]
+            (with-redefs [d/tempid (fn [partition] partition)]
+              (resource-upsert
+                db nil :server-assigned-id
+                {"id" "0"
+                 "resourceType" "Patient"
+                 "generalPractitioner"
+                 [{"reference" "Organization/0"}]}))
+            [[:db/add :part/Reference :Reference/reference "Organization/0"]
+             [:db/add patient-id :Patient/generalPractitioner :part/Reference]
+             [:db/add patient-id :Reference.Patient/generalPractitioner organization-id]
              [:db.fn/cas patient-id :instance/version -3 -7]]))))
 
 
@@ -818,7 +855,9 @@
             [[:db/add :part/Patient :Patient/active true]
              [:db/add :part/Patient :local-id "0"]
              [:db/add id :Observation/contained :part/Patient]
-             [:db/add id :Observation/subject :part/Patient]
+             [:db/add :part/Reference :Reference/reference "#0"]
+             [:db/add id :Observation/subject :part/Reference]
+             [:db/add id :Reference.Observation/subject :part/Patient]
              [:db.fn/cas id :instance/version -3 -7]]))))
 
 
@@ -887,8 +926,11 @@
     (testing "Code typed extension"
       ;; TODO: resolve the value set binding here
       (let [[db draft-id] (test-util/with-code db "draft")
-            [db extension-id] (test-util/with-non-primitive db :Extension/url "http://foo")
-            [db id] (test-util/with-resource db "CodeSystem" "0" :CodeSystem/extension extension-id)]
+            [db extension-id]
+            (test-util/with-non-primitive db :Extension/url "http://foo")
+            [db id]
+            (test-util/with-resource
+              db "CodeSystem" "0" :CodeSystem/extension extension-id)]
         (is
           (=
             (resource-upsert
@@ -900,6 +942,30 @@
                  "valueCode" "draft"}]})
             [[:db/add extension-id :Extension/valueCode draft-id]
              [:db/add extension-id :Extension/value :Extension/valueCode]
+             [:db.fn/cas id :instance/version -3 -7]]))))
+
+    (testing "Reference typed extension"
+      (let [[db organization-id]
+            (test-util/with-resource db "Organization" "0")
+            [db extension-id]
+            (test-util/with-non-primitive db :Extension/url "http://foo")
+            [db id]
+            (test-util/with-resource
+              db "Specimen" "0" :Specimen/extension extension-id)]
+        (is
+          (=
+            (with-redefs [d/tempid (fn [partition] partition)]
+              (resource-upsert
+                db nil :server-assigned-id
+                {"id" "0"
+                 "resourceType" "Specimen"
+                 "extension"
+                 [{"url" "http://foo"
+                   "valueReference" {"reference" "Organization/0"}}]}))
+            [[:db/add :part/Reference :Reference/reference "Organization/0"]
+             [:db/add extension-id :Extension/valueReference :part/Reference]
+             [:db/add extension-id :Extension/value :Extension/valueReference]
+             [:db/add extension-id :Reference.Extension/valueReference organization-id]
              [:db.fn/cas id :instance/version -3 -7]]))))
 
 
@@ -918,6 +984,17 @@
             [[:db/add :part/ValueSet.compose.include :ValueSet.compose.include/system "http://loinc.org"]
              [:db/add :part/ValueSet.compose :ValueSet.compose/include :part/ValueSet.compose.include]
              [:db/add id :ValueSet/compose :part/ValueSet.compose]
+             [:db.fn/cas id :instance/version -3 -7]]))))
+
+    (testing "Measure.title"
+      (let [[db id] (test-util/with-resource db "Measure" "0")]
+        (is
+          (=
+            (resource-upsert
+              db nil :server-assigned-id
+              {"id" "0" "resourceType" "Measure" "title" "Foo"})
+            [[:db/add id :Measure/title "Foo"]
+             [:db/add id :SearchParameter/Measure-title "foo"]
              [:db.fn/cas id :instance/version -3 -7]])))))
 
 
@@ -946,7 +1023,7 @@
 
       (testing "with date type"
         (let [[db] (test-util/with-resource db "Patient" "0" :Patient/birthDate
-                                  (value/write (Year/of 2000)))]
+                                            (value/write (Year/of 2000)))]
           (is
             (empty?
               (resource-upsert
@@ -1008,8 +1085,8 @@
         (let [[db id] (test-util/with-non-primitive db :CodeableConcept/text "foo")
               [db]
               (test-util/with-resource db "Observation" "0"
-                             :Observation/valueCodeableConcept id
-                             :Observation/value :Observation/valueCodeableConcept)]
+                                       :Observation/valueCodeableConcept id
+                                       :Observation/value :Observation/valueCodeableConcept)]
           (is
             (empty?
               (resource-upsert
@@ -1035,7 +1112,7 @@
       (testing "with code type"
         (let [[db id] (test-util/with-code db "http://hl7.org/fhir/allergy-intolerance-category" "medication")
               [db] (test-util/with-resource db "AllergyIntolerance" "0"
-                                  :AllergyIntolerance/category id)]
+                                            :AllergyIntolerance/category id)]
           (is
             (empty?
               (resource-upsert
@@ -1097,7 +1174,8 @@
       (let [[db]
             (test-util/with-resource
               db "Observation" "0"
-              :Observation/valueQuantity (value/write (quantity 1M "m"))
+              :Observation/valueQuantity
+              (value/write (quantity/ucum-quantity-without-unit 1M "m"))
               :Observation/value :Observation/valueQuantity)]
         (is
           (empty?
@@ -1105,19 +1183,75 @@
               db nil :server-assigned-id
               {"id" "0"
                "resourceType" "Observation"
-               "valueQuantity" {"value" 1M "system" "http://unitsofmeasure.org" "code" "m"}})))))
+               "valueQuantity"
+               {"value" 1M
+                "system" "http://unitsofmeasure.org"
+                "code" "m"}})))))
 
 
-    (testing "single-valued special Reference type"
-      (let [[db id] (test-util/with-resource db "Patient" "0")
-            [db] (test-util/with-resource db "Observation" "0" :Observation/subject id)]
+    (testing "single-valued reference element"
+      (testing "with simple reference element"
+        (let [[db patient-id] (test-util/with-resource db "Patient" "0")
+              [db patient-ref]
+              (test-util/with-non-primitive db :Reference/reference "Patient/0")
+              [db]
+              (test-util/with-resource
+                db "Observation" "0"
+                :Observation/subject patient-ref
+                :Reference.Observation/subject patient-id)]
+          (is
+            (empty?
+              (resource-upsert
+                db nil :server-assigned-id
+                {"id" "0"
+                 "resourceType" "Observation"
+                 "subject" {"reference" "Patient/0"}})))))
+
+      (testing "with additional display element"
+        (let [[db patient-id] (test-util/with-resource db "Patient" "0")
+              [db patient-ref]
+              (test-util/with-non-primitive
+                db :Reference/reference "Patient/0" :Reference/display "foo")
+              [db]
+              (test-util/with-resource
+                db "Observation" "0"
+                :Observation/subject patient-ref
+                :Reference.Observation/subject patient-id)]
+          (is
+            (empty?
+              (resource-upsert
+                db nil :server-assigned-id
+                {"id" "0"
+                 "resourceType" "Observation"
+                 "subject"
+                 {"reference" "Patient/0"
+                  "display" "foo"}}))))))
+
+
+    (testing "references in extensions"
+      (let [[db organization-id]
+            (test-util/with-resource db "Organization" "0")
+            [db organization-ref]
+            (test-util/with-non-primitive
+              db :Reference/reference "Organization/0")
+            [db extension-id]
+            (test-util/with-non-primitive
+              db :Extension/url "http://foo"
+              :Extension/value :Extension/valueReference
+              :Extension/valueReference organization-ref
+              :Reference.Extension/valueReference organization-id)
+            [db]
+            (test-util/with-resource
+              db "Specimen" "0" :Specimen/extension extension-id)]
         (is
           (empty?
             (resource-upsert
               db nil :server-assigned-id
               {"id" "0"
-               "resourceType" "Observation"
-               "subject" {"reference" "Patient/0"}})))))
+               "resourceType" "Specimen"
+               "extension"
+               [{"url" "http://foo"
+                 "valueReference" {"reference" "Organization/0"}}]})))))
 
 
     (testing "CodeSystem with contact"
@@ -1150,20 +1284,16 @@
                  "resourceType" "Patient"
                  "active" true}]})))))
 
-
-    (testing "ignores display on Reference"
-      (let [[db actor-id] (test-util/with-resource db "Location" "0")
-            [db] (test-util/with-resource db "Schedule" "0" :Schedule/actor actor-id)]
+    (testing "Measure.title"
+      (let [[db] (test-util/with-resource
+                   db "Measure" "0"
+                   :Measure/title "Foo"
+                   :SearchParameter/Measure-title "foo")]
         (is
           (empty?
-            (with-redefs [d/tempid (fn [partition] partition)]
-              (resource-upsert
-                db nil :server-assigned-id
-                {"id" "0"
-                 "resourceType" "Schedule"
-                 "actor"
-                 [{"reference" "Location/0"
-                   "display" "foo"}]})))))))
+            (resource-upsert
+              db nil :server-assigned-id
+              {"id" "0" "resourceType" "Measure" "title" "Foo"}))))))
 
 
 
@@ -1197,7 +1327,7 @@
 
       (testing "with date type"
         (let [[db id] (test-util/with-resource db "Patient" "0" :Patient/birthDate
-                                     (value/write (Year/of 2000)))]
+                                               (value/write (Year/of 2000)))]
           (is
             (=
               (mapv
@@ -1243,7 +1373,7 @@
         (let [[db medication-id] (test-util/with-code db "http://hl7.org/fhir/allergy-intolerance-category" "medication")
               [db food-id] (test-util/with-code db "http://hl7.org/fhir/allergy-intolerance-category" "food")
               [db id] (test-util/with-resource db "AllergyIntolerance" "0"
-                                     :AllergyIntolerance/category medication-id)]
+                                               :AllergyIntolerance/category medication-id)]
           (is
             (= (with-redefs [d/tempid (fn [partition] partition)]
                  (resource-upsert
@@ -1261,8 +1391,8 @@
       (testing "with string choice"
         (let [[db id]
               (test-util/with-resource db "Observation" "0"
-                             :Observation/valueString "foo"
-                             :Observation/value :Observation/valueString)]
+                                       :Observation/valueString "foo"
+                                       :Observation/value :Observation/valueString)]
           (is
             (=
               (resource-upsert
@@ -1275,8 +1405,8 @@
       (testing "switch from string choice to boolean choice"
         (let [[db id]
               (test-util/with-resource db "Observation" "0"
-                             :Observation/valueString "foo"
-                             :Observation/value :Observation/valueString)]
+                                       :Observation/valueString "foo"
+                                       :Observation/value :Observation/valueString)]
           (is
             (=
               (resource-upsert
@@ -1290,8 +1420,8 @@
       (testing "switch from string choice to CodeableConcept choice"
         (let [[db id]
               (test-util/with-resource db "Observation" "0"
-                             :Observation/valueString "foo"
-                             :Observation/value :Observation/valueString)]
+                                       :Observation/valueString "foo"
+                                       :Observation/value :Observation/valueString)]
           (is
             (=
               (with-redefs [d/tempid (fn [partition] partition)]
@@ -1379,10 +1509,16 @@
              [:db.fn/cas encounter-id :instance/version -3 -7]]))))
 
 
-    (testing "single-valued special Reference type"
+    (testing "single-valued reference element"
       (let [[db patient-0-id] (test-util/with-resource db "Patient" "0")
             [db patient-1-id] (test-util/with-resource db "Patient" "1")
-            [db observation-id] (test-util/with-resource db "Observation" "0" :Observation/subject patient-0-id)]
+            [db reference-id]
+            (test-util/with-non-primitive db :Reference/reference "Patient/0")
+            [db observation-id]
+            (test-util/with-resource
+              db "Observation" "0"
+              :Observation/subject reference-id
+              :Reference.Observation/subject patient-0-id)]
         (is
           (=
             (resource-upsert
@@ -1390,17 +1526,51 @@
               {"id" "0"
                "resourceType" "Observation"
                "subject" {"reference" "Patient/1"}})
-            [[:db/add observation-id :Observation/subject patient-1-id]
+            [[:db/add reference-id :Reference/reference "Patient/1"]
+             [:db/add observation-id :Reference.Observation/subject patient-1-id]
              [:db.fn/cas observation-id :instance/version -3 -7]]))))
+
+    (testing "single-valued choice-typed reference element"
+      (let [[db patient-id-0] (test-util/with-resource db "Patient" "0")
+            [db patient-id-1] (test-util/with-resource db "Patient" "1")
+            [db patient-ref]
+            (test-util/with-non-primitive db :Reference/reference "Patient/0")
+            [db info-id]
+            (test-util/with-non-primitive
+              db
+              :Claim.supportingInfo/value :Claim.supportingInfo/valueReference
+              :Claim.supportingInfo/valueReference patient-ref
+              :Reference.Claim.supportingInfo/valueReference patient-id-0)
+            [db id]
+            (test-util/with-resource
+              db "Claim" "0"
+              :Claim/supportingInfo info-id)]
+        (is
+          (=
+            (resource-upsert
+              db nil :server-assigned-id
+              {"id" "0"
+               "resourceType" "Claim"
+               "supportingInfo"
+               [{"valueReference" {"reference" "Patient/1"}}]})
+            [[:db/add patient-ref :Reference/reference "Patient/1"]
+             [:db/add info-id :Reference.Claim.supportingInfo/valueReference patient-id-1]
+             [:db.fn/cas id :instance/version -3 -7]]))))
 
 
     (testing "Contained resources"
       (testing "with changes inside the contained resource"
-        (let [[db contained-id] (test-util/with-non-primitive db :Patient/active false
-                                                    :local-id "0")
-              [db id] (test-util/with-resource db "Observation" "0"
-                                     :Observation/contained contained-id
-                                     :Observation/subject contained-id)]
+        (let [[db contained-id]
+              (test-util/with-non-primitive
+                db :Patient/active false :local-id "0")
+              [db contained-ref]
+              (test-util/with-non-primitive db :Reference/reference "#0")
+              [db id]
+              (test-util/with-resource
+                db "Observation" "0"
+                :Observation/contained contained-id
+                :Observation/subject contained-ref
+                :Reference.Observation/subject contained-id)]
           (is
             (=
               (resource-upsert
@@ -1416,14 +1586,24 @@
                [:db.fn/cas id :instance/version -3 -7]]))))
 
       (testing "with changes inside the container resource"
-        (let [[db contained-id] (test-util/with-non-primitive db :Patient/active true
-                                                    :local-id "0")
-              [db preliminary-id] (test-util/with-code db "http://hl7.org/fhir/observation-status" "preliminary")
-              [db final-id] (test-util/with-code db "http://hl7.org/fhir/observation-status" "final")
-              [db id] (test-util/with-resource db "Observation" "0"
-                                     :Observation/status preliminary-id
-                                     :Observation/contained contained-id
-                                     :Observation/subject contained-id)]
+        (let [[db contained-id]
+              (test-util/with-non-primitive
+                db :Patient/active true :local-id "0")
+              [db contained-ref]
+              (test-util/with-non-primitive db :Reference/reference "#0")
+              [db preliminary-id]
+              (test-util/with-code
+                db "http://hl7.org/fhir/observation-status" "preliminary")
+              [db final-id]
+              (test-util/with-code
+                db "http://hl7.org/fhir/observation-status" "final")
+              [db id]
+              (test-util/with-resource
+                db "Observation" "0"
+                :Observation/status preliminary-id
+                :Observation/contained contained-id
+                :Observation/subject contained-ref
+                :Reference.Observation/subject contained-id)]
           (is
             (=
               (resource-upsert
@@ -1445,16 +1625,18 @@
       (let [[db component-1-id]
             (test-util/with-non-primitive
               db
-              :Observation.component/valueQuantity (value/write (quantity 1M ""))
+              :Observation.component/valueQuantity
+              (value/write (quantity/custom-quantity 1M nil nil nil))
               :Observation.component/value :Observation.component/valueQuantity)
             [db component-2-id]
             (test-util/with-non-primitive
               db
-              :Observation.component/valueQuantity (value/write (quantity 2M ""))
+              :Observation.component/valueQuantity
+              (value/write (quantity/custom-quantity 2M nil nil nil))
               :Observation.component/value :Observation.component/valueQuantity)
             [db observation-id]
             (test-util/with-resource db "Observation" "0" :Observation/component
-                           #{component-1-id component-2-id})]
+                                     #{component-1-id component-2-id})]
         (is
           (=
             (mapv
@@ -1473,12 +1655,12 @@
             [[:db/add
               component-2-id
               :Observation.component/valueQuantity
-              (quantity 2M "m")]
+              (quantity/custom-quantity 2M "m" nil nil)]
              [:db/add component-2-id :Observation.component/value :Observation.component/valueQuantity]
              [:db/add
               component-1-id
               :Observation.component/valueQuantity
-              (quantity 1M "m")]
+              (quantity/custom-quantity 1M "m" nil nil)]
              [:db/add component-1-id :Observation.component/value :Observation.component/valueQuantity]
              [:db.fn/cas observation-id :instance/version -3 -7]]))))
 
@@ -1487,7 +1669,7 @@
       (let [[db medication-id] (test-util/with-code db "http://hl7.org/fhir/allergy-intolerance-category" "medication")
             [db food-id] (test-util/with-code db "http://hl7.org/fhir/allergy-intolerance-category" "food")
             [db id] (test-util/with-resource db "AllergyIntolerance" "0"
-                                   :AllergyIntolerance/category medication-id)]
+                                             :AllergyIntolerance/category medication-id)]
         (is
           (= (with-redefs [d/tempid (fn [partition] partition)]
                (resource-upsert
@@ -1498,7 +1680,22 @@
                   [(with-meta 'food {:system "http://hl7.org/fhir/allergy-intolerance-category"})]}))
              [[:db/retract id :AllergyIntolerance/category medication-id]
               [:db/add id :AllergyIntolerance/category food-id]
-              [:db.fn/cas id :instance/version -3 -7]])))))
+              [:db.fn/cas id :instance/version -3 -7]]))))
+
+
+    (testing "Measure.title"
+      (let [[db id] (test-util/with-resource
+                      db "Measure" "0"
+                      :Measure/title "Foo"
+                      :SearchParameter/Measure-title "foo")]
+        (is
+          (=
+            (resource-upsert
+              db nil :server-assigned-id
+              {"id" "0" "resourceType" "Measure" "title" "Bar"})
+            [[:db/add id :Measure/title "Bar"]
+             [:db/add id :SearchParameter/Measure-title "bar"]
+             [:db.fn/cas id :instance/version -3 -7]])))))
 
 
   (testing "Retracts"
@@ -1528,7 +1725,7 @@
 
       (testing "with date type"
         (let [[db id] (test-util/with-resource db "Patient" "0" :Patient/birthDate
-                                     (value/write (Year/of 2000)))]
+                                               (value/write (Year/of 2000)))]
           (is
             (=
               (mapv
@@ -1581,8 +1778,8 @@
     (testing "single-valued choice-typed element"
       (let [[db id]
             (test-util/with-resource db "Observation" "0"
-                           :Observation/valueString "foo"
-                           :Observation/value :Observation/valueString)]
+                                     :Observation/valueString "foo"
+                                     :Observation/value :Observation/valueString)]
         (is
           (=
             (resource-upsert
@@ -1632,7 +1829,7 @@
     (testing "Coding"
       (let [[db code-id]
             (test-util/with-code db "http://terminology.hl7.org/CodeSystem/v3-ActCode"
-                       "AMB")
+                                 "AMB")
             [db coding-id] (test-util/with-non-primitive db :Coding/code code-id)
             [db encounter-id]
             (test-util/with-resource db "Encounter" "0" :Encounter/class coding-id)]
@@ -1649,11 +1846,11 @@
     (testing "Contained resources"
       (testing "retracts all contained resources"
         (let [[db contained-1-id] (test-util/with-non-primitive db :Patient/active true
-                                                      :local-id "1")
+                                                                :local-id "1")
               [db contained-2-id] (test-util/with-non-primitive db :Patient/active false
-                                                      :local-id "2")
+                                                                :local-id "2")
               [db id] (test-util/with-resource db "Patient" "0" :Patient/contained
-                                     #{contained-1-id contained-2-id})]
+                                               #{contained-1-id contained-2-id})]
           (is
             (=
               (set
@@ -1667,7 +1864,109 @@
                 [:db/retract contained-2-id :Patient/active false]
                 [:db/retract contained-2-id :local-id "2"]
                 [:db/retract id :Patient/contained contained-2-id]
-                [:db.fn/cas id :instance/version -3 -7]}))))))
+                [:db.fn/cas id :instance/version -3 -7]})))))
+
+
+    (testing "Measure.title"
+      (let [[db id] (test-util/with-resource
+                      db "Measure" "0"
+                      :Measure/title "Foo"
+                      :SearchParameter/Measure-title "foo")]
+        (is
+          (=
+            (resource-upsert
+              db nil :server-assigned-id
+              {"id" "0" "resourceType" "Measure"})
+            [[:db/retract id :Measure/title "Foo"]
+             [:db/retract id :SearchParameter/Measure-title "foo"]
+             [:db.fn/cas id :instance/version -3 -7]]))))
+
+
+    (testing "single-valued reference element"
+      (testing "with simple reference element"
+        (let [[db patient-id] (test-util/with-resource db "Patient" "0")
+              [db patient-ref]
+              (test-util/with-non-primitive db :Reference/reference "Patient/0")
+              [db id]
+              (test-util/with-resource
+                db "Observation" "0"
+                :Observation/subject patient-ref
+                :Reference.Observation/subject patient-id)]
+          (is
+            (=
+              (resource-upsert
+                db nil :server-assigned-id
+                {"id" "0"
+                 "resourceType" "Observation"})
+              [[:db/retract patient-ref :Reference/reference "Patient/0"]
+               [:db/retract id :Observation/subject patient-ref]
+               [:db/retract id :Reference.Observation/subject patient-id]
+               [:db.fn/cas id :instance/version -3 -7]]))))
+
+      (testing "with additional display element"
+        (let [[db patient-id] (test-util/with-resource db "Patient" "0")
+              [db patient-ref]
+              (test-util/with-non-primitive
+                db :Reference/reference "Patient/0" :Reference/display "foo")
+              [db id]
+              (test-util/with-resource
+                db "Observation" "0"
+                :Observation/subject patient-ref
+                :Reference.Observation/subject patient-id)]
+          (is
+            (=
+              (resource-upsert
+                db nil :server-assigned-id
+                {"id" "0"
+                 "resourceType" "Observation"})
+              [[:db/retract patient-ref :Reference/reference "Patient/0"]
+               [:db/retract patient-ref :Reference/display "foo"]
+               [:db/retract id :Observation/subject patient-ref]
+               [:db/retract id :Reference.Observation/subject patient-id]
+               [:db.fn/cas id :instance/version -3 -7]]))))
+
+      (testing "with logical reference"
+        (let [[db identifier-id]
+              (test-util/with-non-primitive
+                db :Identifier/system "foo" :Identifier/value "bar")
+              [db patient-ref]
+              (test-util/with-non-primitive
+                db :Reference/identifier identifier-id)
+              [db id]
+              (test-util/with-resource
+                db "Observation" "0" :Observation/subject patient-ref)]
+          (is
+            (=
+              (resource-upsert
+                db nil :server-assigned-id
+                {"id" "0"
+                 "resourceType" "Observation"})
+              [[:db/retract identifier-id :Identifier/value "bar"]
+               [:db/retract identifier-id :Identifier/system "foo"]
+               [:db/retract patient-ref :Reference/identifier identifier-id]
+               [:db/retract id :Observation/subject patient-ref]
+               [:db.fn/cas id :instance/version -3 -7]])))))
+
+
+    (testing "multi-valued reference element"
+      (let [[db practitioner-id] (test-util/with-resource db "Practitioner" "0")
+            [db practitioner-ref]
+            (test-util/with-non-primitive db :Reference/reference "Practitioner/0")
+            [db id]
+            (test-util/with-resource
+              db "Observation" "0"
+              :Observation/performer practitioner-ref
+              :Reference.Observation/performer practitioner-id)]
+        (is
+          (=
+            (resource-upsert
+              db nil :server-assigned-id
+              {"id" "0"
+               "resourceType" "Observation"})
+            [[:db/retract practitioner-ref :Reference/reference "Practitioner/0"]
+             [:db/retract id :Observation/performer practitioner-ref]
+             [:db/retract id :Reference.Observation/performer practitioner-id]
+             [:db.fn/cas id :instance/version -3 -7]])))))
 
 
 
@@ -1772,7 +2071,64 @@
             (resource-deletion db "Patient" "0")
             [[:db.fn/cas patient-id :instance/version -3 -5]
              [:db/retract name-id :HumanName/family "Doe"]
-             [:db/retract patient-id :Patient/name name-id]]))))))
+             [:db/retract patient-id :Patient/name name-id]]))))
+
+    (testing "single-valued reference element"
+      (let [[db patient-id] (test-util/with-resource db "Patient" "0")
+            [db patient-ref]
+            (test-util/with-non-primitive db :Reference/reference "Patient/0")
+            [db id]
+            (test-util/with-resource
+              db "Claim" "0"
+              :Claim/patient patient-ref
+              :Reference.Claim/patient patient-id)]
+        (is
+          (=
+            (resource-deletion db "Claim" "0")
+            [[:db.fn/cas id :instance/version -3 -5]
+             [:db/retract patient-ref :Reference/reference "Patient/0"]
+             [:db/retract id :Claim/patient patient-ref]
+             [:db/retract id :Reference.Claim/patient patient-id]]))))
+
+    (testing "single-valued choice-typed reference element"
+      (let [[db patient-id] (test-util/with-resource db "Patient" "0")
+            [db patient-ref]
+            (test-util/with-non-primitive db :Reference/reference "Patient/0")
+            [db info-id]
+            (test-util/with-non-primitive
+              db
+              :Claim.supportingInfo/value :Claim.supportingInfo/valueReference
+              :Claim.supportingInfo/valueReference patient-ref
+              :Reference.Claim.supportingInfo/valueReference patient-id)
+            [db id]
+            (test-util/with-resource
+              db "Claim" "0"
+              :Claim/supportingInfo info-id)]
+        (is
+          (=
+            (resource-deletion db "Claim" "0")
+            [[:db.fn/cas id :instance/version -3 -5]
+             [:db/retract patient-ref :Reference/reference "Patient/0"]
+             [:db/retract info-id :Claim.supportingInfo/valueReference
+              patient-ref]
+             [:db/retract info-id :Reference.Claim.supportingInfo/valueReference
+              patient-id]
+             [:db/retract info-id :Claim.supportingInfo/value
+              :Claim.supportingInfo/valueReference]
+             [:db/retract id :Claim/supportingInfo info-id]]))))
+
+    (testing "Measure.title"
+      (let [[db id]
+            (test-util/with-resource
+              db "Measure" "0"
+              :Measure/title "Foo"
+              :SearchParameter/Measure-title "foo")]
+        (is
+          (=
+            (resource-deletion db "Measure" "0")
+            [[:db.fn/cas id :instance/version -3 -5]
+             [:db/retract id :Measure/title "Foo"]
+             [:db/retract id :SearchParameter/Measure-title "foo"]]))))))
 
 
 (deftest resource-codes-creation-test
@@ -1795,13 +2151,13 @@
       (is
         (contains?
           tx-data
-          {:db/ident (keyword "Patient.Observation.code" "http://hl7.org/fhir/administrative-gender||male")
+          {:db/ident (keyword "Patient.Observation.code" "http://hl7.org/fhir/administrative-gender|male")
            :db/valueType :db.type/ref
            :db/cardinality :db.cardinality/many}))
       (is
         (contains?
           tx-data
-          {:db/ident (keyword "Patient.Condition.code" "http://hl7.org/fhir/administrative-gender||male")
+          {:db/ident (keyword "Patient.Condition.code" "http://hl7.org/fhir/administrative-gender|male")
            :db/valueType :db.type/ref
            :db/cardinality :db.cardinality/many}))))
 
@@ -1825,13 +2181,13 @@
       (is
         (contains?
           tx-data
-          {:db/ident (keyword "Patient.Observation.code" "http://hl7.org/fhir/allergy-intolerance-category||medication")
+          {:db/ident (keyword "Patient.Observation.code" "http://hl7.org/fhir/allergy-intolerance-category|medication")
            :db/valueType :db.type/ref
            :db/cardinality :db.cardinality/many}))
       (is
         (contains?
           tx-data
-          {:db/ident (keyword "Patient.Condition.code" "http://hl7.org/fhir/allergy-intolerance-category||medication")
+          {:db/ident (keyword "Patient.Condition.code" "http://hl7.org/fhir/allergy-intolerance-category|medication")
            :db/valueType :db.type/ref
            :db/cardinality :db.cardinality/many}))))
 
@@ -1856,7 +2212,7 @@
       (is
         (contains?
           tx-data
-          {:db/ident (keyword "Patient.Observation.code" "http://terminology.hl7.org/CodeSystem/v3-ActCode||AMB")
+          {:db/ident (keyword "Patient.Observation.code" "http://terminology.hl7.org/CodeSystem/v3-ActCode|AMB")
            :db/valueType :db.type/ref
            :db/cardinality :db.cardinality/many}))))
 
@@ -1881,7 +2237,7 @@
       (is
         (contains?
           tx-data
-          {:db/ident (keyword "Patient.Observation.code" "http://hl7.org/fhir/filter-operator||=")
+          {:db/ident (keyword "Patient.Observation.code" "http://hl7.org/fhir/filter-operator|=")
            :db/valueType :db.type/ref
            :db/cardinality :db.cardinality/many}))))
 
@@ -1909,7 +2265,7 @@
       (is
         (contains?
           tx-data
-          {:db/ident (keyword "Patient.Observation.code" "http://hl7.org/fhir/sid/icd-10|2016|Q14")
+          {:db/ident (keyword "Patient.Observation.code" "http://hl7.org/fhir/sid/icd-10|Q14")
            :db/valueType :db.type/ref
            :db/cardinality :db.cardinality/many}))))
 
@@ -1934,7 +2290,7 @@
       (is
         (contains?
           tx-data
-          {:db/ident (keyword "Patient.Observation.code" "http://hl7.org/fhir/administrative-gender||male")
+          {:db/ident (keyword "Patient.Observation.code" "http://hl7.org/fhir/administrative-gender|male")
            :db/valueType :db.type/ref
            :db/cardinality :db.cardinality/many}))))
 
@@ -1947,21 +2303,21 @@
                 {"id" "0"
                  "resourceType" "CodeSystem"
                  "url" "http://hl7.org/fhir/administrative-gender"
-                 "version" "4.0.0"
+                 "version" "4.0.1"
                  "concept"
                  [{"code" "male"}]})))]
       (is
         (contains?
           tx-data
           {:db/id :part/code
-           :code/id "http://hl7.org/fhir/administrative-gender|4.0.0|male"
+           :code/id "http://hl7.org/fhir/administrative-gender|4.0.1|male"
            :code/system "http://hl7.org/fhir/administrative-gender"
-           :code/version "4.0.0"
+           :code/version "4.0.1"
            :code/code "male"}))
       (is
         (contains?
           tx-data
-          {:db/ident (keyword "Patient.Observation.code" "http://hl7.org/fhir/administrative-gender|4.0.0|male")
+          {:db/ident (keyword "Patient.Observation.code" "http://hl7.org/fhir/administrative-gender|male")
            :db/valueType :db.type/ref
            :db/cardinality :db.cardinality/many}))))
 
@@ -1987,7 +2343,7 @@
       (is
         (contains?
           tx-data
-          {:db/ident (keyword "Patient.Observation.code" "http://foo||bar")
+          {:db/ident (keyword "Patient.Observation.code" "http://foo|bar")
            :db/valueType :db.type/ref
            :db/cardinality :db.cardinality/many}))))
 
@@ -2014,7 +2370,7 @@
       (is
         (contains?
           tx-data
-          {:db/ident (keyword "Patient.Observation.code" "http://foo||bar")
+          {:db/ident (keyword "Patient.Observation.code" "http://foo|bar")
            :db/valueType :db.type/ref
            :db/cardinality :db.cardinality/many}))))
 
@@ -2039,7 +2395,7 @@
       (is
         (contains?
           tx-data
-          {:db/ident (keyword "Patient.Observation.code" "||draft")
+          {:db/ident (keyword "Patient.Observation.code" "|draft")
            :db/valueType :db.type/ref
            :db/cardinality :db.cardinality/many})))))
 

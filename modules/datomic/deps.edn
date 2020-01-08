@@ -18,26 +18,13 @@
   {:mvn/version "4.10.0"}
 
   funcool/cuerdas
-  {:mvn/version "2.2.0"
-   :exclusions [org.clojure/clojurescript]}
-
-  javax.measure/unit-api
-  {:mvn/version "1.0"}
+  {:mvn/version "2.2.1"}
 
   org.clojars.akiel/datomic-spec
   {:mvn/version "0.5.2"}
 
   org.clojars.akiel/datomic-tools
-  {:mvn/version "0.4"}
-
-  prom-metrics
-  {:mvn/version "0.5-alpha2"}
-
-  systems.uom/systems-quantity
-  {:mvn/version "1.0"}
-
-  systems.uom/systems-ucum
-  {:mvn/version "0.9"}}
+  {:mvn/version "0.4"}}
 
  :aliases
  {:test
@@ -51,7 +38,7 @@
     {:mvn/version "0.4.5"}
 
     lambdaisland/kaocha
-    {:mvn/version "0.0-554"}
+    {:mvn/version "0.0-565"}
 
     org.clojars.akiel/iota
     {:mvn/version "0.1"}

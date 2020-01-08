@@ -33,32 +33,39 @@
           :interactions
           {:read
            #:blaze.rest-api.interaction
-               {:handler (fn [_] ::read)}
+               {:handler (fn [_] {::handler ::read})}
            :vread
            #:blaze.rest-api.interaction
-               {:handler (fn [_] ::vread)}
+               {:handler (fn [_] {::handler ::vread})}
            :update
            #:blaze.rest-api.interaction
-               {:handler (fn [_] ::update)}
+               {:handler (fn [_] {::handler ::update})}
            :delete
            #:blaze.rest-api.interaction
-               {:handler (fn [_] ::delete)}
+               {:handler (fn [_] {::handler ::delete})}
            :history-instance
            #:blaze.rest-api.interaction
-               {:handler (fn [_] ::history-instance)}
+               {:handler (fn [_] {::handler ::history-instance})}
            :history-type
            #:blaze.rest-api.interaction
-               {:handler (fn [_] ::history-type)}
+               {:handler (fn [_] {::handler ::history-type})}
            :create
            #:blaze.rest-api.interaction
-               {:handler (fn [_] ::create)}
+               {:handler (fn [_] {::handler ::create})}
            :search-type
            #:blaze.rest-api.interaction
-               {:handler (fn [_] ::search-type)}}}]}
+               {:handler (fn [_] {::handler ::search-type})}}}]
+     :operations
+     [#:blaze.rest-api.operation
+         {:code "evaluate-measure"
+          :resource-types ["Measure"]
+          :type-handler (fn [_] {::handler ::evaluate-measure-type})
+          :instance-handler (fn [_] {::handler ::evaluate-measure-instance})}]}
     (fn [_])))
 
 
 (comment
+  (reitit/router-name router)
   (doseq [route (reitit/routes router)]
     (prn route)))
 
@@ -67,10 +74,11 @@
   (testing "Patient matches"
     (are [path request-method handler]
       (= handler
-         ((get-in
-            (reitit/match-by-path router path)
-            [:result request-method :handler])
-          {}))
+         (::handler
+           @((get-in
+               (reitit/match-by-path router path)
+               [:result request-method :handler])
+             {})))
       "/Patient" :get ::search-type
       "/Patient" :post ::create
       "/Patient/_history" :get ::history-type
@@ -79,7 +87,11 @@
       "/Patient/0" :put ::update
       "/Patient/0" :delete ::delete
       "/Patient/0/_history" :get ::history-instance
-      "/Patient/0/_history/42" :get ::vread))
+      "/Patient/0/_history/42" :get ::vread
+      "/Measure/$evaluate-measure" :get ::evaluate-measure-type
+      "/Measure/$evaluate-measure" :post ::evaluate-measure-type
+      "/Measure/0/$evaluate-measure" :get ::evaluate-measure-instance
+      "/Measure/0/$evaluate-measure" :post ::evaluate-measure-instance))
 
   (testing "Patient instance POST is not allowed"
     (given ((reitit.ring/ring-handler router rest-api/default-handler)

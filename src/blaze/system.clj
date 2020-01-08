@@ -26,7 +26,12 @@
 (defrecord Cfg [env-var spec default])
 
 
-(defn- cfg [[env-var spec-form default]]
+(defn- cfg
+  "Creates a config entry which consists of the name of a environment variable,
+  a spec and a default value.
+
+  Config entries appear in blaze.edn files."
+  [[env-var spec-form default]]
   (let [spec
         (if (symbol? spec-form)
           (var-get (resolve spec-form))
@@ -45,11 +50,21 @@
       (log/warn "Problem while reading blaze.edn. Skipping it." e))))
 
 
-(defn resolve-config [config env]
+(defn- get-blank [m k default]
+  (let [v (get m k)]
+    (if (or (nil? v) (str/blank? v))
+      default
+      v)))
+
+
+(defn resolve-config
+  "Resolves config entries to there actual values with the help of an
+  environment."
+  [config env]
   (postwalk
     (fn [x]
       (if (instance? Cfg x)
-        (when-let [value (get env (:env-var x) (:default x))]
+        (when-let [value (get-blank env (:env-var x) (:default x))]
           (coerce (:spec x) value))
         x))
     config))
@@ -62,16 +77,19 @@
 
 
 (def ^:private root-config
-  {:blaze/version "0.7.0-alpha.9"
+  {:blaze/version "0.8.0-alpha.7"
 
    :blaze/clock {}
 
    :blaze/structure-definition {}
 
+   :blaze/search-parameter {}
+
    :blaze.datomic.transaction/executor {}
 
    :blaze.datomic/conn
    {:structure-definitions (ig/ref :blaze/structure-definition)
+    :search-parameters (ig/ref :blaze/search-parameter)
     :database/uri (->Cfg "DATABASE_URI" string? "datomic:mem://dev")}
 
    :blaze.datomic/resource-upsert-duration-seconds {}

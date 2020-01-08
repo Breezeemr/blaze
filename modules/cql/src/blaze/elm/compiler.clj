@@ -16,10 +16,11 @@
     [blaze.elm.compiler.property :as property]
     [blaze.elm.compiler.retrieve :as retrieve]
     [blaze.elm.compiler.query :as query]
-    [blaze.datomic.cql :as cql]
-    [blaze.datomic.util :as datomic-util]
+    [blaze.datomic.quantity :as fhir-quantity]
+    [blaze.datomic.util :as db]
     [blaze.elm.aggregates :as aggregates]
     [blaze.elm.boolean]
+    [blaze.elm.code :as code]
     [blaze.elm.data-provider :as data-provider]
     [blaze.elm.date-time :as date-time :refer [local-time temporal?]]
     [blaze.elm.decimal :as decimal]
@@ -43,8 +44,7 @@
   (:import
     [java.time LocalDate LocalDateTime OffsetDateTime Year YearMonth ZoneOffset]
     [java.time.temporal ChronoUnit]
-    [java.util Comparator]
-    [datomic Entity])
+    [java.util Comparator])
   (:refer-clojure :exclude [comparator compile]))
 
 
@@ -461,6 +461,18 @@
       (property/scope-choice-type-expr scope attr))))
 
 
+(defn- runtime-choice-type-property-expr
+  [{:life/keys [single-query-scope] :as context} source scope path]
+  (cond
+    source
+    (property/source-runtime-choice-type-expr (compile context source) path)
+
+    scope
+    (if (= single-query-scope scope)
+      (property/single-scope-runtime-choice-type-expr path)
+      (property/scope-runtime-choice-type-expr scope path))))
+
+
 (defn- property-expr
   [{:life/keys [single-query-scope] :as context} source scope attr]
   (cond
@@ -490,10 +502,7 @@
   (if (property/choice-result-type? expression)
     (if-let [attr (property/attr expression)]
       (choice-type-expr context source scope attr)
-      (throw-anom
-        ::anom/unsupported
-        "Unsupported choice-type, runtime-type expression."
-        :expression expression))
+      (runtime-choice-type-property-expr context source scope path))
     (if-let [attr (property/attr expression)]
       (property-expr context source scope attr)
       (runtime-type-property-expr context source scope path))))
@@ -511,14 +520,19 @@
 
 ;; 3.1. Code
 (defmethod compile* :elm.compiler.type/code
-  [{:keys [library db] :as context}
+  [{:keys [library] :as context}
    {{system-name :name} :system :keys [code] :as expression}]
   ;; TODO: look into other libraries (:libraryName)
-  (if-let [{system :id} (find-code-system-def library system-name)]
-    (cql/find-code db system code)
+  (if-let [{system :id :keys [version]} (find-code-system-def library system-name)]
+    (code/to-code system version code)
     (throw (ex-info (format "Can't find the code system `%s`." system-name)
                     {:context context
                      :expression expression}))))
+
+
+;; 3.2. CodeDef
+;;
+;; Not needed because it's not an expression.
 
 
 ;; 3.3. CodeRef
@@ -529,18 +543,22 @@
   (some #(when (= name (:name %)) %) code-defs))
 
 (defmethod compile* :elm.compiler.type/code-ref
-  [{:keys [library db] :as context} {:keys [name] :as expression}]
+  [{:keys [library] :as context} {:keys [name] :as expression}]
   ;; TODO: look into other libraries (:libraryName)
   (when-let [{code-system-ref :codeSystem code :id :as code-def}
              (find-code-def library name)]
     (if code-system-ref
-      (when-let [{system :id} (compile context (assoc code-system-ref :type "CodeSystemRef"))]
-        ;; TODO: version
-        (cql/find-code db system code))
+      (when-let [{system :id :keys [version]} (compile context (assoc code-system-ref :type "CodeSystemRef"))]
+        (code/to-code system version code))
       (throw (ex-info "Can't handle code-defs without code-system-ref."
                       {:context context
                        :expression expression
                        :code-def code-def})))))
+
+
+;; 3.4. CodeSystemDef
+;;
+;; Not needed because it's not an expression.
 
 
 ;; 3.5. CodeSystemRef
@@ -548,6 +566,21 @@
   [{:keys [library]} {:keys [name]}]
   ;; TODO: look into other libraries (:libraryName)
   (find-code-system-def library name))
+
+
+;; 3.6. Concept
+;;
+;; TODO
+
+
+;; 3.7. ConceptDef
+;;
+;; Not needed because it's not an expression.
+
+
+;; 3.8. ConceptRef
+;;
+;; TODO
 
 
 ;; 3.9. Quantity
@@ -567,6 +600,18 @@
     value))
 
 
+;; 3.10. Ratio
+;;
+;; TODO
+
+;; 3.11. ValueSetDef
+;;
+;; Not needed because it's not an expression.
+
+;; 3.12. ValueSetRef
+;;
+;; TODO
+
 
 ;; 9. Reusing Logic
 
@@ -580,8 +625,10 @@
   (-eval [_ {:keys [library-context] :as context} resource _]
     (if-some [expression (get library-context name)]
       (-eval expression context resource nil)
-      (throw (ex-info (str "Expression `" name "` not found.")
-                      {:context context})))))
+      (throw-anom
+        ::anom/incorrect
+        (str "Expression `" name "` not found.")
+        :context context))))
 
 
 (defmethod compile* :elm.compiler.type/expression-ref
@@ -598,9 +645,11 @@
           (if-some [expression (get library-context name)]
             (mapv
               #(-eval expression context % nil)
-              (datomic-util/list-resources db def-eval-context))
-            (throw (ex-info (str "Expression `" name "` not found.")
-                            {:context context}))))
+              (db/list-resources db def-eval-context))
+            (throw-anom
+              ::anom/incorrect
+              (str "Expression `" name "` not found.")
+              :context context)))
         (-hash [_]
           ;; TODO: the expression does something different here. should it have a different hash?
           {:type :expression-ref
@@ -617,7 +666,7 @@
   (let [operands (mapv #(compile context %) operands)]
     (case name
       "ToQuantity"
-      (first operands)
+      (function/->ToQuantityFunctionExpression (first operands))
 
       "ToDate"
       (function/->ToDateFunctionExpression (first operands))
@@ -630,6 +679,9 @@
 
       "ToCode"
       (function/->ToCodeFunctionExpression (first operands))
+
+      "ToDecimal"
+      (first operands)
 
       (throw (Exception. (str "Unsupported function `" name "` in `FunctionRef` expression."))))))
 
@@ -711,12 +763,12 @@
     {return :expression :keys [distinct] :or {distinct true}} :return
     {sort-by-items :by} :sort
     :as expr}]
-  (when (seq (filter #(= "With" (:type %)) relationships))
+  (when (seq (filter (comp #{"With"} :type) relationships))
     (throw-anom
       ::anom/unsupported
       "Unsupported With clause in query expression."
       :expression expr))
-  (when (seq (filter #(= "Without" (:type %)) relationships))
+  (when (seq (filter (comp #{"Without"} :type) relationships))
     (throw-anom
       ::anom/unsupported
       "Unsupported Without clause in query expression."
@@ -726,7 +778,7 @@
           context (dissoc context :optimizations)
           source (compile context expression)
           context (assoc context :life/single-query-scope alias)
-          with-equiv-clauses (filter #(= "WithEquiv" (:type %)) relationships)
+          with-equiv-clauses (filter (comp #{"WithEquiv"} :type) relationships)
           with-equiv-clauses (map #(compile-with-equiv-clause context %) with-equiv-clauses)
           with-xform-factories (mapv query/with-xform-factory with-equiv-clauses)
           where-xform-expr (some->> where (compile context) (query/where-xform-expr))
@@ -843,19 +895,24 @@
     code-property :codeProperty
     codes-expr :codes
     :or {code-property "code"}}]
-  (let [[_ data-type] (elm-util/parse-qualified-name data-type)]
-    (if-let [related-context-expr (some->> context-expr (compile context))]
-      (retrieve/with-related-context-expr
-        related-context-expr
-        data-type
-        code-property
-        (some->> codes-expr (compile context)))
-      (retrieve/expr
-        eval-context
-        db
-        data-type
-        code-property
-        (some->> codes-expr (compile context))))))
+  (let [[type-ns data-type] (elm-util/parse-qualified-name data-type)]
+    (if (= "http://hl7.org/fhir" type-ns)
+      (if-let [related-context-expr (some->> context-expr (compile context))]
+        (retrieve/with-related-context-expr
+          related-context-expr
+          data-type
+          code-property
+          (some->> codes-expr (compile context)))
+        (retrieve/expr
+          eval-context
+          db
+          data-type
+          code-property
+          (some->> codes-expr (compile context))))
+      (throw-anom
+        ::anom/unsupported
+        (format "Unsupported type namespace `%s` in Retrieve expression." type-ns)
+        :type-ns type-ns))))
 
 
 
@@ -2367,11 +2424,11 @@
 (defn- matches-fhir-named-type-fn [type-name]
   (cond
     (= "Quantity" type-name)
-    quantity?
+    fhir-quantity/quantity?
 
     (Character/isUpperCase ^char (first type-name))
     (fn matches-type? [x]
-      (and (instance? Entity x) (= type-name (datomic-util/entity-type x))))
+      (db/non-primitive-data-type? type-name x))
 
     (= "boolean" type-name)
     boolean?
@@ -2393,7 +2450,7 @@
 
     (= "code" type-name)
     (fn matches-type? [x]
-      (and (instance? Entity x) (= "code" (datomic-util/entity-type x))))
+      (= "code" (db/entity-type x)))
 
     (= "code" type-name)
     uuid?

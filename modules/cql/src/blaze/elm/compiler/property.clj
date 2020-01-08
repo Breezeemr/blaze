@@ -1,7 +1,8 @@
 (ns blaze.elm.compiler.property
   (:require
     [blaze.anomaly :refer [throw-anom]]
-    [blaze.datomic.util :as datomic-util]
+    [blaze.datomic.quantity :as datomic-quantity]
+    [blaze.datomic.util :as db]
     [blaze.datomic.value :as dv]
     [blaze.elm.compiler.protocols :refer [Expression -eval expr?]]
     [blaze.elm.spec]
@@ -35,7 +36,7 @@
 
 (s/fdef attr
   :args (s/cat :expression :elm/expression)
-  :ret (s/nilable keyword?))
+  :ret (s/nilable ifn?))
 
 (defn attr
   "Returns the Datomic attribute which corresponds to the :path of the
@@ -46,7 +47,14 @@
     source-type
     (let [[type-ns type-name] (elm-util/parse-qualified-name source-type)]
       (if (= "http://hl7.org/fhir" type-ns)
-        (attr-kw type-name path)
+        (case type-name
+          "Quantity"
+          (case path
+            "value" datomic-quantity/value
+            "unit" datomic-quantity/unit
+            "system" datomic-quantity/system
+            "code" datomic-quantity/code)
+          (attr-kw type-name path))
         (throw-anom
           ::anom/unsupported
           (format
@@ -68,12 +76,16 @@
         :Patient/birthDate))))
 
 
+(defn- get-choice-typed-property [value type-attr]
+  (when-let [attr (type-attr value)]
+    (dv/read (attr value))))
+
+
 (defrecord SourceChoiceTypePropertyExpression [source type-attr]
   Expression
   (-eval [_ context resource scope]
     (let [value (-eval source context resource scope)]
-      (when-let [type-attr (type-attr value)]
-        (dv/read (type-attr value))))))
+      (get-choice-typed-property value type-attr))))
 
 
 (s/fdef source-choice-type-expr
@@ -88,7 +100,7 @@
   Expression
   (-eval [_ _ _ scope]
     (let [value (get scope key)]
-      (dv/read ((type-attr value) value)))))
+      (get-choice-typed-property value type-attr))))
 
 
 (s/fdef scope-choice-type-expr
@@ -118,7 +130,7 @@
 
 
 (s/fdef source-expr
-  :args (s/cat :source expr? :attr keyword?))
+  :args (s/cat :source expr? :attr ifn?))
 
 (defn source-expr
   [source attr]
@@ -132,7 +144,7 @@
 
 
 (s/fdef scope-expr
-  :args (s/cat :scope string? :attr keyword?))
+  :args (s/cat :scope string? :attr ifn?))
 
 (defn scope-expr [scope attr]
   (->ScopePropertyExpression scope attr))
@@ -152,7 +164,7 @@
 
 
 (defn- navigate [value path]
-  ((keyword (datomic-util/entity-type value) path) value))
+  (dv/read ((keyword (db/entity-type value) path) value)))
 
 
 (defrecord SourceRuntimeTypePropertyExpression [source path]
@@ -195,3 +207,53 @@
 
 (defn single-scope-runtime-type-expr [path]
   (->SingleScopeRuntimeTypePropertyExpression path))
+
+
+
+;; ---- Runtime Choice Type ---------------------------------------------------
+
+(defn- navigate-choice-type [value path]
+  (let [type-attr (keyword (db/entity-type value) path)]
+    (get-choice-typed-property value type-attr)))
+
+
+(defrecord SourceRuntimeChoiceTypePropertyExpression [source path]
+  Expression
+  (-eval [_ context resource scope]
+    (when-some [value (-eval source context resource scope)]
+      (navigate-choice-type value path))))
+
+
+(s/fdef source-runtime-choice-type-expr
+  :args (s/cat :source expr? :path string?))
+
+(defn source-runtime-choice-type-expr [source path]
+  (->SourceRuntimeChoiceTypePropertyExpression source path))
+
+
+(defrecord ScopeRuntimeChoiceTypePropertyExpression [key path]
+  Expression
+  (-eval [_ _ _ scope]
+    (when-some [value (get scope key)]
+      (navigate-choice-type value path))))
+
+
+(s/fdef scope-runtime-choice-type-expr
+  :args (s/cat :scope string? :path string?))
+
+(defn scope-runtime-choice-type-expr [scope path]
+  (->ScopeRuntimeChoiceTypePropertyExpression scope path))
+
+
+(defrecord SingleScopeRuntimeChoiceTypePropertyExpression [path]
+  Expression
+  (-eval [_ _ _ scope]
+    (when scope
+      (navigate-choice-type scope path))))
+
+
+(s/fdef single-scope-runtime-choice-type-expr
+  :args (s/cat :path string?))
+
+(defn single-scope-runtime-choice-type-expr [path]
+  (->SingleScopeRuntimeChoiceTypePropertyExpression path))

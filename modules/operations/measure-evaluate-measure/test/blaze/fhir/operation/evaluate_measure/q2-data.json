@@ -26,41 +26,24 @@
     },
     {
       "resource": {
-        "category": [
-          {
-            "coding": [
-              {
-                "code": "vital-signs",
-                "system": "http://terminology.hl7.org/CodeSystem/observation-category"
-              }
-            ]
-          }
-        ],
+        "resourceType": "Observation",
+        "id": "0",
         "code": {
           "coding": [
             {
-              "code": "39156-5",
-              "system": "http://loinc.org"
+              "system": "http://loinc.org",
+              "code": "39156-5"
             }
           ]
         },
-        "effectiveDateTime": "2005-06-17",
-        "id": "0",
-        "meta": {
-          "profile": [
-            "https://fhir.bbmri.de/StructureDefinition/Bmi"
-          ]
-        },
-        "resourceType": "Observation",
-        "status": "final",
         "subject": {
           "reference": "Patient/0"
         },
         "valueQuantity": {
-          "code": "kg/m2",
-          "system": "http://unitsofmeasure.org",
+          "value": 36.6,
           "unit": "kg/m2",
-          "value": 36.6
+          "system": "http://unitsofmeasure.org",
+          "code": "kg/m2"
         }
       },
       "request": {
