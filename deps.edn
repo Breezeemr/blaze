@@ -147,14 +147,6 @@
 
    :main-opts ["-m" "clj-kondo.main"]}
 
-  ;;breeze specific uses integrant which
-  ;;allows for an easier workflow. Though if its
-  ;; not what upstream is doing it might be to much effort.
-  :dev-breeze
-  {:extra-deps
-   {integrant/repl
-    {:mvn/version "0.3.1"}}}
-
   ;;breeze specific
   :pack
   {:extra-deps
