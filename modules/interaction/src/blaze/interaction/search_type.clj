@@ -4,15 +4,10 @@
   https://www.hl7.org/fhir/http.html#search"
   (:require
     [blaze.datomic.pull :as pull]
-    [blaze.datomic.util :as db]
     [blaze.handler.fhir.util :as fhir-util]
-    [blaze.handler.util :as handler-util]
     [blaze.middleware.fhir.metrics :refer [wrap-observe-request-duration]]
     [clojure.spec.alpha :as s]
-    [clojure.string :as str]
-    [cognitect.anomalies :as anom]
     [datomic.api :as d]
-    [datomic-spec.core :as ds]
     [integrant.core :as ig]
     [reitit.core :as reitit]
     [ring.middleware.params :refer [wrap-params]]
