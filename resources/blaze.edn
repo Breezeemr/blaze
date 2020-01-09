@@ -83,54 +83,54 @@
 
   [:blaze.interaction/search-type :blaze.interaction.search/ServiceRequest]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/confblaze [{:blaze.fhir.SearchParameter/code       "patient"
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
                                            :blaze.fhir.SearchParameter/expression [:ServiceRequest/subject :Patient/id]}]}
 
   [:blaze.interaction/search-type :blaze.interaction.search/Goal]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/confblaze [{:blaze.fhir.SearchParameter/code       "patient"
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
                                            :blaze.fhir.SearchParameter/expression [:Goal/subject :Patient/id]}]}
 
   [:blaze.interaction/search-type :blaze.interaction.search/Procedure]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/confblaze [{:blaze.fhir.SearchParameter/code       "patient"
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
                                            :blaze.fhir.SearchParameter/expression [:Procedure/subject :Patient/id]}]}
 
   [:blaze.interaction/search-type :blaze.interaction.search/AllergyIntolerance]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/confblaze [{:blaze.fhir.SearchParameter/code       "patient"
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
                                            :blaze.fhir.SearchParameter/expression [:AllergyIntolerance/patient :Patient/id]}]}
 
   [:blaze.interaction/search-type :blaze.interaction.search/Device]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/confblaze [{:blaze.fhir.SearchParameter/code       "patient"
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
                                            :blaze.fhir.SearchParameter/expression [:Device/patient :Patient/id]}]}
 
   [:blaze.interaction/search-type :blaze.interaction.search/Immunization]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/confblaze [{:blaze.fhir.SearchParameter/code       "patient"
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
                                            :blaze.fhir.SearchParameter/expression [:Immunization/patient :Patient/id]}]}
 
   [:blaze.interaction/search-type :blaze.interaction.search/Observation]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/confblaze [{:blaze.fhir.SearchParameter/code       "patient"
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
                                            :blaze.fhir.SearchParameter/expression [:Observation/subject :Patient/id]}
                                           {:blaze.fhir.SearchParameter/code       "category"
                                            :blaze.fhir.SearchParameter/expression [:Observation/Category :CodeableConcept/coding :Coding/code :code/code]}]}
 
   [:blaze.interaction/search-type :blaze.interaction.search/DiagnosticReport]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/confblaze [{:blaze.fhir.SearchParameter/code       "patient"
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
                                            :blaze.fhir.SearchParameter/expression [:DiagnosticReport/subject :Patient/id]}]}
 
   [:blaze.interaction/search-type :blaze.interaction.search/CarePlan]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/confblaze [{:blaze.fhir.SearchParameter/code       "patient"
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
                                            :blaze.fhir.SearchParameter/expression [:CarePlan/subject :Patient/id]}]}
 
   [:blaze.interaction/search-type :blaze.interaction.search/MedicationRequest]
   {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :blaze.fhir.SearchParameter/confblaze [{:blaze.fhir.SearchParameter/code       "patient"
+   :blaze.fhir.SearchParameter/config [{:blaze.fhir.SearchParameter/code       "patient"
                                            :blaze.fhir.SearchParameter/expression [:MedicationRequest/subject :Patient/id]}]}
 
 
