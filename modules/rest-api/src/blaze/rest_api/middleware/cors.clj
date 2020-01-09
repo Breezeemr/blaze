@@ -18,3 +18,15 @@
                  "Access-Control-Max-Age" "3600"}}
       (md/let-flow' [response (handler request)]
                     (assoc-header response)))))
+
+;; Version on upstream develop
+;; (ns blaze.rest-api.middleware.cors
+;;   (:require
+;;    [manifold.deferred :as md]
+;;    [ring.util.response :as ring]))
+
+;; (defn wrap-cors
+;;   [handler]
+;;   (fn [request]
+;;     (-> (handler request)
+;;       (md/chain' #(ring/header % "Access-Control-Allow-Origin" "*")))))
