@@ -7,7 +7,6 @@
     [clojure.tools.namespace.repl :refer [refresh]]
     [datomic-spec.test :as dst]))
 
-
 ;; Spec Instrumentation
 (st/instrument)
 (dst/instrument)
@@ -25,22 +24,21 @@
   (some-> system system/shutdown!)
   (refresh :after `init))
 
-
-;; Init Development
+;; Init Development: You have to run this to get going
 (comment
   (init)
-  (pst)
-  )
+  (pst))
 
 
-;; Reset after making changes
+;; run this to reset the system after making changes to the code.
 (comment
   (reset)
-  (st/unstrument)
-  )
+
+  ;;TODO document why we need to run unstrument?
+  (st/unstrument))
 
 
-
+;; Code from here down are examples
 (comment
 
   (def d [{:db/id                         17592190724169,
