@@ -212,11 +212,6 @@
      :type-handler #blaze/ref :blaze.fhir.operation.evaluate-measure/handler
      :instance-handler #blaze/ref :blaze.fhir.operation.evaluate-measure/handler}]}
 
-  ;; Create second database for Consents
-  :consent-conn
-  {:structure-definitions [] ;; #blaze/ref :blaze/structure-definition
-   :database/uri #blaze/cfg ["CONSENT_DATABASE_URI" string? "datomic:dev://localhost:4334/bundle-test"]}
-
   ;;
   ;; Default mappings
   ;;
@@ -230,15 +225,16 @@
 
   ;;
   ;; Consent
-  ;;
+  ;; TODO is Consent still a search type we allow here now that were
+  ;; not using it for auth.
   [:blaze.interaction/search-type :blaze.interaction.search/Consent]
-  {:database/conn                     #blaze/ref :consent-conn
+  {:database/conn                     #blaze/ref #blaze/ref :blaze.datomic/conn
    :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Consent]
    :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Consent]
    :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/Consent]}
 
   [:blaze.interaction/read :blaze.interaction.read/Consent]
-  {:database/conn                     #blaze/ref :consent-conn
+  {:database/conn                     #blaze/ref :blaze.datomic/conn
    :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Consent]
    :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Consent]}
 
@@ -726,5 +722,4 @@
    :toggle "AUTHORIZATION"
    :config
    {[:blaze/middleware :com.breezeehr.blaze-authorization.core/authorization]
-    {:database/conn         #blaze/ref :blaze.datomic/conn
-     :database/consent-conn #blaze/ref :consent-conn}}}]}
+    {:database/conn         #blaze/ref :blaze.datomic/conn}}}]}
