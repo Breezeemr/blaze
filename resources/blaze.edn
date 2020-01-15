@@ -92,17 +92,6 @@
       :search-type
       #:blaze.rest-api.interaction
       {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/default]}}}
-    ;; breeze api
-    #:blaze.rest-api.resource-pattern
-    {:type "Consent"
-     :middleware #blaze/refset :blaze/middleware
-     :interactions
-     {:search-type
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/search-type :blaze.interaction.search/Consent]}
-      :read
-      #:blaze.rest-api.interaction
-      {:handler #blaze/ref [:blaze.interaction/read :blaze.interaction.read/Consent]}}}
     #:blaze.rest-api.resource-pattern
     {:type "Condition"
      :middleware #blaze/refset :blaze/middleware
@@ -222,45 +211,6 @@
              :fhir.CodeableConcept/coding$cr {:key   :fhir.CodeableConcept/coding
                                               :value blaze.fhir.transforms/coding$cr}
              :fhir.HumanName/given           {:value blaze.fhir.transforms/null-separated-list->vec}}}
-
-  ;;
-  ;; Consent
-  ;; TODO is Consent still a search type we allow here now that were
-  ;; not using it for auth.
-  [:blaze.interaction/search-type :blaze.interaction.search/Consent]
-  {:database/conn                     #blaze/ref #blaze/ref :blaze.datomic/conn
-   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Consent]
-   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Consent]
-   :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/Consent]}
-
-  [:blaze.interaction/read :blaze.interaction.read/Consent]
-  {:database/conn                     #blaze/ref :blaze.datomic/conn
-   :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Consent]
-   :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Consent]}
-
-  [:blaze.schema/mapping :blaze.fhir/Consent]
-  {:fn      nil
-   :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
-   :mapping {:fhir.Consent/patient {:value blaze.fhir.transforms/consent-patient-reference}}}
-
-  [:blaze.schema/pattern :blaze.fhir/Consent]
-  {:fn      nil
-   :pattern [:db/id
-             :fhir.Resource/id
-             :phi.element/type
-             {:fhir.Consent/patient   [:fhir.Reference/reference :phi.element/type]
-              :fhir.Consent/provision [{:fhir.Consent.provision/actor
-                                        [{:fhir.Consent.provision.actor/reference [:fhir.Reference/reference]}]}]}
-             ]}
-
-  [:blaze.fhir/SearchParameter :blaze.fhir/Consent]
-  {:fn     nil
-   :params [{:blaze.fhir.SearchParameter/code       "_id"
-             :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
-             :blaze.fhir.SearchParameter/type       "uuid"}
-            {:blaze.fhir.SearchParameter/code       "provision.actor"
-             :blaze.fhir.SearchParameter/expression [:fhir.Consent/provision :fhir.Consent.provision/actor :fhir.Consent.provision.actor/reference :fhir.Reference/reference]}]}
-
 
   ;;
   ;; Condition
