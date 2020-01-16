@@ -16,3 +16,4 @@
 
 ;; breeze specific
 git-describe-branch.sh
+telepresence.log
