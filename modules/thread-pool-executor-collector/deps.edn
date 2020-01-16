@@ -1,0 +1,3 @@
+{:deps
+ {blaze/module-base
+  {:local/root "../module-base"}}}

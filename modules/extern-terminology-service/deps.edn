@@ -1,0 +1,12 @@
+{:deps
+ {blaze/fhir-client
+  {:local/root "../fhir-client"}
+
+  blaze/module-base
+  {:local/root "../module-base"}
+
+  blaze/terminology-service
+  {:local/root "../terminology-service"}
+
+  org.clojure/core.cache
+  {:mvn/version "0.8.2"}}}
