@@ -15,5 +15,4 @@
 .dir-locals.el
 
 ;; breeze specific
-git-describe-branch.sh
 telepresence.log
