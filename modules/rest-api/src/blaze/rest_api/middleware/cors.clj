@@ -17,6 +17,8 @@
         (md/chain' #(-> %
                       ;;TODO in the case when the origin doesn't pass the whitelist its not clear (atm) how to convey that their were
                       ;;multiple other origin options. So lets just send back one randomly for now and think about how to improve this.
+
+                      ;;TODO do something better then multiple assoc-in calls
                       (assoc-in [:headers "Access-Control-Allow-Origin"] (or (allowed-origin? origin) (first allowed-origin?)))
                       (assoc-in [:headers "Access-Control-Allow-Methods"] "GET, OPTIONS")
                       (assoc-in [:headers "Access-Control-Allow-Headers"] "Accept, Content-Type, Authorization")
