@@ -3,7 +3,6 @@
    [clojure.spec.alpha :as s]
    [integrant.core :as ig]
    [reitit.ring]
-   [blaze.rest-api.middleware.cors :refer [wrap-cors]]
    [ring.util.response :as ring]
    [taoensso.timbre :as log]))
 
@@ -28,8 +27,7 @@
   [rest-api health-handler]
   (-> (reitit.ring/ring-handler
        (router health-handler)
-       rest-api)
-      (wrap-cors)))
+       rest-api)))
 
 
 (defmethod ig/init-key :blaze.handler/app
