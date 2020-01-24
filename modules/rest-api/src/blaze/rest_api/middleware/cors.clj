@@ -30,7 +30,6 @@
       (let [allowed-headers ["Accept" "Content-Type" "Authorization"]
             headers {"Access-Control-Allow-Origin"  origin
                      "Access-Control-Allow-Methods" "GET, OPTIONS"
-                     "Access-Control-Allow-Headers" "Accept, Content-Type, Authorization"
                      "Access-Control-Max-Age"       "3600"}]
         (cond
           (not (allowed-request? request)) (md/success-deferred {:status 403 :body "Unauthorized"})
