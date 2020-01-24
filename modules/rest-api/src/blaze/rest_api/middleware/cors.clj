@@ -35,4 +35,5 @@
           (not (allowed-request? request)) (md/success-deferred {:status 403 :body "Unauthorized"})
           (= :options method)              (md/success-deferred {:status 200 :headers (assoc headers "Access-Control-Allow-Headers" (str/join ", " (conj allowed-headers "X-PINGOTHER")) )})
           :else
-          (md/chain' (handler request) #(update % :headers into (assoc headers "Access-Control-Allow-Headers" (str/join ", " allowed-headers) ))))))))
+          (md/chain' (handler request) (fn [response]
+                                         (update response :headers (fnil into {}) (assoc headers "Access-Control-Allow-Headers" (str/join ", " allowed-headers) )))))))))
