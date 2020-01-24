@@ -1,6 +1,7 @@
 (ns blaze.rest-api.middleware.cors
   (:require
-   [manifold.deferred :as md]))
+   [manifold.deferred :as md]
+   [clojure.string :as str]))
 
 (def allowed-origins
   #{"https://localhost:8700"
@@ -24,13 +25,15 @@
   [allowed-request?]
   (fn [handler]
     (fn [{{origin "origin"} :headers
+         method :request-method
          :as               request}]
-      (if-not (allowed-request? request)
-        ;;NOTE There is no spec for a failed cors request response because traditionally its handled by
-        ;;the client. So here we just return 403.
-        {:status 403 :body "Unauthorized"}
-        (md/chain' (handler request) #(update % :headers into {"Access-Control-Allow-Origin"  origin
-                                                               "Access-Control-Allow-Methods" "GET, OPTIONS"
-                                                               "Access-Control-Allow-Headers" "Accept, Content-Type, Authorization"
-                                                               "Access-Control-Max-Age"       "3600"}))))))
-
+      (let [allowed-headers ["Accept" "Content-Type" "Authorization"]
+            headers {"Access-Control-Allow-Origin"  origin
+                     "Access-Control-Allow-Methods" "GET, OPTIONS"
+                     "Access-Control-Allow-Headers" "Accept, Content-Type, Authorization"
+                     "Access-Control-Max-Age"       "3600"}]
+        (cond
+          (not (allowed-request? request)) (md/success-deferred {:status 403 :body "Unauthorized"})
+          (= :options method)              (md/success-deferred {:status 200 :headers (assoc headers "Access-Control-Allow-Headers" (str/join ", " (conj allowed-headers "X-PINGOTHER")) )})
+          :else
+          (md/chain' (handler request) #(update % :headers into (assoc headers "Access-Control-Allow-Headers" (str/join ", " allowed-headers) ))))))))
