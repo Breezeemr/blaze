@@ -4,7 +4,7 @@
     [blaze.middleware.fhir.metrics :as metrics]
     [blaze.module :refer [reg-collector]]
     [blaze.rest-api.middleware.auth-guard :refer [wrap-auth-guard]]
-    [blaze.rest-api.middleware.cors :refer [wrap-cors]]
+    [blaze.rest-api.middleware.cors :as cors]
     [blaze.rest-api.middleware.json :as json :refer [wrap-json]]
     [blaze.rest-api.spec]
     [blaze.spec]
@@ -141,7 +141,7 @@
          {:blaze/base-url base-url
           :blaze/context-path context-path
           :middleware
-          (cond-> [wrap-cors]
+          (cond-> [(cors/get-wrap-cors cors/allowed-request?)]
             (seq auth-backends)
             (conj #(apply wrap-authentication % auth-backends)))}
          [""
