@@ -41,7 +41,7 @@
   ;;NOTE For local develompemnt you can point at the project directory:
   ;;{:local/root "../blaze-authorization"}
   {:git/url "git@github.com:Breezeemr/blaze-authorization.git"
-   :sha     "fff1a619a48832e0ae75162814565807724199a1"}
+   :sha     "72dbe536b27f8b5c3828871d6f0449bd55dbb167"}
 
   com.cognitect/anomalies
   {:mvn/version "0.1.12"}
