@@ -454,7 +454,14 @@
   {:fn     nil
    :params [{:blaze.fhir.SearchParameter/code       "_id"
              :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
-             :blaze.fhir.SearchParameter/type       "uuid"}]}
+             :blaze.fhir.SearchParameter/type       "uuid"}
+            {:blaze.fhir.SearchParameter/code       "subject"
+             :blaze.fhir.SearchParameter/expression [:fhir.MedicationRequest/subject :fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}
+            {:blaze.fhir.SearchParameter/code       "patient"
+             :blaze.fhir.SearchParameter/expression [:fhir.MedicationRequest/subject :fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}
+            ]}
 
 
   ;;
@@ -594,8 +601,14 @@
   {:fn     nil
    :params [{:blaze.fhir.SearchParameter/code       "_id"
              :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
-             :blaze.fhir.SearchParameter/type       "uuid"}]}
-
+             :blaze.fhir.SearchParameter/type       "uuid"}
+            {:blaze.fhir.SearchParameter/code       "subject"
+             :blaze.fhir.SearchParameter/expression [:fhir.CarePlan/subject :fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}
+            {:blaze.fhir.SearchParameter/code       "patient"
+             :blaze.fhir.SearchParameter/expression [:fhir.CarePlan/subject :fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}
+            ]}
 
   ;;
   ;; Immunization
@@ -668,9 +681,14 @@
   {:fn     nil
    :params [{:blaze.fhir.SearchParameter/code       "_id"
              :blaze.fhir.SearchParameter/expression [:fhir.Resource/id]
-             :blaze.fhir.SearchParameter/type       "uuid"}]}
-
-
+             :blaze.fhir.SearchParameter/type       "uuid"}
+            {:blaze.fhir.SearchParameter/code       "subject"
+             :blaze.fhir.SearchParameter/expression [:fhir.ServiceRequest/subject :fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}
+            {:blaze.fhir.SearchParameter/code       "patient"
+             :blaze.fhir.SearchParameter/expression [:fhir.ServiceRequest/subject :fhir.Resource/id]
+             :blaze.fhir.SearchParameter/type       "uuid"}
+            ]}
 
   }
 
