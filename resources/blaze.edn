@@ -334,7 +334,7 @@
              {:fhir.Observation/code          [:fhir.CodeableConcept/text #_:fhir.CodeableConcept/coding$cr]
               :fhir.Observation/component     [{:fhir.Observation.component/code [:fhir.CodeableConcept/text]}
                                                {:fhir.Observation.component/valueQuantity [:fhir.Quantity/value]}]
-              :fhir.Observation/valueQuantity [:fhir.Quantity/value :fhir.Quantity/code]
+              :fhir.Observation/valueQuantity [:fhir.Quantity/value :fhir.Quantity/code :fhir.Quantity/unit]
               :fhir.Observation/subject       [:fhir.Resource/id :phi.element/type]}
              ]}
 
