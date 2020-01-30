@@ -638,6 +638,7 @@
              :fhir.Resource/id
              :phi.element/type
              :fhir.Immunization/date
+             :fhir.Immunization/lotNumber
              {:fhir.Immunization/vaccineCode [:fhir.CodeableConcept/text]
               :fhir.Immunization/patient     [:fhir.Resource/id :phi.element/type]
               :fhir.Immunization/performer   [{:fhir.Practitioner/name [:fhir.HumanName/text]}]}
