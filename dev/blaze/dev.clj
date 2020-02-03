@@ -44,6 +44,28 @@
 
 
 ;; Code from here down are examples
+
+(comment
+
+  (require '[datomic.api :as d])
+  (require '[blaze.fhir.transforms :as transforms])
+
+  (def conn (d/connect (System/getenv "DATABASE_URI")))
+  (def db (d/db conn))
+  (def mapping {})
+  (def john-doe-dev-fhir-uuid (java.util.UUID/fromString "55776ed1-2072-4d0c-b19f-a2d725aadf15"))
+
+  (d/q '[:find ?d .
+         :in $ ?id
+         :where
+         [?p :fhir.Resource/id ?id]
+         [?r :fhir.v3.AllergyIntolerance/patient ?p]
+         [?r :fhir.v3.AllergyIntolerance/assertedDate ?d]
+         ]
+    db john-doe-dev-fhir-uuid)
+  )
+
+
 (comment
 
   (def d [{:db/id                         17592190724169,
