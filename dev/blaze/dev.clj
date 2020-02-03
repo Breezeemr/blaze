@@ -4,12 +4,17 @@
     [blaze.system :as system]
     [clojure.repl :refer [pst]]
     [clojure.spec.test.alpha :as st]
+    [clojure.spec.alpha :as s]
+    [expound.alpha :as expound]
     [clojure.tools.namespace.repl :refer [refresh]]
     [datomic-spec.test :as dst]))
 
 ;; Spec Instrumentation
 (st/instrument)
 (dst/instrument)
+
+;;Set spec errors to be human readable
+(set! s/*explain-out* expound/printer)
 
 
 (defonce system nil)
