@@ -5,13 +5,13 @@
   again."
   (:require
     [aleph.http :as http]
+    [aleph.netty :as netty]
     [blaze.executors :as ex]
     [clojure.spec.alpha :as s]
     [manifold.deferred :as md]
     [ring.util.response :as ring])
   (:import
-   [java.io Closeable]
-   [io.netty.handler.ssl SslContextBuilder]))
+   [java.io Closeable]))
 
 
 (s/def ::port
@@ -39,9 +39,7 @@
     (wrap-server handler (str "Blaze/" version))
     {:port port
      :executor executor
-     ;;:ssl-context "TODO needs to be a `io.netty.handler.ssl.SslContext see https://netty.io/4.1/api/io/netty/handler/ssl/SslContextBuilder.html
-     ;; something like (.forServer SslContextBuilder ...) Not sure what arguments it should take looks like a lot of options."
-     }))
+     :ssl-context (netty/self-signed-ssl-context)}))
 
 
 (s/fdef shutdown!
