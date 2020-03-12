@@ -34,6 +34,7 @@
   port."
   [port executor handler version]
   (cheshire.generate/add-encoder java.net.URI cheshire.generate/encode-str)
+  ;;TODO add ssl context
   (http/start-server
     (wrap-server handler (str "Blaze/" version))
     {:port port :executor executor}))
