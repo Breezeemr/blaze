@@ -6,20 +6,15 @@
 (def allowed-origins
   #{"https://localhost:8700"
     "http://localhost:8700"
-    ;;TODO handle this: https://storage.googleapis.com/portal.breezeehr.com
     "https://portal.breezeehr.com"})
 
-;;TODO this should be configurable
-;:TODO needs to handle more then just origins
 (defn allowed-request?
   [{{origin "origin"} :headers}]
   (allowed-origins origin))
 
 (defn get-wrap-cors
   "Fills the traditional role of rejecting requests from sources we dont trust. Traditionally cors deals
-  with just origins. But in our case, we need to be more specific e.g https://storage.googleapis.com/portal.breezeehr.com
-  's domain isn't enough.
-
+  with just origins. 
   Takes a function which will return a falsy value if the request is denied.
   "
   [allowed-request?]
