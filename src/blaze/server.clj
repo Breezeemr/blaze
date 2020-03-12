@@ -10,7 +10,8 @@
     [manifold.deferred :as md]
     [ring.util.response :as ring])
   (:import
-    [java.io Closeable]))
+   [java.io Closeable]
+   [io.netty.handler.ssl SslContextBuilder]))
 
 
 (s/def ::port
@@ -38,7 +39,8 @@
     (wrap-server handler (str "Blaze/" version))
     {:port port
      :executor executor
-     ;;:ssl-context "TODO needs to be a `io.netty.handler.ssl.SslContext see https://netty.io/4.1/api/io/netty/handler/ssl/SslContextBuilder.html"
+     ;;:ssl-context "TODO needs to be a `io.netty.handler.ssl.SslContext see https://netty.io/4.1/api/io/netty/handler/ssl/SslContextBuilder.html
+     ;; something like (.forServer SslContextBuilder ...) Not sure what arguments it should take looks like a lot of options."
      }))
 
 
