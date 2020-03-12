@@ -5,12 +5,13 @@
   again."
   (:require
     [aleph.http :as http]
+    [aleph.netty :as netty]
     [blaze.executors :as ex]
     [clojure.spec.alpha :as s]
     [manifold.deferred :as md]
     [ring.util.response :as ring])
   (:import
-    [java.io Closeable]))
+   [java.io Closeable]))
 
 
 (s/def ::port
@@ -36,7 +37,9 @@
   (cheshire.generate/add-encoder java.net.URI cheshire.generate/encode-str)
   (http/start-server
     (wrap-server handler (str "Blaze/" version))
-    {:port port :executor executor}))
+    {:port port
+     :executor executor
+     :ssl-context (netty/self-signed-ssl-context)}))
 
 
 (s/fdef shutdown!
