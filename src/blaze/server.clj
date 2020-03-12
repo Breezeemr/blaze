@@ -34,10 +34,12 @@
   port."
   [port executor handler version]
   (cheshire.generate/add-encoder java.net.URI cheshire.generate/encode-str)
-  ;;TODO add ssl context
   (http/start-server
     (wrap-server handler (str "Blaze/" version))
-    {:port port :executor executor}))
+    {:port port
+     :executor executor
+     ;;:ssl-context "TODO needs to be a `io.netty.handler.ssl.SslContext see https://netty.io/4.1/api/io/netty/handler/ssl/SslContextBuilder.html"
+     }))
 
 
 (s/fdef shutdown!
