@@ -171,21 +171,42 @@
   ;; this is different from forming the predication used by the original search because the
   ;; constraint might be used as part of the index and not as a filter. Later will use the same data
   ;; to form the search/param constraint if its not used as the index constraint
-  (defn get-constraint-from-query-params
-    [query-params config]
-    [:constraint/type :query-param
-     :constraint/value
-     (reduce-kv
-       (fn [constraints query _]
-         (conj constraints (first (filter #(= (:blaze.fhir.SearchParameter/code %) query) config))))
-       []
-       query-params)])
+  ;; (defn get-constraint-from-query-params
+  ;;   [query-params config]
+  ;;   [:constraint/type :query-param
+  ;;    :constraint/value (reduce-kv
+  ;;                        (fn [constraints query _]
+  ;;                          (conj constraints (first (filter #(= (:blaze.fhir.SearchParameter/code %) query) config))))
+  ;;                        []
+  ;;                        query-params)])
 
-  (let [[router db type query-params config pattern mapping] @d]
-    (get-constraint-from-query-params query-params config)
-    )
+  ;; (let [[router db type query-params config pattern mapping] @d]
+  ;;   (get-constraint-from-query-params query-params config)
+  ;;   )
 
-  ;; We see that the constriant has a type that later will use as part of how to form the larger constraint builder
+  ;; that our two constriant types are :type and query-params is odd but the chocie to pull the path param into type was made downstream of this. We could call
+  ;; the query params
+  ;; (defn get-constraint-from-type
+  ;;   [type]
+  ;;   [:constraint/type :type
+  ;;    :constraint/value type])
+
+
+
+  ;; Its job will be to look at the constrains and assign an order to them
+  ;; (defn build-constraints
+  ;;   (loop [constraints [(get-constraint-from-query-params query-params config)
+  ;;                       (get-constraint-from-type)]]
+
+  ;;     (if (every :order constraints)
+  ;;       (sort-by :order constraints)
+  ;;       ())
+
+  ;;     ;; ))
+
+
+
+  ;; We see that the constraint has a type that later will use as part of how to form the larger constraint builder
   ;; => [:constraint/type :query-param :constraint/value [#:blaze.fhir.SearchParameter{:code "patient", :expression [:fhir.v3.Condition/subject :fhir.Resource/id], :type "uuid"}]]
   )
 
