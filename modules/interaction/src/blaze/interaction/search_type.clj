@@ -112,6 +112,82 @@
          (map #(entry router %)))
         (d/datoms db :avet :phi.element/type (str "fhir-type/" type)))))))
 
+(comment
+
+  ;; setup some state to track data we get live
+  (def d (atom nil))
+
+  ;;TODO this function will need to dynamic create and order contraints
+  (defn search-v2 [router db type query-params config pattern mapping]
+    #_(reset! d [router db type query-params config pattern mapping])
+    (let [
+          pred (resource-pred query-params config)
+          type (if-let [new-type (:type mapping)]
+                 new-type
+                 type)]
+      (cond->
+          {:resourceType "Bundle"
+           :type "searchset"}
+
+        (nil? pred)
+        (assoc :total (or (d/q '[:find (count ?e) .
+                                 :in $ ?type
+                                 :where
+                                 [?e :phi.element/type ?type]
+                                 [?e :fhir.Resource/id]]
+                            db
+                            (str "fhir-type/" type))
+                        0))
+
+        (not (summary? query-params))
+        (assoc
+          :entry
+          (into
+            []
+            (comp
+              (map :e)
+              (map #(d/pull db pattern %))
+              ;; (map #(doto % clojure.pprint/pprint))
+              (filter #(not (:deleted (meta %))))
+              (filter (or pred (fn [_] true)))
+              #_(filter (fn [resource]
+                          (if (some? (:fhir.Resource/id resource))
+                            true
+                            (do
+                              (log/info (str "Following " type " entity does not have :fhir.Resource/id: " (:db/id resource)))
+                              false))))
+              (map #(dissoc % :db/id))
+              (take (fhir-util/page-size query-params))
+              (map #(transforms/transform db mapping %))
+              (map #(rename-keys % {:fhir.Resource/id "id" :resourceType "resourceType"}))
+              (map #(update % "id" str))
+              (map #(entry router %)))
+
+            ;;TODO replace with a dynamic way to pick this constraint as the first one
+            (d/datoms db :avet :fhir.v3.Condition/subject [:fhir.Resource/id (java.util.UUID/fromString (get query-params "patient"))]))))))
+
+
+  ;; Example of getting constraint from query-params
+  ;; this is different from forming the predication used by the original search because the
+  ;; constraint might be used as part of the index and not as a filter. Later will use the same data
+  ;; to form the search/param constraint if its not used as the index constraint
+  (defn get-constraint-from-query-params
+    [query-params config]
+    [:constraint/type :query-param
+     :constraint/value
+     (reduce-kv
+       (fn [constraints query _]
+         (conj constraints (first (filter #(= (:blaze.fhir.SearchParameter/code %) query) config))))
+       []
+       query-params)])
+
+  (let [[router db type query-params config pattern mapping] @d]
+    (get-constraint-from-query-params query-params config)
+    )
+
+  ;; We see that the constriant has a type that later will use as part of how to form the larger constraint builder
+  ;; => [:constraint/type :query-param :constraint/value [#:blaze.fhir.SearchParameter{:code "patient", :expression [:fhir.v3.Condition/subject :fhir.Resource/id], :type "uuid"}]]
+  )
 
 (defn- handler-intern [{:keys [database/conn  blaze.fhir.SearchParameter/config schema/pattern schema/mapping]}]
   (fn [{{{:fhir.resource/keys [type]} :data} ::reitit/match
