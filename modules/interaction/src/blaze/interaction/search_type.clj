@@ -187,19 +187,28 @@
   ;;TODO assumes a lot
  
   (defn q->fact
-    [{[a b] :blaze.fhir.SearchParameter/expression :as exp}]
-    [a [b (->value exp)]])
+    [{[a b] :blaze.fhir.SearchParameter/expression
+      order :blaze.fhir.constraint/order
+      :as exp
+      :or {order 0}}]
+    {:blaze.fhir.constraint/fact [a [b (->value exp)]]
+     :blaze.fhir.constraint/order order})
 
-  ;;bringing it together we produce a list of almost datalog like facts
+  ;;bringing it together we produce a list of almost datalog like facts like this. were just currently assigning the type an order of 5 this is rather explict but
+  ;; its the only way.
+
+  ;; 
 
   (let [[router db type query-params config pattern mapping] @d]
-    (conj
-      (map
-        #(q->fact %)
-        (get-valid-query-params config query-params))
-      [:phi.element/type type]))
-  ;; => ([:phi.element/type "Condition"] [:fhir.v3.Condition/subject [:fhir.Resource/id #uuid "55776ed1-2072-4d0c-b19f-a2d725aadf15"]])
+    (->> (get-valid-query-params config query-params)
+      (map #(q->fact %))
+      (cons {:blaze.fhir.constraint/fact  [:phi.element/type type]
+             :blaze.fhir.constraint/order 5})
+      (sort-by :blaze.fhir.constraint/order)
+      )
+    )
 
+  ;; => ({:fact [:fhir.v3.Condition/subject [:fhir.Resource/id #uuid "55776ed1-2072-4d0c-b19f-a2d725aadf15"]], :blaze.fhir.constraint/order 0} #:blaze.fhir.constraint{:fact [:phi.element/type "Condition"], :order 5})
 
 
   )
