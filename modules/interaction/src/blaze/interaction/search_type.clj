@@ -113,17 +113,37 @@
          (map #(entry router %)))
         (d/datoms db :avet :phi.element/type (str "fhir-type/" type)))))))
 
+(defn query-params->valid-search-params+value
+  [{:keys [config query-params]}]
+  (reduce-kv
+    (fn [c query value]
+      (conj c (assoc (first (filter #(= (:blaze.fhir.SearchParameter/code %) query) config)) :blaze.fhir.SearchParameter/value value)))
+    []
+    query-params))
+
+(defn ->value [{:keys [blaze.fhir.SearchParameter/type blaze.fhir.SearchParameter/value]}]
+  (case type
+    "uuid" (UUID/fromString value)
+    :else  value))
+
+(defn search-param->constraint
+  [{[a b] :blaze.fhir.SearchParameter/expression
+    order :blaze.fhir.constraint/order
+    :or   {order 0}
+    :as sp}]
+  {:blaze.fhir.constraint/attribute a
+   :blaze.fhir.constraint/value [b (->value sp)]
+   :blaze.fhir.constraint/operation :matches
+   :blaze.fhir.constraint/order     order})
 
 (comment
   (let [[router db type query-params config pattern mapping] @d]
-    (->>  [#:blaze.fhir.SearchParameter{:code "patient", :expression [:fhir.v3.Condition/subject :fhir.Resource/id], :type "uuid", :value "55776ed1-2072-4d0c-b19f-a2d725aadf15"}]
-      (map #(search-param->constraint %))
-      (sort-by :blaze.fhir.constraint/order))
-
+    (->> {:config config :query-params query-params}
+      query-params->valid-search-params+value
+      (map search-param->constraint)
+      )
     ))
-;; => (#:blaze.fhir.constraint{:fact [:fhir.v3.Condition/subject [:fhir.Resource/id #uuid "55776ed1-2072-4d0c-b19f-a2d725aadf15"]], :order 0})
-
-;; then the full one where generate valid query params and add the type
+;; => (#:blaze.fhir.constraint{:attribute :fhir.v3.Condition/subject, :value [:fhir.Resource/id #uuid "55776ed1-2072-4d0c-b19f-a2d725aadf15"], :operation :matches, :order 0})
 
 
 
