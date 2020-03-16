@@ -191,6 +191,85 @@
   )
 
 
+(comment
+  (let [[router db type query-params config pattern mapping] @d]
+    ;;
+    {:query-params query-params
+     :type         type
+     :config       config}
+
+    ;; To show the inputs
+    ;; the big idea here is that we used the query-params + config to form the predicates we used on the collection types returned e.g a list of Conditions filtered by patient
+
+    ;; => {:query-params {"patient" "55776ed1-2072-4d0c-b19f-a2d725aadf15"}, :type "Condition", :config [#:blaze.fhir.SearchParameter{:code "_id", :expression [:fhir.Resource/id], :type "uuid"} #:blaze.fhir.SearchParameter{:code "subject", :expression [:fhir.v3.Condition/subject :fhir.Resource/id], :type "uuid"} #:blaze.fhir.SearchParameter{:code "patient", :expression [:fhir.v3.Condition/subject :fhir.Resource/id], :type "uuid"} #:blaze.fhir.SearchParameter{:code "category", :order 1, :index? false, :expression [:fhir.v3.Condition/category :fhir.CodeableConcept/coding :fhir.Coding/code]}]}
+
+    ))
+
+  ;; We always pull the type as the top node. So blaze.interaction/search-type = Condition
+  ;;   [:blaze.interaction/search-type :blaze.interaction.search/Condition]
+  ;; {:database/conn                     #blaze/ref :blaze.datomic/conn
+  ;;  :schema/pattern                    #blaze/ref [:blaze.schema/pattern :blaze.fhir/Condition]
+  ;;  :schema/mapping                    #blaze/ref [:blaze.schema/mapping :blaze.fhir/Condition]
+  ;;  :blaze.fhir.SearchParameter/config #blaze/ref [:blaze.fhir/SearchParameter :blaze.fhir/Condition]}
+
+  ;; and expanding the searchParameter/config eventually gets us to the config
+  ;; :blaze.fhir.SearchParameter/expression [:fhir.v3.Condition/subject :fhir.Resource/id]
+
+  ;; So that it goes from type -> query -> expression/code
+  ;; but really the type also needs a mapping to an expression/code
+  ;; e.g Condition -> :phi.element/type 
+
+  ;; the expression code form datomics perspective is really just a datalog fact  [:fhir.v3.Condition/subject [:fhir.Resource/id #uuid "..."]]
+
+  ;; and so we need the same for type e.g [:phi.element/type "Condition"]
+
+  ;; wrangling things to this format is what the additional code i'm adding does. 
+ 
+;; first an example where the valid query params are already in data form
+(comment
+  (let [[router db type query-params config pattern mapping] @d]
+    (->>  [#:blaze.fhir.SearchParameter{:code "patient", :expression [:fhir.v3.Condition/subject :fhir.Resource/id], :type "uuid", :value "55776ed1-2072-4d0c-b19f-a2d725aadf15"}]
+      (map #(search-param->constraint %))
+      (sort-by :blaze.fhir.constraint/order))
+
+    ))
+;; => (#:blaze.fhir.constraint{:fact [:fhir.v3.Condition/subject [:fhir.Resource/id #uuid "55776ed1-2072-4d0c-b19f-a2d725aadf15"]], :order 0})
+
+;; then the full one where generate valid query params and add the type
+
+(comment
+  (let [[router db type query-params config pattern mapping] @d
+        ;; mocking pred for the example
+        pred                                                 true]
+    (->>  (query-params->valid-query-params+value config query-params)
+      (map #(search-param->constraint %))
+      (concat
+        [{:blaze.fhir.constraint/value [:phi.element/type type]
+          :blaze.fhir.constraint/type  :blaze.fhir.constraint/fact
+          :blaze.fhir.constraint/order 3}
+         {:blaze.fhir.constraint/value #(not (:deleted (meta %)))
+          :blaze.fhir.constraint/type  :blaze.fhir.constraint/filter
+          :blaze.fhir.constraint/order 4}
+         {:blaze.fhir.constraint/value #(or pred (fn [_] true))
+          :blaze.fhir.constraint/type  :blaze.fhir.constraint/filter
+          :blaze.fhir.constraint/order 5}
+         ])
+      (sort-by :blaze.fhir.constraint/order))
+    ))
+
+;; => (#:blaze.fhir.constraint{:fact [:fhir.v3.Condition/subject [:fhir.Resource/id #uuid "55776ed1-2072-4d0c-b19f-a2d725aadf15"]], :order 0} #:blaze.fhir.constraint{:value [:phi.element/type "Condition"], :type :blaze.fhir.constraint/fact, :order 3} #:blaze.fhir.constraint{:value #function[blaze.interaction.search-type/eval53097/fn--53098], :type :blaze.fhir.constraint/filter, :order 4} #:blaze.fhir.constraint{:value #function[blaze.interaction.search-type/eval53097/fn--53100], :type :blaze.fhir.constraint/filter, :order 5})
+
+
+;; so basically a table of order | value | type
+;; where type can be <fact|filter>
+;; fact: [phi.element/type "Condition"]
+;; filter:  #(not (:deleted (meta %)))
+
+;; the reason for they arent all facts is because of existing and possible future filters which aren't a fact. e.g  #(not (:deleted (meta %)))
+;; i dont believe this can be a fact because datalog wouldn't understand what meta means.
+
+;; i suppose the setup is that facts can be used in a clojure filter statement but filters can't be used in the index.
+
 (defn- handler-intern [{:keys [database/conn  blaze.fhir.SearchParameter/config schema/pattern schema/mapping]}]
   (fn [{{{:fhir.resource/keys [type]} :data} ::reitit/match
        :keys [params]
