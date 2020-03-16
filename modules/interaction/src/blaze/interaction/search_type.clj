@@ -114,14 +114,61 @@
 
 (comment
 
+  ;;Helper function to get valid params
+  (defn query-params->valid-query-params+value
+    [config query-params]
+    (reduce-kv
+     (fn [c query value]
+       (conj c (assoc (first (filter #(= (:blaze.fhir.SearchParameter/code %) query) config)) :blaze.fhir.SearchParameter/value value)))
+     []
+     query-params))
+
+  ;; To turn our queries into a fact
+  (defn search-param->constraint
+    [{[a b] :blaze.fhir.SearchParameter/expression
+      order :blaze.fhir.constraint/order
+      :as exp
+      :or {order 0}}]
+    (let [->value (fn ->value
+                    [{:keys [blaze.fhir.SearchParameter/type blaze.fhir.SearchParameter/value]}]
+                    (case type
+                      "uuid" (UUID/fromString value)))]
+      {:blaze.fhir.constraint/fact  [a [b (->value exp)]]
+       :blaze.fhir.constraint/order order}))
+
+  ;;bringing it together we produce a list of almost datalog like facts like this. were just currently assigning the type an order of 5 this is rather explict but
+  ;; its the only way.
+
+  (let [[router db type query-params config pattern mapping] @d]
+    (->> (query-params->valid-query-params+value config query-params)
+      (map #(search-param->constraint %))
+      (cons {:blaze.fhir.constraint/fact  [:phi.element/type type]
+             :blaze.fhir.constraint/order 5})
+      (sort-by :blaze.fhir.constraint/order)
+      (map :blaze.fhir.constraint/fact)))
+  ;; => ([:fhir.v3.Condition/subject [:fhir.Resource/id #uuid "55776ed1-2072-4d0c-b19f-a2d725aadf15"]] [:phi.element/type "Condition"])
+
+
+  (defn search->ordered-constraints
+    [{:keys [type query-params config]}]
+    (->> (query-params->valid-query-params+value config query-params)
+      (map #(search-param->constraint %))
+      (cons {:blaze.fhir.constraint/fact  [:phi.element/type type]
+             :blaze.fhir.constraint/order 5})
+      (sort-by :blaze.fhir.constraint/order)
+      (map :blaze.fhir.constraint/fact)))
+
+  (let [[router db type query-params config pattern mapping] @d]
+    (search->ordered-constraints {:type type :query-params query-params :config config}))
+
+
+
   ;; setup some state to track data we get live
   (def d (atom nil))
 
   ;;TODO this function will need to dynamic create and order contraints
   (defn search-v2 [router db type query-params config pattern mapping]
-    #_(reset! d [router db type query-params config pattern mapping])
-    (let [
-          pred (resource-pred query-params config)
+    (let [pred (resource-pred query-params config)
           type (if-let [new-type (:type mapping)]
                  new-type
                  type)]
@@ -166,40 +213,6 @@
             ;;TODO replace with a dynamic way to pick this constraint as the first one
             (d/datoms db :avet :fhir.v3.Condition/subject [:fhir.Resource/id (java.util.UUID/fromString (get query-params "patient"))]))))))
 
-
-  ;;Helper function to get valid params
-  (defn query-params->valid-query-params+value
-    [config query-params]
-    (reduce-kv
-     (fn [c query value]
-       (conj c (assoc (first (filter #(= (:blaze.fhir.SearchParameter/code %) query) config)) :blaze.fhir.SearchParameter/value value)))
-     []
-     query-params))
-
-  ;; To turn our queries into a fact
-  (defn search-param->constraint
-    [{[a b] :blaze.fhir.SearchParameter/expression
-      order :blaze.fhir.constraint/order
-      :as exp
-      :or {order 0}}]
-    (let [->value (fn ->value
-                    [{:keys [blaze.fhir.SearchParameter/type blaze.fhir.SearchParameter/value]}]
-                    (case type
-                      "uuid" (UUID/fromString value)))]
-      {:blaze.fhir.constraint/fact  [a [b (->value exp)]]
-       :blaze.fhir.constraint/order order}))
-
-  ;;bringing it together we produce a list of almost datalog like facts like this. were just currently assigning the type an order of 5 this is rather explict but
-  ;; its the only way.
-
-  (let [[router db type query-params config pattern mapping] @d]
-    (->> (query-params->valid-query-params+value config query-params)
-      (map #(search-param->constraint %))
-      (cons {:blaze.fhir.constraint/fact  [:phi.element/type type]
-             :blaze.fhir.constraint/order 5})
-      (sort-by :blaze.fhir.constraint/order)
-      (map :blaze.fhir.constraint/fact)))
-  ;; => ([:fhir.v3.Condition/subject [:fhir.Resource/id #uuid "55776ed1-2072-4d0c-b19f-a2d725aadf15"]] [:phi.element/type "Condition"])
   )
 
 
