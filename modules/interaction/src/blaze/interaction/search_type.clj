@@ -208,6 +208,47 @@
 
   ;; We see that the constraint has a type that later will use as part of how to form the larger constraint builder
   ;; => [:constraint/type :query-param :constraint/value [#:blaze.fhir.SearchParameter{:code "patient", :expression [:fhir.v3.Condition/subject :fhir.Resource/id], :type "uuid"}]]
+
+
+  ;; Improving on this idea a bit we don't really need to mark things as constraints. That doesn't add much value instead we want to create an ordered lists of constraints that mimic 
+
+
+  ;;Helper function to get valid params
+  (defn get-valid-query-params
+    [config query-params]
+    (
+     reduce-kv
+     (fn [c query value]
+       (conj c (assoc (first (filter #(= (:blaze.fhir.SearchParameter/code %) query) config)) :value value)))
+     []
+     query-params))
+
+  ;; to get the value we would need to pass the database
+  (defn ->value
+    [{:keys [blaze.fhir.SearchParameter/type value]}]
+    (case type
+      "uuid" (UUID/fromString value)))
+
+  ;; To turn our queries into a fact
+  ;;TODO assumes a lot
+  
+  (defn q->fact
+    [{[a b] :blaze.fhir.SearchParameter/expression :as exp}]
+    [a [b (->value exp)]])
+
+  ;;bringing it together we produce a list of almost datalog like facts
+
+  (let [[router db type query-params config pattern mapping] @d]
+    (conj
+      (map
+        #(q->fact %)
+        (get-valid-query-params config query-params))
+      [:phi.element/type type]))
+  ;; => ([:phi.element/type "Condition"] [:fhir.v3.Condition/subject [:fhir.Resource/id #uuid "55776ed1-2072-4d0c-b19f-a2d725aadf15"]])
+
+
+  ;; next we would need to sort the according to some rules
+
   )
 
 (defn- handler-intern [{:keys [database/conn  blaze.fhir.SearchParameter/config schema/pattern schema/mapping]}]
