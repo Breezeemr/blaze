@@ -134,76 +134,60 @@
                     [{:keys [blaze.fhir.SearchParameter/type blaze.fhir.SearchParameter/value]}]
                     (case type
                       "uuid" (UUID/fromString value)))]
-      {:blaze.fhir.constraint/fact  [a [b (->value exp)]]
+      {:blaze.fhir.constraint/value  [a [b (->value exp)]]
+       :blaze.fhir.constraint/type  :blaze.fhir.constraint/fact
        :blaze.fhir.constraint/order order}))
 
   ;;bringing it together we produce a list of almost datalog like facts like this. were just currently assigning the type an order of 5 this is rather explict but
   ;; its the only way.
 
-  (let [[router db type query-params config pattern mapping] @d]
-    (->> (query-params->valid-query-params+value config query-params)
-      (map #(search-param->constraint %))
-      (cons {:blaze.fhir.constraint/fact  [:phi.element/type type]
-             :blaze.fhir.constraint/order 5})
-      (sort-by :blaze.fhir.constraint/order)
-      (map :blaze.fhir.constraint/fact)))
-  ;; => ([:fhir.v3.Condition/subject [:fhir.Resource/id #uuid "55776ed1-2072-4d0c-b19f-a2d725aadf15"]] [:phi.element/type "Condition"])
+  
 
 
   (defn search->ordered-constraints
     [{:keys [type query-params config]}]
     (->> (query-params->valid-query-params+value config query-params)
       (map #(search-param->constraint %))
-      (cons {:blaze.fhir.constraint/fact  [:phi.element/type type]
-             :blaze.fhir.constraint/order 5})
+      (cons )
       (sort-by :blaze.fhir.constraint/order)
-      (map :blaze.fhir.constraint/fact)))
-
-  (let [[router db type query-params config pattern mapping] @d]
-    (search->ordered-constraints {:type type :query-params query-params :config config}))
-
-
+      ))
 
   ;; setup some state to track data we get live
   (def d (atom nil))
 
-  ;;TODO this function will need to dynamic create and order contraints
   (defn search-v2 [router db type query-params config pattern mapping]
-    (let [pred (resource-pred query-params config)
-          type (if-let [new-type (:type mapping)]
-                 new-type
-                 type)]
-      (cond->
-          {:resourceType "Bundle"
-           :type "searchset"}
+    ;;NOTE the type constraint is redundant given its already linked to the expression we generate.
+    ;;NOTE  currently assumes first constraint is an constraint type fact
+    (let [[{[entity value] :blaze.fhir.constraint/value} & constraints] (->>  (query-params->valid-query-params+value config query-params)
+                                                                 (map #(search-param->constraint %))
+                                                                 (concat
+                                                                   [{:blaze.fhir.constraint/value [:phi.element/type type]
+                                                                     :blaze.fhir.constraint/type  :blaze.fhir.constraint/fact
+                                                                     :blaze.fhir.constraint/order 5}
+                                                                    {:blaze.fhir.constraint/value #(not (:deleted (meta %)))
+                                                                     :blaze.fhir.constraint/type  :blaze.fhir.constraint/filter
+                                                                     :blaze.fhir.constraint/order 5
+                                                                     }])
+                                                                 (sort-by :blaze.fhir.constraint/order))
 
-       (not (summary? query-params))
-        (assoc
-          :entry
-          (into
-            []
-            (comp
-              (map :e)
-              (map #(d/pull db pattern %))
-              ;; (map #(doto % clojure.pprint/pprint))
-              (filter #(not (:deleted (meta %))))
-              (filter (or pred (fn [_] true)))
-              #_(filter (fn [resource]
-                          (if (some? (:fhir.Resource/id resource))
-                            true
-                            (do
-                              (log/info (str "Following " type " entity does not have :fhir.Resource/id: " (:db/id resource)))
-                              false))))
-              (map #(dissoc % :db/id))
-              (take (fhir-util/page-size query-params))
-              (map #(transforms/transform db mapping %))
-              (map #(rename-keys % {:fhir.Resource/id "id" :resourceType "resourceType"}))
-              (map #(update % "id" str))
-              (map #(entry router %)))
-
-            ;;TODO replace with a dynamic way to pick this constraint as the first one
-            (d/datoms db :avet :fhir.v3.Condition/subject [:fhir.Resource/id (java.util.UUID/fromString (get query-params "patient"))]))))))
-
+          pred (resource-pred query-params config)
+          ]
+      {:resourceType "Bundle"
+       :type         "searchset"
+       :entry        (into
+                       []
+                       (comp
+                         (map :e)
+                         (map #(d/pull db pattern %))
+                         (filter #(not (:deleted (meta %))))
+                         (filter (or pred (fn [_] true)))
+                         (map #(dissoc % :db/id))
+                         (take (fhir-util/page-size query-params))
+                         (map #(transforms/transform db mapping %))
+                         (map #(rename-keys % {:fhir.Resource/id "id" :resourceType "resourceType"}))
+                         (map #(update % "id" str))
+                         (map #(entry router %)))
+                       (d/datoms db :avet entity value))}))
   )
 
 
