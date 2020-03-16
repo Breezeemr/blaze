@@ -67,6 +67,7 @@
   [{summary "_summary" :as query-params}]
   (or (zero? (fhir-util/page-size query-params)) (= "count" summary)))
 
+(def d (atom nil))
 
 (defn- search [router db type query-params config pattern mapping]
   (let [pred (resource-pred query-params config)
@@ -176,17 +177,7 @@
           {:resourceType "Bundle"
            :type "searchset"}
 
-        (nil? pred)
-        (assoc :total (or (d/q '[:find (count ?e) .
-                                 :in $ ?type
-                                 :where
-                                 [?e :phi.element/type ?type]
-                                 [?e :fhir.Resource/id]]
-                            db
-                            (str "fhir-type/" type))
-                        0))
-
-        (not (summary? query-params))
+       (not (summary? query-params))
         (assoc
           :entry
           (into
