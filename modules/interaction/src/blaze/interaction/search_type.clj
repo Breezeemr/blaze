@@ -167,52 +167,6 @@
             (d/datoms db :avet :fhir.v3.Condition/subject [:fhir.Resource/id (java.util.UUID/fromString (get query-params "patient"))]))))))
 
 
-  ;; Example of getting constraint from query-params
-  ;; this is different from forming the predication used by the original search because the
-  ;; constraint might be used as part of the index and not as a filter. Later will use the same data
-  ;; to form the search/param constraint if its not used as the index constraint
-  ;; (defn get-constraint-from-query-params
-  ;;   [query-params config]
-  ;;   [:constraint/type :query-param
-  ;;    :constraint/value (reduce-kv
-  ;;                        (fn [constraints query _]
-  ;;                          (conj constraints (first (filter #(= (:blaze.fhir.SearchParameter/code %) query) config))))
-  ;;                        []
-  ;;                        query-params)])
-
-  ;; (let [[router db type query-params config pattern mapping] @d]
-  ;;   (get-constraint-from-query-params query-params config)
-  ;;   )
-
-  ;; that our two constriant types are :type and query-params is odd but the chocie to pull the path param into type was made downstream of this. We could call
-  ;; the query params
-  ;; (defn get-constraint-from-type
-  ;;   [type]
-  ;;   [:constraint/type :type
-  ;;    :constraint/value type])
-
-
-
-  ;; Its job will be to look at the constrains and assign an order to them
-  ;; (defn build-constraints
-  ;;   (loop [constraints [(get-constraint-from-query-params query-params config)
-  ;;                       (get-constraint-from-type)]]
-
-  ;;     (if (every :order constraints)
-  ;;       (sort-by :order constraints)
-  ;;       ())
-
-  ;;     ;; ))
-
-
-
-  ;; We see that the constraint has a type that later will use as part of how to form the larger constraint builder
-  ;; => [:constraint/type :query-param :constraint/value [#:blaze.fhir.SearchParameter{:code "patient", :expression [:fhir.v3.Condition/subject :fhir.Resource/id], :type "uuid"}]]
-
-
-  ;; Improving on this idea a bit we don't really need to mark things as constraints. That doesn't add much value instead we want to create an ordered lists of constraints that mimic 
-
-
   ;;Helper function to get valid params
   (defn get-valid-query-params
     [config query-params]
@@ -231,7 +185,7 @@
 
   ;; To turn our queries into a fact
   ;;TODO assumes a lot
-  
+ 
   (defn q->fact
     [{[a b] :blaze.fhir.SearchParameter/expression :as exp}]
     [a [b (->value exp)]])
@@ -247,7 +201,6 @@
   ;; => ([:phi.element/type "Condition"] [:fhir.v3.Condition/subject [:fhir.Resource/id #uuid "55776ed1-2072-4d0c-b19f-a2d725aadf15"]])
 
 
-  ;; next we would need to sort the according to some rules
 
   )
 
