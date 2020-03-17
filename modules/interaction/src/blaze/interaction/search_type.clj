@@ -121,18 +121,16 @@
     []
     query-params))
 
-(defn ->value [{:keys [blaze.fhir.SearchParameter/type blaze.fhir.SearchParameter/value]}]
-  (case type
-    "uuid" (UUID/fromString value)
-    :else  value))
-
 (defn search-param->constraint
   [{[a b] :blaze.fhir.SearchParameter/expression
     order :blaze.fhir.constraint/order
-    :or   {order 0}
-    :as sp}]
+    value :blaze.fhir.SearchParameter/value
+    type  :blaze.fhir.SearchParameter/type
+    :or   {order 0}}]
   {:blaze.fhir.constraint/attribute a
-   :blaze.fhir.constraint/value [b (->value sp)]
+   :blaze.fhir.constraint/value [b (case type
+                                     "uuid" (UUID/fromString value)
+                                     value)]
    :blaze.fhir.constraint/operation :matches
    :blaze.fhir.constraint/order     order})
 
