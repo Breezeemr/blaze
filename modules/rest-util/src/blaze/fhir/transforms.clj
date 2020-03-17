@@ -136,3 +136,54 @@
                     node)))
        ;; Merge extensions
        merged-extensions))
+
+
+;;NOTE this seems over done. I have to pull the key based on the value. It usually the
+;;reverse.
+(defn expression-key->old-blaze-key
+  [expression-key mapping]
+  (loop [[v {:keys [key]}] (first mapping)
+         r                 (rest mapping)]
+    (cond
+        (= key expression-key) v
+        (empty? r) nil
+        :else      (recur (first r) (rest r)))))
+
+(defn ->expression
+  [expression mapping]
+  (reduce
+    (fn [coll exp-key]
+      (if-let [old-key (expression-key->old-blaze-key exp-key mapping)]
+        (conj coll old-key)
+        (conj coll exp-key)))
+    []
+    expression))
+
+(comment
+
+  (def mapping
+    {:type                                                  "MedicationPrescription"
+     :fhir.MedicationPrescription/dateWritten               {:key :fhir.MedicationRequest/authoredOn}
+     :fhir.MedicationPrescription/medication                {:key :fhir.MedicationRequest/medicationReference}
+     :fhir.Medication/code$cr                               {:key   :fhir.MedicationRequest/code
+                                                             :value blaze.fhir.transforms/codeable-concept}
+     :fhir.MedicationPrescription/patient                   {:key :fhir.MedicationRequest/subject}
+     :fhir.MedicationPrescription/prescriber                {:key :fhir.MedicationRequest/requester}
+     :fhir.MedicationPrescription/additionalInstructions$cr {:key   :fhir.Dosage/additionalInstructions
+                                                             :value blaze.fhir.transforms/codeable-concept}
+     :fhir.MedicationPrescription.dosageInsruction/rate     {:key :fhir.Dosage.rateAndQuantity/rateRatio}})
+
+
+  (expression-key->old-blaze-key :fhir.MedicationRequest/subject mapping)
+  ;; => :fhir.MedicationPrescription/patient
+
+  (expression-key->old-blaze-key :foobar mapping)
+  ;; => nil
+
+  (->expression
+    [:fhir.MedicationRequest/subject :fhir.Resource/id]
+    mapping)
+
+  ;; => [:fhir.MedicationPrescription/patient :fhir.Resource/id]
+
+  )
