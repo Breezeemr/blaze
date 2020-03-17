@@ -148,6 +148,25 @@
 
 
 
+(defn search-v2 [router db type query-params config pattern mapping]
+  (let [[{:keys [:blaze.fhir.constraint/attribute
+                 :blaze.fhir.constraint/value]} & filters] (->> (query-params->valid-search-params+value config query-params)
+                                                             (map search-param->constraint)
+                                                             (sort-by :blaze.fhir.constraint/order))]
+        {:resourceType "Bundle"
+         :type         "searchset"
+         :entry        (into
+                         []
+                         (comp
+                           (map :e)
+                           (map #(d/pull db pattern %))
+                           (map #(dissoc % :db/id))
+                           (take (fhir-util/page-size query-params))
+                           (map #(transforms/transform db mapping %))
+                           (map #(rename-keys % {:fhir.Resource/id "id" :resourceType "resourceType"}))
+                           (map #(update % "id" str))
+                           (map #(entry router %)))
+                         (d/datoms db :avet attribute value))}))
 
 (defn- handler-intern [{:keys [database/conn  blaze.fhir.SearchParameter/config schema/pattern schema/mapping]}]
   (fn [{{{:fhir.resource/keys [type]} :data} ::reitit/match
