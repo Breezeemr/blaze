@@ -135,20 +135,6 @@
     value :blaze.fhir.SearchParameter/value
     type  :blaze.fhir.SearchParameter/type
     :or   {order 0}}]
-(comment
-  (let [[router db type query-params config pattern mapping] @d]
-    (->> {:config config :query-params query-params}
-      query-params->valid-search-params+value
-      (map search-param->constraint)
-      )
-    ))
-;; => (#:blaze.fhir.constraint{:attribute :fhir.v3.Condition/subject, :value [:fhir.Resource/id #uuid "55776ed1-2072-4d0c-b19f-a2d725aadf15"], :operation :matches, :order 0})
-
-
-
-
-
-
   {:blaze.fhir.constraint/expression exp
    :blaze.fhir.constraint/value      (case type
                                        "uuid" (UUID/fromString value)
