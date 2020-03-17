@@ -130,18 +130,11 @@
     query-params))
 
 (defn search-param->constraint
-  [{[a b] :blaze.fhir.SearchParameter/expression
+  [{exp   :blaze.fhir.SearchParameter/expression
     order :blaze.fhir.constraint/order
     value :blaze.fhir.SearchParameter/value
     type  :blaze.fhir.SearchParameter/type
     :or   {order 0}}]
-  {:blaze.fhir.constraint/attribute a
-   :blaze.fhir.constraint/value [b (case type
-                                     "uuid" (UUID/fromString value)
-                                     value)]
-   :blaze.fhir.constraint/operation :matches
-   :blaze.fhir.constraint/order     order})
-
 (comment
   (let [[router db type query-params config pattern mapping] @d]
     (->> {:config config :query-params query-params}
@@ -155,6 +148,13 @@
 
 
 
+
+  {:blaze.fhir.constraint/expression exp
+   :blaze.fhir.constraint/value      (case type
+                                       "uuid" (UUID/fromString value)
+                                       value)
+   :blaze.fhir.constraint/operation  :matches
+   :blaze.fhir.constraint/order      order})
 
 (defn search-v2 [router db type query-params config pattern mapping]
   (let [[{:keys [:blaze.fhir.constraint/attribute
