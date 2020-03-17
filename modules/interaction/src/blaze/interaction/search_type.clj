@@ -55,6 +55,14 @@
                           [path search]))
                       valid-query-params))))))
 
+(defn constraints->filter-fn
+  [constraints]
+  (fn [resource]
+    (every? (fn [[path search]]
+              (match? resource path search))
+      (mapv (juxt :blaze.fhir.constraint/expression :blaze.fhir.constraint/value)
+        constraints))))
+
 (defn- entry
   [router {type "resourceType" id "id" :as resource}]
   {:fullUrl (fhir-util/instance-url router type id)
