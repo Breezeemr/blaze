@@ -158,10 +158,10 @@
                      (comp
                        (map :e)
                        (map #(d/pull db pattern %))
-                       (map #(dissoc % :db/id))
-                       (filter filter-fn)
-                       (take (fhir-util/page-size query-params))
                        (map #(transforms/transform db mapping %))
+                       (filter filter-fn)
+                       (map #(dissoc % :db/id))
+                       (take (fhir-util/page-size query-params))
                        (map #(rename-keys % {:fhir.Resource/id "id" :resourceType "resourceType"}))
                        (map #(update % "id" str))
                        (map #(entry router %)))
