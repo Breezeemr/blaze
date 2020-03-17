@@ -114,7 +114,7 @@
         (d/datoms db :avet :phi.element/type (str "fhir-type/" type)))))))
 
 (defn query-params->valid-search-params+value
-  [{:keys [config query-params]}]
+  [config query-params]
   (reduce-kv
     (fn [c query value]
       (conj c (assoc (first (filter #(= (:blaze.fhir.SearchParameter/code %) query) config)) :blaze.fhir.SearchParameter/value value)))
