@@ -5,7 +5,7 @@
   again."
   (:require
     [aleph.http :as http]
-    [aleph.netty :as netty]
+    
     [blaze.executors :as ex]
     [clojure.spec.alpha :as s]
     [manifold.deferred :as md]
@@ -26,21 +26,23 @@
 
 (s/fdef init!
   :args (s/cat :port ::port :executor ex/executor? :handler fn?
-               :version string?))
+          :version string?
+          ;;TODO better spec
+          :ssl-context any?))
 
 (defn init!
   "Creates a new HTTP server listening on `port` serving from `handler`.
 
   Call `shutdown!` on the returned server to stop listening and releasing its
   port."
-  [port executor handler version]
+  [port executor handler version ssl-context]
+  (println "SSL-CONTEXT: " ssl-context)
   (cheshire.generate/add-encoder java.net.URI cheshire.generate/encode-str)
   (http/start-server
     (wrap-server handler (str "Blaze/" version))
     {:port port
      :executor executor
-     ;;TODO needs to be configurable
-     :ssl-context (netty/self-signed-ssl-context)}))
+     :ssl-context ssl-context}))
 
 
 (s/fdef shutdown!
