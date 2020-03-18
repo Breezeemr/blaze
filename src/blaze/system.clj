@@ -9,6 +9,7 @@
     [clojure.string :as str]
     [clojure.walk :refer [postwalk]]
     [blaze.executors :as ex]
+    [aleph.netty :as netty]
     [blaze.server :as server]
     [clojure.tools.reader.edn :as edn]
     [integrant.core :as ig]
@@ -118,11 +119,14 @@
 
    :blaze.server/executor {}
 
+   :blaze.server/ssl-context {}
+
    :blaze/server
    {:port (->Cfg "SERVER_PORT" nat-int? 8080)
     :executor (ig/ref :blaze.server/executor)
     :handler (ig/ref :blaze.handler/app)
-    :version (ig/ref :blaze/version)}
+    :version (ig/ref :blaze/version)
+    :ssl-context (ig/ref :blaze.server/ssl-context)}
 
    :blaze/thread-pool-executor-collector
    {:executors (ig/refmap :blaze.metrics/thread-pool-executor)}
@@ -136,7 +140,8 @@
    :blaze.metrics/server
    {:port (->Cfg "METRICS_SERVER_PORT" nat-int? 8081)
     :handler (ig/ref :blaze.handler/metrics)
-    :version (ig/ref :blaze/version)}})
+    :version (ig/ref :blaze/version)
+    :ssl-context (ig/ref :blaze.server/ssl-context)}})
 
 
 (defn- feature-enabled?
@@ -185,6 +190,13 @@
   [_ version]
   version)
 
+;;TODO needs to be configurable
+(defmethod ig/init-key :blaze.server/ssl-context
+  [_ {:keys [ssl/option]}]
+  (case option
+    :ssl/self-signed (netty/self-signed-ssl-context)
+    :else {}))
+
 
 (defmethod ig/init-key :blaze/clock
   [_ _]
@@ -207,9 +219,9 @@
 
 
 (defmethod ig/init-key :blaze/server
-  [_ {:keys [port executor handler version]}]
+  [_ {:keys [port executor handler version ssl-context]}]
   (log/info "Start main server on port" port)
-  (server/init! port executor handler version))
+  (server/init! port executor handler version ssl-context))
 
 
 (defmethod ig/halt-key! :blaze/server
@@ -219,9 +231,9 @@
 
 
 (defmethod ig/init-key :blaze.metrics/server
-  [_ {:keys [port handler version]}]
+  [_ {:keys [port handler version ssl-context]}]
   (log/info "Start metrics server on port" port)
-  (server/init! port (ex/single-thread-executor) handler version))
+  (server/init! port (ex/single-thread-executor) handler version ssl-context))
 
 
 (defmethod ig/halt-key! :blaze.metrics/server

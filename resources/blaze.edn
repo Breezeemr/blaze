@@ -706,4 +706,9 @@
    :toggle "AUTHORIZATION"
    :config
    {[:blaze/middleware :com.breezeehr.blaze-authorization.core/authorization]
-    {:database/conn         #blaze/ref :blaze.datomic/conn}}}]}
+    {:database/conn         #blaze/ref :blaze.datomic/conn}}}
+
+  {:name "SSL"
+   :toggle "SSL"
+   :config {:blaze.server/ssl-context {:ssl/option :ssl/self-signed}}}
+  ]}
