@@ -256,13 +256,6 @@
              :blaze.fhir.SearchParameter/expression [:fhir.v3.Condition/subject :fhir.Resource/id]
              :blaze.fhir.SearchParameter/type       "uuid"}
             {:blaze.fhir.SearchParameter/code       "category"
-             ;;This marks that the search parameter should be explicitly give a rank of 1
-             ;;implicitly all search params will be marked as 0 (higher constraint) and
-             ;; though not reflected here all types will be marked as below (lower constraint)
-             ;; then a search param
-             :blaze.fhir.constraint/order      1
-             ;;This means the search param expression can't be used as a index
-             :blaze.fhir.constraint/index?     false
              :blaze.fhir.SearchParameter/expression [:fhir.v3.Condition/category :fhir.CodeableConcept/coding :fhir.Coding/code #_:code/code]}]}
 
   ;;
