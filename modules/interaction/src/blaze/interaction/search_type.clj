@@ -55,63 +55,70 @@
                           [path search]))
                       valid-query-params))))))
 
+(defn constraints->filter-fn
+  [constraints]
+  (fn [resource]
+    (every? (fn [[path search]]
+              (match? resource path search))
+      (mapv (juxt :blaze.fhir.constraint/expression :blaze.fhir.constraint/value)
+        constraints))))
+
 (defn- entry
   [router {type "resourceType" id "id" :as resource}]
   {:fullUrl (fhir-util/instance-url router type id)
    :resource resource
    :search {:mode "match"}})
 
-
 (defn- summary?
   "Returns true iff a summary result is requested."
   [{summary "_summary" :as query-params}]
   (or (zero? (fhir-util/page-size query-params)) (= "count" summary)))
 
+(defn query-params->valid-search-params+value
+  [config query-params]
+  (reduce-kv
+    (fn [c query value]
+      (conj c (assoc (first (filter #(= (:blaze.fhir.SearchParameter/code %) query) config)) :blaze.fhir.SearchParameter/value value)))
+    []
+    query-params))
 
-(defn- search [router db type query-params config pattern mapping]
-  (let [pred (resource-pred query-params config)
-        type (if-let [new-type (:type mapping)]
-               new-type
-               type)]
-    (cond->
-        {:resourceType "Bundle"
-         :type "searchset"}
+(defn search-param->constraint
+  [{exp   :blaze.fhir.SearchParameter/expression
+    order :blaze.fhir.constraint/order
+    value :blaze.fhir.SearchParameter/value
+    type  :blaze.fhir.SearchParameter/type
+    :or   {order 0}}]
+  {:blaze.fhir.constraint/expression exp
+   :blaze.fhir.constraint/value      (case type
+                                       "uuid" (UUID/fromString value)
+                                       value)
+   :blaze.fhir.constraint/operation  :matches
+   :blaze.fhir.constraint/order      order})
 
-      (nil? pred)
-      (assoc :total (or (d/q '[:find (count ?e) .
-                               :in $ ?type
-                               :where
-                               [?e :phi.element/type ?type]
-                               [?e :fhir.Resource/id]]
-                             db
-                             (str "fhir-type/" type))
-                        0))
-
-      (not (summary? query-params))
-      (assoc
-       :entry
-       (into
-        []
-        (comp
-         (map :e)
-         (map #(d/pull db pattern %))
-         ;; (map #(doto % clojure.pprint/pprint))
-         (filter #(not (:deleted (meta %))))
-         (filter (or pred (fn [_] true)))
-         #_(filter (fn [resource]
-                   (if (some? (:fhir.Resource/id resource))
-                     true
-                     (do
-                       (log/info (str "Following " type " entity does not have :fhir.Resource/id: " (:db/id resource)))
-                       false))))
-         (map #(dissoc % :db/id))
-         (take (fhir-util/page-size query-params))
-         (map #(transforms/transform db mapping %))
-         (map #(rename-keys % {:fhir.Resource/id "id" :resourceType "resourceType"}))
-         (map #(update % "id" str))
-         (map #(entry router %)))
-        (d/datoms db :avet :phi.element/type (str "fhir-type/" type)))))))
-
+(defn search [router db type query-params config pattern mapping]
+  (let [[{[attribute lookup-ref-attr] :blaze.fhir.constraint/expression
+          lookup-ref-value            :blaze.fhir.constraint/value}
+         & constraints] (->> (query-params->valid-search-params+value config query-params)
+                          (map #(update % :blaze.fhir.SearchParameter/expression transforms/->expression mapping))
+                          (map search-param->constraint)
+                          (sort-by :blaze.fhir.constraint/order))
+        ;;TODO we need a more robust way to get the lookup-ref. e.g what if its not a lookup-ref just a value?
+        filter-fn       (constraints->filter-fn constraints)]
+    {:resourceType "Bundle"
+     :type         "searchset"
+     :entry        (into
+                     []
+                     (comp
+                       (map :e)
+                       (map #(d/pull db pattern %))
+                       (map #(transforms/transform db mapping %))
+                       (filter filter-fn)
+                       (map #(dissoc % :db/id))
+                       (take (fhir-util/page-size query-params))
+                       (map #(rename-keys % {:fhir.Resource/id "id" :resourceType "resourceType"}))
+                       (map #(update % "id" str))
+                       (map #(entry router %)))
+                     (d/datoms db :avet attribute [lookup-ref-attr lookup-ref-value]))}))
 
 (defn- handler-intern [{:keys [database/conn  blaze.fhir.SearchParameter/config schema/pattern schema/mapping]}]
   (fn [{{{:fhir.resource/keys [type]} :data} ::reitit/match
