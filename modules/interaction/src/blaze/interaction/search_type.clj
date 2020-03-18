@@ -96,8 +96,7 @@
    :blaze.fhir.constraint/operation  :matches
    :blaze.fhir.constraint/order      order})
 
-;;TODO not using type should be added to build constraints
-(defn search-v2 [router db type query-params config pattern mapping]
+(defn search [router db type query-params config pattern mapping]
   (let [[{[attribute lookup-ref-attr] :blaze.fhir.constraint/expression
           lookup-ref-value            :blaze.fhir.constraint/value}
          & constraints] (->> (query-params->valid-search-params+value config query-params)
