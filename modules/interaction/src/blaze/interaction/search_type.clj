@@ -147,6 +147,7 @@
   (let [[{[attribute lookup-ref-attr] :blaze.fhir.constraint/expression
           lookup-ref-value            :blaze.fhir.constraint/value}
          & constraints] (->> (query-params->valid-search-params+value config query-params)
+                          (map #(update % :blaze.fhir.SearchParameter/expression transforms/->expression mapping))
                           (map search-param->constraint)
                           (sort-by :blaze.fhir.constraint/order))
         ;;TODO we need a more robust way to get the lookup-ref. e.g what if its not a lookup-ref just a value?
