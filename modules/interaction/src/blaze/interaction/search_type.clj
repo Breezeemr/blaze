@@ -75,52 +75,6 @@
   [{summary "_summary" :as query-params}]
   (or (zero? (fhir-util/page-size query-params)) (= "count" summary)))
 
-(def d (atom nil))
-
-(defn- search [router db type query-params config pattern mapping]
-  (let [pred (resource-pred query-params config)
-        type (if-let [new-type (:type mapping)]
-               new-type
-               type)]
-    (cond->
-        {:resourceType "Bundle"
-         :type "searchset"}
-
-      (nil? pred)
-      (assoc :total (or (d/q '[:find (count ?e) .
-                               :in $ ?type
-                               :where
-                               [?e :phi.element/type ?type]
-                               [?e :fhir.Resource/id]]
-                             db
-                             (str "fhir-type/" type))
-                        0))
-
-      (not (summary? query-params))
-      (assoc
-       :entry
-       (into
-        []
-        (comp
-         (map :e)
-         (map #(d/pull db pattern %))
-         ;; (map #(doto % clojure.pprint/pprint))
-         (filter #(not (:deleted (meta %))))
-         (filter (or pred (fn [_] true)))
-         #_(filter (fn [resource]
-                   (if (some? (:fhir.Resource/id resource))
-                     true
-                     (do
-                       (log/info (str "Following " type " entity does not have :fhir.Resource/id: " (:db/id resource)))
-                       false))))
-         (map #(dissoc % :db/id))
-         (take (fhir-util/page-size query-params))
-         (map #(transforms/transform db mapping %))
-         (map #(rename-keys % {:fhir.Resource/id "id" :resourceType "resourceType"}))
-         (map #(update % "id" str))
-         (map #(entry router %)))
-        (d/datoms db :avet :phi.element/type (str "fhir-type/" type)))))))
-
 (defn query-params->valid-search-params+value
   [config query-params]
   (reduce-kv
