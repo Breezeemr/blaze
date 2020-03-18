@@ -710,6 +710,5 @@
 
   {:name "SSL"
    :toggle "SSL"
-   :config "TODO"}
-
+   :config {:blaze.server/ssl-context {:ssl/option :ssl/self-signed}}}
   ]}

@@ -36,7 +36,6 @@
   Call `shutdown!` on the returned server to stop listening and releasing its
   port."
   [port executor handler version ssl-context]
-  (println "SSL-CONTEXT: " ssl-context)
   (cheshire.generate/add-encoder java.net.URI cheshire.generate/encode-str)
   (http/start-server
     (wrap-server handler (str "Blaze/" version))

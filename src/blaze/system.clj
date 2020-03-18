@@ -192,8 +192,10 @@
 
 ;;TODO needs to be configurable
 (defmethod ig/init-key :blaze.server/ssl-context
-  [_ _]
-  (netty/self-signed-ssl-context))
+  [_ {:keys [ssl/option]}]
+  (case option
+    :ssl/self-signed (netty/self-signed-ssl-context)
+    :else {}))
 
 
 (defmethod ig/init-key :blaze/clock
