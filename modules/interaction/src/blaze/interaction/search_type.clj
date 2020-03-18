@@ -69,7 +69,6 @@
    :resource resource
    :search {:mode "match"}})
 
-
 (defn- summary?
   "Returns true iff a summary result is requested."
   [{summary "_summary" :as query-params}]
@@ -104,7 +103,7 @@
                           (map search-param->constraint)
                           (sort-by :blaze.fhir.constraint/order))
         ;;TODO we need a more robust way to get the lookup-ref. e.g what if its not a lookup-ref just a value?
-        filter-fn (constraints->filter-fn constraints)]
+        filter-fn       (constraints->filter-fn constraints)]
     {:resourceType "Bundle"
      :type         "searchset"
      :entry        (into
@@ -120,7 +119,6 @@
                        (map #(update % "id" str))
                        (map #(entry router %)))
                      (d/datoms db :avet attribute [lookup-ref-attr lookup-ref-value]))}))
-
 
 (defn- handler-intern [{:keys [database/conn  blaze.fhir.SearchParameter/config schema/pattern schema/mapping]}]
   (fn [{{{:fhir.resource/keys [type]} :data} ::reitit/match
