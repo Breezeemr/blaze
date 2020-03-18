@@ -39,6 +39,7 @@
     (wrap-server handler (str "Blaze/" version))
     {:port port
      :executor executor
+     ;;TODO needs to be configurable
      :ssl-context (netty/self-signed-ssl-context)}))
 
 
