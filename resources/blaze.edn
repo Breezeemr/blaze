@@ -351,8 +351,8 @@
              :blaze.fhir.SearchParameter/expression [:fhir.Observation/subject :fhir.Resource/id]
              :blaze.fhir.SearchParameter/type       "uuid"}
             {:blaze.fhir.SearchParameter/code       "category"
-             :blaze.fhir.SearchParameter/expression [:fhir.Observation/category :fhir.CodeableConcept/coding$cr]}
-            ]}
+             :blaze.fhir.SearchParameter/expression [:fhir.Observation/category :fhir.CodeableConcept/coding :code]
+             :blaze.fhir.constraint/order 1}]}
 
 
   ;;
