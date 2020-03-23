@@ -101,7 +101,7 @@
                                                                      (sort-by :blaze.fhir.constraint/order))
         {[attribute lookup-ref-attr] :blaze.fhir.constraint/expression
          ;;TODO we need a more robust way to get the lookup-ref. e.g what if its not a lookup-ref just a value?
-         lookup-ref-value            :blaze.fhir.constraint/value} (update index :blaze.fhir.SearchParameter/expression transforms/->expression mapping)
+         lookup-ref-value            :blaze.fhir.constraint/value} (update index :blaze.fhir.constraint/expression transforms/->expression mapping)
         filter-fn (constraints->filter-fn constraints)]
     {:resourceType "Bundle"
      :type         "searchset"
