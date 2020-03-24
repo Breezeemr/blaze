@@ -496,8 +496,13 @@
              :fhir.Resource/id
              :phi.element/type
              :fhir.v3.AllergyIntolerance/assertedDate
+             :fhir.v3.AllergyIntolerance/category
+             :fhir.v3.AllergyIntolerance/onsetDateTime
+             :fhir.v3.AllergyIntolerance/lastOccurrence
+             :fhir.v3.AllergyIntolerance/criticality
+             :fhir.v3.AllergyIntolerance/clinicalStatus
              {:fhir.v3.AllergyIntolerance/code [:fhir.CodeableConcept/text]
-              :fhir.v3.AllergyIntolerance.reaction/note [:fhir.Annocation/text]
+              :fhir.v3.AllergyIntolerance/note [:fhir.Annocation/text]
               :fhir.v3.AllergyIntolerance/patient [:fhir.Resource/id :phi.element/type]}]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/AllergyIntolerance]
