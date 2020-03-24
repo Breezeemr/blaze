@@ -496,7 +496,7 @@
              :fhir.Resource/id
              :phi.element/type
              :fhir.v3.AllergyIntolerance/assertedDate
-             {:fhir.v3.AllergyIntolerance/code [:fhir.CodeableConcept/coding$cr]
+             {:fhir.v3.AllergyIntolerance/code [:fhir.CodeableConcept/text]
               :fhir.v3.AllergyIntolerance.reaction/note [:fhir.Annocation/text]
               :fhir.v3.AllergyIntolerance/patient [:fhir.Resource/id :phi.element/type]}]}
 
