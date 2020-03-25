@@ -229,7 +229,7 @@
   [:blaze.schema/mapping :blaze.fhir/Condition]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
-   :mapping {:fhir.v3.fhir.CodeableConcept/coding$cr {:key   :fhir.Condition/coding
+   :mapping {:fhir.CodeableConcept/coding$cr {:key   :fhir.Condition/coding
                                                       :value blaze.fhir.transforms/codeable-concept-many}
              :fhir.v3.Condition/subject              {:value blaze.fhir.transforms/reference}}}
 
