@@ -688,7 +688,11 @@
    :pattern [:db/id
              :fhir.Resource/id
              :phi.element/type
-             ]}
+             :fhir.ServiceRequest/status
+             :fhir.ServiceRequest/subject
+             {:fhir.ServiceRequest/requester [{:fhir.Practitioner/name [:fhir.HumanName/text]}]
+              :fhir.ServiceRequest/code      [:fhir.CodeableConcept/text]
+              }]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/ServiceRequest]
   {:fn     nil
