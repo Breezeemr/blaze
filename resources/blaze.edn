@@ -232,15 +232,15 @@
    :mapping {:fhir.v3.Condition/subject              {:value blaze.fhir.transforms/reference}}}
 
   [:blaze.schema/pattern :blaze.fhir/Condition]
-  :fn      nil
+  {:fn     nil
    :pattern [:db/id
              :fhir.Resource/id
              :phi.element/type
-            :fhir.v3.Condition/onsetDateTime
+             :fhir.v3.Condition/onsetDateTime
              {:fhir.v3.Condition/category [:fhir.CodeableConcept/coding$cr :fhir.CodeableConcept/text]
-              :fhir.v3.Condition/code    [:fhir.CodeableConcept/text]
-              :fhir.v3.Condition/subject [:fhir.Resource/id :phi.element/type]}
-             ]
+              :fhir.v3.Condition/code     [:fhir.CodeableConcept/text]
+              :fhir.v3.Condition/subject  [:fhir.Resource/id :phi.element/type]}
+             ]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/Condition]
   {:fn     nil
