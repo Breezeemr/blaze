@@ -229,20 +229,20 @@
   [:blaze.schema/mapping :blaze.fhir/Condition]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
-   :mapping {:fhir.Condition/category$cr {:key   :fhir.Condition/category
-                                          :value blaze.fhir.transforms/codeable-concept-many}
-             :fhir.v3.Condition/subject  {:value blaze.fhir.transforms/reference}}}
+   :mapping {:fhir.v3.fhir.CodeableConcept/coding$cr {:key   :fhir.Condition/coding
+                                                      :value blaze.fhir.transforms/codeable-concept-many}
+             :fhir.v3.Condition/subject              {:value blaze.fhir.transforms/reference}}}
 
   [:blaze.schema/pattern :blaze.fhir/Condition]
-  {:fn      nil
+  :fn      nil
    :pattern [:db/id
              :fhir.Resource/id
              :phi.element/type
              :fhir.v3.Condition/onsetDateTime
-             {:fhir.v3.Condition/category [:fhir.CodeableConcept/text]
-              :fhir.v3.Condition/code    [:fhir.CodeableConcept/text]
+             :fhir.v3.Condition/category [:fhir.CodeableConcept/coding$cr :fhir.CodeableConcept/text]
+             {:fhir.v3.Condition/code    [:fhir.CodeableConcept/text]
               :fhir.v3.Condition/subject [:fhir.Resource/id :phi.element/type]}
-             ]}
+             ]
 
   [:blaze.fhir/SearchParameter :blaze.fhir/Condition]
   {:fn     nil
@@ -256,7 +256,9 @@
              :blaze.fhir.SearchParameter/expression [:fhir.v3.Condition/subject :fhir.Resource/id]
              :blaze.fhir.SearchParameter/type       "uuid"}
             {:blaze.fhir.SearchParameter/code       "category"
-             :blaze.fhir.SearchParameter/expression [:fhir.v3.Condition/category :fhir.CodeableConcept/coding :fhir.CodeableConcept/text]}]}
+             :blaze.fhir.SearchParameter/expression [:fhir.v3.Condition/category :fhir.CodeableConcept/coding :code]
+             :blaze.fhir.constraint/order 1
+             }]}
 
   ;;
   ;; DiagnosticReport
