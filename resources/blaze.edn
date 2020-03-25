@@ -238,9 +238,9 @@
    :pattern [:db/id
              :fhir.Resource/id
              :phi.element/type
-             :fhir.Condition/category$cr
              :fhir.v3.Condition/onsetDateTime
-             {:fhir.v3.Condition/code    [:fhir.CodeableConcept/text #_:fhir.CodeableConcept/coding$cr]
+             {:fhir.v3.Condition/category [:fhir.CodeableConcept/text]
+              :fhir.v3.Condition/code    [:fhir.CodeableConcept/text]
               :fhir.v3.Condition/subject [:fhir.Resource/id :phi.element/type]}
              ]}
 
@@ -256,7 +256,7 @@
              :blaze.fhir.SearchParameter/expression [:fhir.v3.Condition/subject :fhir.Resource/id]
              :blaze.fhir.SearchParameter/type       "uuid"}
             {:blaze.fhir.SearchParameter/code       "category"
-             :blaze.fhir.SearchParameter/expression [:fhir.v3.Condition/category :fhir.CodeableConcept/coding :fhir.Coding/code #_:code/code]}]}
+             :blaze.fhir.SearchParameter/expression [:fhir.v3.Condition/category :fhir.CodeableConcept/coding :fhir.CodeableConcept/text]}]}
 
   ;;
   ;; DiagnosticReport
