@@ -132,6 +132,7 @@
      auth-backends
      transaction-handler
      history-system-handler
+     middleware
      resource-patterns
      operations]
     :or {context-path ""}}
@@ -141,7 +142,16 @@
          {:blaze/base-url base-url
           :blaze/context-path context-path
           :middleware
-          (cond-> [wrap-params]
+          ;;Cors needs to go here. [cors wrap-params]
+          (cond-> []
+
+            ;;Wrong should be a list...
+            middleware
+            (conj middleware)
+            ;; ;;weird but goes second
+            true
+            (conj wrap-params)
+
             (seq auth-backends)
             (conj #(apply wrap-authentication % auth-backends)))}
          [""

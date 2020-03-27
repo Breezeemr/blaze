@@ -63,6 +63,7 @@
   :blaze/rest-api
   {:transaction-handler #blaze/ref :blaze.interaction.transaction/handler
    :history-system-handler #blaze/ref :blaze.interaction.history/system
+   :middleware #blaze/ref [:blaze/middleware :blaze.rest-api.middleware.cors/get-wrap-cors]
    :resource-patterns
    [#:blaze.rest-api.resource-pattern
     {:type :default
@@ -729,6 +730,6 @@
    :toggle "CORS"
    :config
    {[:blaze/middleware :blaze.rest-api.middleware.cors/get-wrap-cors]
-    {:cors/allowed-orgins? #{"https://localhost:8700"
+    {:cors/allowed-origins? #{"https://localhost:8700"
                              "http://localhost:8700"
                              "https://portal.breezeehr.com"}}}}]}
