@@ -229,19 +229,17 @@
   [:blaze.schema/mapping :blaze.fhir/Condition]
   {:fn      nil
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
-   :mapping {:fhir.Condition/category$cr {:key   :fhir.Condition/category
-                                          :value blaze.fhir.transforms/codeable-concept-many}
-             :fhir.v3.Condition/subject  {:value blaze.fhir.transforms/reference}}}
+   :mapping {:fhir.v3.Condition/subject              {:value blaze.fhir.transforms/reference}}}
 
   [:blaze.schema/pattern :blaze.fhir/Condition]
-  {:fn      nil
+  {:fn     nil
    :pattern [:db/id
              :fhir.Resource/id
              :phi.element/type
-             :fhir.Condition/category$cr
              :fhir.v3.Condition/onsetDateTime
-             {:fhir.v3.Condition/code    [:fhir.CodeableConcept/text #_:fhir.CodeableConcept/coding$cr]
-              :fhir.v3.Condition/subject [:fhir.Resource/id :phi.element/type]}
+             {:fhir.v3.Condition/category [:fhir.CodeableConcept/coding$cr :fhir.CodeableConcept/text]
+              :fhir.v3.Condition/code     [:fhir.CodeableConcept/text]
+              :fhir.v3.Condition/subject  [:fhir.Resource/id :phi.element/type]}
              ]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/Condition]
@@ -256,7 +254,9 @@
              :blaze.fhir.SearchParameter/expression [:fhir.v3.Condition/subject :fhir.Resource/id]
              :blaze.fhir.SearchParameter/type       "uuid"}
             {:blaze.fhir.SearchParameter/code       "category"
-             :blaze.fhir.SearchParameter/expression [:fhir.v3.Condition/category :fhir.CodeableConcept/coding :fhir.Coding/code #_:code/code]}]}
+             :blaze.fhir.SearchParameter/expression [:fhir.v3.Condition/category :fhir.CodeableConcept/coding :code]
+             :blaze.fhir.constraint/order 1
+             }]}
 
   ;;
   ;; DiagnosticReport
@@ -335,7 +335,8 @@
               :fhir.Observation/component     [{:fhir.Observation.component/code [:fhir.CodeableConcept/text]}
                                                {:fhir.Observation.component/valueQuantity [:fhir.Quantity/value]}]
               :fhir.Observation/valueQuantity [:fhir.Quantity/value :fhir.Quantity/code :fhir.Quantity/unit]
-              :fhir.Observation/subject       [:fhir.Resource/id :phi.element/type]}
+              :fhir.Observation/subject       [:fhir.Resource/id :phi.element/type]
+              :fhir.Observation/category [:fhir.CodeableConcept/text :fhir.CodeableConcept/coding$cr]}
              ]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/Observation]
@@ -348,7 +349,10 @@
              :blaze.fhir.SearchParameter/type       "uuid"}
             {:blaze.fhir.SearchParameter/code       "patient"
              :blaze.fhir.SearchParameter/expression [:fhir.Observation/subject :fhir.Resource/id]
-             :blaze.fhir.SearchParameter/type       "uuid"}]}
+             :blaze.fhir.SearchParameter/type       "uuid"}
+            {:blaze.fhir.SearchParameter/code       "category"
+             :blaze.fhir.SearchParameter/expression [:fhir.Observation/category :fhir.CodeableConcept/coding :code]
+             :blaze.fhir.constraint/order 1}]}
 
 
   ;;
@@ -443,9 +447,9 @@
              :fhir.Resource/id
              :phi.element/type
              :fhir.MedicationPrescription/dateWritten
-             {:fhir.MedicationPrescription/patient [:fhir.Resource/id]
-              :fhir.MedicationPrescription/medication [:fhir.Medication/code$cr]
-              :fhir.MedicationPrescription/prescriber [:fhir.Reference/display]
+             {:fhir.MedicationPrescription/patient           [:fhir.Resource/id]
+              :fhir.MedicationPrescription/medication        [:fhir.Medication/name]
+              :fhir.MedicationPrescription/prescriber        [{:fhir.Practitioner/name [:fhir.HumanName/text]}]
               :fhir.MedicationPrescription/dosageInstruction [:fhir.MedicationPrescription.dosageInstruction/rate
                                                               :fhir.MedicationPrescription.dosageInstruction/text
                                                               :fhir.MedicationPrescription.dosageInstruction/additionalInstructions$cr
@@ -492,8 +496,13 @@
              :fhir.Resource/id
              :phi.element/type
              :fhir.v3.AllergyIntolerance/assertedDate
-             {:fhir.v3.AllergyIntolerance/code [:fhir.CodeableConcept/coding$cr]
-              :fhir.v3.AllergyIntolerance.reaction/note [:fhir.Annocation/text]
+             :fhir.v3.AllergyIntolerance/category
+             :fhir.v3.AllergyIntolerance/onsetDateTime
+             :fhir.v3.AllergyIntolerance/lastOccurrence
+             :fhir.v3.AllergyIntolerance/criticality
+             :fhir.v3.AllergyIntolerance/clinicalStatus
+             {:fhir.v3.AllergyIntolerance/code [:fhir.CodeableConcept/text]
+              :fhir.v3.AllergyIntolerance/note [:fhir.Annocation/text]
               :fhir.v3.AllergyIntolerance/patient [:fhir.Resource/id :phi.element/type]}]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/AllergyIntolerance]
@@ -679,7 +688,11 @@
    :pattern [:db/id
              :fhir.Resource/id
              :phi.element/type
-             ]}
+             :fhir.ServiceRequest/status
+             :fhir.ServiceRequest/subject
+             {:fhir.ServiceRequest/requester [{:fhir.Practitioner/name [:fhir.HumanName/text]}]
+              :fhir.ServiceRequest/code      [:fhir.CodeableConcept/text]
+              }]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/ServiceRequest]
   {:fn     nil

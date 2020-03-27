@@ -96,14 +96,13 @@
    :blaze.fhir.constraint/order      order})
 
 (defn search [router db type query-params config pattern mapping]
-  (let [[{[attribute lookup-ref-attr] :blaze.fhir.constraint/expression
-          lookup-ref-value            :blaze.fhir.constraint/value}
-         & constraints] (->> (query-params->valid-search-params+value config query-params)
-                          (map #(update % :blaze.fhir.SearchParameter/expression transforms/->expression mapping))
-                          (map search-param->constraint)
-                          (sort-by :blaze.fhir.constraint/order))
-        ;;TODO we need a more robust way to get the lookup-ref. e.g what if its not a lookup-ref just a value?
-        filter-fn       (constraints->filter-fn constraints)]
+  (let [[index & constraints]                                      (->> (query-params->valid-search-params+value config query-params)
+                                                                     (map search-param->constraint)
+                                                                     (sort-by :blaze.fhir.constraint/order))
+        {[attribute lookup-ref-attr] :blaze.fhir.constraint/expression
+         ;;TODO we need a more robust way to get the lookup-ref. e.g what if its not a lookup-ref just a value?
+         lookup-ref-value            :blaze.fhir.constraint/value} (update index :blaze.fhir.constraint/expression transforms/->expression mapping)
+        filter-fn (constraints->filter-fn constraints)]
     {:resourceType "Bundle"
      :type         "searchset"
      :entry        (into
@@ -111,6 +110,7 @@
                      (comp
                        (map :e)
                        (map #(d/pull db pattern %))
+
                        (map #(transforms/transform db mapping %))
                        (filter filter-fn)
                        (map #(dissoc % :db/id))
