@@ -724,4 +724,11 @@
   {:name "SSL"
    :toggle "SSL"
    :config {:blaze.server/ssl-context {:ssl/option :ssl/self-signed}}}
-  ]}
+
+  {:name "CORS"
+   :toggle "CORS"
+   :config
+   {[:blaze/middleware :blaze.rest-api.middleware.cors/get-wrap-cors]
+    {:cors/allowed-orgins? #{"https://localhost:8700"
+                             "http://localhost:8700"
+                             "https://portal.breezeehr.com"}}}}]}

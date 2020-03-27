@@ -1,23 +1,14 @@
 (ns blaze.rest-api.middleware.cors
   (:require
    [manifold.deferred :as md]
+   [taoensso.timbre :as log]
+   [integrant.core :as ig]
    [clojure.string :as str]))
 
-(def allowed-origins
-  #{"https://localhost:8700"
-    "http://localhost:8700"
-    "https://portal.breezeehr.com"})
 
-(defn allowed-request?
-  [{{origin "origin"} :headers}]
-  (allowed-origins origin))
-
-(defn get-wrap-cors
-  "Fills the traditional role of rejecting requests from sources we dont trust. Traditionally cors deals
-  with just origins. 
-  Takes a function which will return a falsy value if the request is denied.
-  "
-  [allowed-request?]
+(defmethod ig/init-key :blaze.rest-api.middleware.cors/get-wrap-cors
+  [_ {:keys [cors/allowed-origins?] :as c}]
+  (log/info "Init CORS")
   (fn [handler]
     (fn [{{origin "origin"} :headers
          method :request-method
@@ -27,7 +18,7 @@
                      "Access-Control-Allow-Methods" "GET, OPTIONS"
                      "Access-Control-Max-Age"       "3600"}]
         (cond
-          (not (allowed-request? request)) (md/success-deferred {:status 403 :body "Unauthorized"})
+          (not (allowed-origins? origin)) (md/success-deferred {:status 403 :body "Unauthorized"})
           (= :options method)              (md/success-deferred {:status 200 :headers (assoc headers "Access-Control-Allow-Headers" (str/join ", " (conj allowed-headers "X-PINGOTHER")) )})
           :else
           (md/chain' (handler request) (fn [response]
