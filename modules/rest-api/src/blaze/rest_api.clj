@@ -142,15 +142,10 @@
          {:blaze/base-url base-url
           :blaze/context-path context-path
           :middleware
-          ;;Cors needs to go here. [cors wrap-params]
-          (cond-> []
+          (cond-> [wrap-params]
 
-            ;;Wrong should be a list...
-            middleware
-            (conj middleware)
-            ;; ;;weird but goes second
-            true
-            (conj wrap-params)
+            (not-empty middleware)
+            (into middleware)
 
             (seq auth-backends)
             (conj #(apply wrap-authentication % auth-backends)))}
