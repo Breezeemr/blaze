@@ -22,47 +22,22 @@
   (:import
    [java.util UUID]))
 
-
 (defn- match?
-  [tree path search]
-  (let [k       (first path)
+  [tree {:blaze.fhir.constraint/keys [expression value operation modifier] :as c}]
+  (let [k       (first expression)
+        n (assoc c :blaze.fhir.constraint/expression (rest expression))
         subtree (get tree k)]
     (cond
-      (nil? k)              (= search tree)
+      (nil? k)              (modifier (operation value tree))
       (nil? subtree)        false
-      (sequential? subtree) (some (fn [st] (match? st (rest path) search))
-                                  subtree)
-      :else                 (match? subtree (rest path) search))))
-
-(defn- resource-pred [query-params config]
-  (let [valid-query-params  (select-keys query-params (map :blaze.fhir.SearchParameter/code config))
-        select-params-by-code (fn [config code]
-                              (->> config
-                                   (filter #(= (:blaze.fhir.SearchParameter/code %) code))
-                                   first))]
-    (when (seq valid-query-params)
-      (fn [resource]
-        (every? (fn [[path search]]
-                  ;; (clojure.pprint/pprint resource)
-                  ;; (prn search path (get-in resource path))
-                  (match? resource path search))
-                (mapv (fn [[k v]]
-                        (let [params (select-params-by-code config k)
-                              path   (:blaze.fhir.SearchParameter/expression params)
-                              type   (:blaze.fhir.SearchParameter/type params)
-                              search (case type
-                                       "uuid" (UUID/fromString v)
-                                       v)]
-                          [path search]))
-                      valid-query-params))))))
+      (sequential? subtree) (some (fn [st] (match? st n)) subtree)
+      :else                 (match? subtree n))))
 
 (defn constraints->filter-fn
   [constraints]
   (fn [resource]
-    (every? (fn [[path search]]
-              (match? resource path search))
-      (mapv (juxt :blaze.fhir.constraint/expression :blaze.fhir.constraint/value)
-        constraints))))
+    (every? (fn [constraint] (match? resource constraint))
+      constraints)))
 
 (defn- entry
   [router {type "resourceType" id "id" :as resource}]
@@ -75,27 +50,36 @@
   [{summary "_summary" :as query-params}]
   (or (zero? (fhir-util/page-size query-params)) (= "count" summary)))
 
-(defn query-params->valid-search-params+value
-  [config query-params]
-  (->> query-params
-    (map (fn [[k v]] (hash-map :blaze.fhir.SearchParameter/code k :blaze.fhir.SearchParameter/value v)))
-    (set/join config)))
+(defn query-params->search-params
+  [query-params]
+  (reduce-kv
+    (fn [c k v] (let  [[k modifier] (str/split k #":")]
+                 (conj c
+                   (cond-> {:blaze.fhir.SearchParameter/code k
+                            :blaze.fhir.SearchParameter/value v}
+                     modifier (assoc :blaze.fhir.constraint/modifier ({"not" not} modifier))))))
+    []
+    query-params))
 
+;;TODO rethink this. changing the key name isnt useful
 (defn search-param->constraint
-  [{exp   :blaze.fhir.SearchParameter/expression
-    order :blaze.fhir.constraint/order
-    value :blaze.fhir.SearchParameter/value
-    type  :blaze.fhir.SearchParameter/type
-    :or   {order 0}}]
+  [{exp       :blaze.fhir.SearchParameter/expression
+    order     :blaze.fhir.constraint/order
+    operation :blaze.fhir.constraint/operation
+    value     :blaze.fhir.SearchParameter/value
+    type      :blaze.fhir.SearchParameter/type
+    :or       {order 0 operation =}}]
   {:blaze.fhir.constraint/expression exp
    :blaze.fhir.constraint/value      (case type
                                        "uuid" (UUID/fromString value)
                                        value)
-   :blaze.fhir.constraint/operation  :matches
+   :blaze.fhir.constraint/operation  operation
    :blaze.fhir.constraint/order      order})
 
 (defn search [router db type query-params config pattern mapping]
-  (let [[index & constraints]                                      (->> (query-params->valid-search-params+value config query-params)
+  (let [[index & constraints]                                      (->> query-params
+                                                                     query-params->search-params
+                                                                     (set/join config)
                                                                      (map search-param->constraint)
                                                                      (sort-by :blaze.fhir.constraint/order))
         {[attribute lookup-ref-attr] :blaze.fhir.constraint/expression

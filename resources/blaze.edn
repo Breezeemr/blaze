@@ -706,8 +706,9 @@
             {:blaze.fhir.SearchParameter/code       "patient"
              :blaze.fhir.SearchParameter/expression [:fhir.ServiceRequest/subject :fhir.Resource/id]
              :blaze.fhir.SearchParameter/type       "uuid"}
-            ]}
-
+            {:blaze.fhir.SearchParameter/code       "status"
+             :blaze.fhir.SearchParameter/expression [:fhir.ServiceRequest/status]
+             :blaze.fhir.constraint/order 1}]}
   }
 
  :features
