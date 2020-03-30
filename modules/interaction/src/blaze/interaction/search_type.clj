@@ -17,7 +17,8 @@
     [integrant.core :as ig]
     [reitit.core :as reitit]
     [ring.middleware.params :refer [wrap-params]] [ring.util.response :as ring]
-    [taoensso.timbre :as log])
+    [taoensso.timbre :as log]
+    [clojure.set :as set])
   (:import
    [java.util UUID]))
 
@@ -76,11 +77,9 @@
 
 (defn query-params->valid-search-params+value
   [config query-params]
-  (reduce-kv
-    (fn [c query value]
-      (conj c (assoc (first (filter #(= (:blaze.fhir.SearchParameter/code %) query) config)) :blaze.fhir.SearchParameter/value value)))
-    []
-    query-params))
+  (->> query-params
+    (map (fn [[k v]] (hash-map :blaze.fhir.SearchParameter/code k :blaze.fhir.SearchParameter/value v)))
+    (set/join config)))
 
 (defn search-param->constraint
   [{exp   :blaze.fhir.SearchParameter/expression
