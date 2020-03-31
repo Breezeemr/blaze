@@ -693,6 +693,7 @@
              :fhir.ServiceRequest/subject
              {:fhir.ServiceRequest/requester [{:fhir.Practitioner/name [:fhir.HumanName/text]}]
               :fhir.ServiceRequest/code      [:fhir.CodeableConcept/text]
+              :fhir.DiagnosticReport/_basedOn [:fhir.Resource/id :phi.element/type]
               }]}
 
   [:blaze.fhir/SearchParameter :blaze.fhir/ServiceRequest]
