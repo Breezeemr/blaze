@@ -449,7 +449,7 @@
              :phi.element/type
              :fhir.MedicationPrescription/dateWritten
              {:fhir.MedicationPrescription/patient           [:fhir.Resource/id]
-              :fhir.MedicationPrescription/medication        [:fhir.Medication/name]
+              :fhir.MedicationPrescription/medication        [{:fhir.Medication/code [:fhir.CodeableConcept/text]}]
               :fhir.MedicationPrescription/prescriber        [{:fhir.Practitioner/name [:fhir.HumanName/text]}]
               :fhir.MedicationPrescription/dosageInstruction [:fhir.MedicationPrescription.dosageInstruction/rate
                                                               :fhir.MedicationPrescription.dosageInstruction/text
