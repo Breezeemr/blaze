@@ -684,6 +684,8 @@
    :default #blaze/ref [:blaze.schema/mapping :blaze.fhir/default]
    :mapping {}}
 
+  ;;TODO these need to be filtered by category (or something)
+  ;; equal to lab-test
   [:blaze.schema/pattern :blaze.fhir/ServiceRequest]
   {:fn      nil
    :pattern [:db/id
