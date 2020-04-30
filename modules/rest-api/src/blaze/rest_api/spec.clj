@@ -1,11 +1,9 @@
 (ns blaze.rest-api.spec
   (:require
-    [blaze.spec]
-    [clojure.spec.alpha :as s]
-    [integrant.core :as ig])
-  (:import
-    [buddy.auth.protocols IAuthentication]))
-
+   [blaze.spec]
+   [clojure.spec.alpha :as s]
+   [integrant.core :as ig]
+   [buddy.auth.protocols :refer [IAuthentication]]))
 
 (s/def :blaze.rest-api/auth-backends
   (s/coll-of #(satisfies? IAuthentication %)))
