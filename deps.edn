@@ -1,5 +1,10 @@
 {:paths ["src" "resources"]
 
+ ;; Points to location of datomic pro peer library
+ ;; requires a ~/.m2/settings.xml file with id and username and password
+ :mvn/repos {"my.datomic.com"
+             {:url "https://my.datomic.com/repo"}}
+
  :deps
  {blaze/datomic
   {:local/root "modules/datomic"}
@@ -25,10 +30,8 @@
   blaze/thread-pool-executor-collector
   {:local/root "modules/thread-pool-executor-collector"}
 
-  com.datomic/datomic-free
-  {:mvn/version "0.9.5697"
-   :exclusions
-   [io.netty/netty-all]}
+  com.datomic/datomic-pro
+  {:mvn/version "0.9.6045"}
 
   com.h2database/h2
   {:mvn/version "1.4.200"}
@@ -111,4 +114,11 @@
    {clj-kondo
     {:mvn/version "2019.11.07"}}
 
-   :main-opts ["-m" "clj-kondo.main"]}}}
+   :main-opts ["-m" "clj-kondo.main"]}
+
+  :datomic-mysql
+  {:extra-deps
+   {mysql/mysql-connector-java
+    {:mvn/version "5.1.47"}}}
+
+}}

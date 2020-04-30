@@ -1,4 +1,6 @@
-{:deps
+{:mvn/repos {"my.datomic.com"
+              {:url "https://my.datomic.com/repo"}}
+ :deps
  {blaze/anomaly
   {:local/root "../anomaly"}
 
@@ -14,10 +16,8 @@
   blaze/terminology-service
   {:local/root "../terminology-service"}
 
-  com.datomic/datomic-free
-  {:mvn/version "0.9.5697"
-   :exclusions
-   [io.netty/netty-all]}
+  com.datomic/datomic-pro
+  {:mvn/version "0.9.6045"}
 
   funcool/cuerdas
   {:mvn/version "2.2.1"}
@@ -52,4 +52,5 @@
     {:mvn/version "0.10.0"}}
 
    :main-opts
-   ["-m" "kaocha.runner"]}}}
+   ["-m" "kaocha.runner"]}
+ }}

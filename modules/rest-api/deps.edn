@@ -1,4 +1,7 @@
-{:deps
+{:mvn/repos {"my.datomic.com"
+             {:url "https://my.datomic.com/repo"}}
+
+ :deps
  {blaze/module-base
   {:local/root "../module-base"}
 
@@ -25,12 +28,14 @@
   {:mvn/version "0.5.2"}}
 
  :aliases
- {:test
+ {:dev {:extra-deps {}}
+
+  :test
   {:extra-paths ["test"]
 
    :extra-deps
-   {com.datomic/datomic-free
-    {:mvn/version "0.9.5697"}
+   {com.datomic/datomic-pro
+    {:mvn/version "0.9.6045"}
 
     lambdaisland/kaocha
     {:mvn/version "0.0-565"}
