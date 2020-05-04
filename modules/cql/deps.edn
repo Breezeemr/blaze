@@ -1,4 +1,7 @@
-{:paths ["src" "resources"]
+{:mvn/repos {"my.datomic.com"
+             {:url "https://my.datomic.com/repo"}}
+
+ :paths ["src" "resources"]
 
  :deps
  {blaze/datomic
