@@ -22,18 +22,18 @@
 
 (s/fdef init!
   :args (s/cat :port ::port :executor ex/executor? :handler fn?
-               :version string?))
+               :version string? ::ssl-context fn?))
 
 (defn init!
   "Creates a new HTTP server listening on `port` serving from `handler`.
 
   Call `shutdown!` on the returned server to stop listening and releasing its
   port."
-  [port executor handler version]
+  [port executor handler version ssl-context]
   (http/start-server
     (wrap-server handler (str "Dromon/" version))
-    {:port port :executor executor}))
-
+    (cond-> {:port port :executor executor}
+      ssl-context (assoc :ssl-context ssl-context))))
 
 (s/fdef shutdown!
   :args (s/cat :server #(instance? Closeable %)))

@@ -111,4 +111,9 @@
    :toggle "CORS_ALLOWED_ORIGINS"
    :config
    {[:dromon.router/middleware :dromon.rest-api.middleware.cors/get-wrap-cors]
-    {:cors/allowed-origins? #dromon/cfg ["CORS_ALLOWED_ORIGINS" string?]}}}]}
+    {:cors/allowed-origins? #dromon/cfg ["CORS_ALLOWED_ORIGINS" string?]}}}
+
+  {:name   "Self Signed Secure Socket Layer"
+   :toggle "SSL"
+   :config {:dromon.server/ssl-context {:ssl/option ::ssl/self-signed}}}
+  ]}
