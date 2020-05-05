@@ -4,7 +4,6 @@
     [blaze.middleware.fhir.metrics :as metrics]
     [blaze.module :refer [reg-collector]]
     [blaze.rest-api.middleware.auth-guard :refer [wrap-auth-guard]]
-    [blaze.rest-api.middleware.cors :refer [wrap-cors]]
     [blaze.rest-api.middleware.json :as json :refer [wrap-json]]
     [blaze.rest-api.spec]
     [blaze.spec]
@@ -129,6 +128,7 @@
      auth-backends
      transaction-handler
      history-system-handler
+     middleware
      resource-patterns
      operations]
     :or {context-path ""}}
@@ -138,7 +138,11 @@
          {:blaze/base-url base-url
           :blaze/context-path context-path
           :middleware
-          (cond-> [wrap-cors]
+          (cond-> []
+
+            (not-empty middleware)
+            (into middleware)
+
             (seq auth-backends)
             (conj #(apply wrap-authentication % auth-backends)))}
          [""

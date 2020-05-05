@@ -75,7 +75,7 @@
     (are [path request-method handler]
       (= handler
          (::handler
-           @((get-in
+           ((get-in
                (reitit/match-by-path router path)
                [:result request-method :handler])
              {})))

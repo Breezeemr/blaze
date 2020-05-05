@@ -63,6 +63,7 @@
   :blaze/rest-api
   {:transaction-handler #blaze/ref :blaze.interaction.transaction/handler
    :history-system-handler #blaze/ref :blaze.interaction.history/system
+   :middleware #blaze/refset :blaze.router/middleware
    :resource-patterns
    [#:blaze.rest-api.resource-pattern
        {:type :default
@@ -104,4 +105,10 @@
    :toggle "OPENID_PROVIDER_URL"
    :config
    {[:blaze.auth/backend :blaze.openid-auth/backend]
-    {:openid-provider/url #blaze/cfg ["OPENID_PROVIDER_URL" string?]}}}]}
+    {:openid-provider/url #blaze/cfg ["OPENID_PROVIDER_URL" string?]}}}
+
+  {:name   "Cross Site Origins"
+   :toggle "CORS_ALLOWED_ORIGINS"
+   :config
+   {[:blaze.router/middleware :blaze.rest-api.middleware.cors/get-wrap-cors]
+    {:cors/allowed-origins? #blaze/cfg ["CORS_ALLOWED_ORIGINS" string?]}}}]}
