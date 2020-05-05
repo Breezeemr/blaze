@@ -205,7 +205,7 @@
 
 (derive :dromon.server/executor :dromon.metrics/thread-pool-executor)
 
-(defmethod ig/init-key :blaze.server/ssl-context
+(defmethod ig/init-key :dromon.server/ssl-context
   [_ {:keys [ssl/option]}]
   (case option
     :ssl/self-signed (netty/self-signed-ssl-context)))
