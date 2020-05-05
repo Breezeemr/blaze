@@ -11,3 +11,4 @@
 .cpcache
 .cache
 .dir-locals.el
+*.iml
