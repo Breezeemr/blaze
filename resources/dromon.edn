@@ -1,0 +1,114 @@
+{:base-config
+ {:dromon.terminology-service/extern
+  {:uri #dromon/cfg ["TERM_SERVICE_URI" string? "http://tx.fhir.org/r4"]
+   :proxy-host #dromon/cfg ["PROXY_HOST" string?]
+   :proxy-port #dromon/cfg ["PROXY_PORT" pos-int?]
+   :proxy-user #dromon/cfg ["PROXY_USER" string?]
+   :proxy-password #dromon/cfg ["PROXY_PASSWORD" string?]
+   :connection-timeout #dromon/cfg ["CONNECTION_TIMEOUT" pos-int?]
+   :request-timeout #dromon/cfg ["REQUEST_TIMEOUT" pos-int?]}
+
+  :dromon.terminology-service.extern/errors-total {}
+  :dromon.terminology-service.extern/request-duration-seconds {}
+
+  :dromon.interaction.history/system
+  {:database/conn #dromon/ref :dromon.datomic/conn}
+
+  :dromon.interaction.history/type
+  {:database/conn #dromon/ref :dromon.datomic/conn}
+
+  :dromon.interaction.history/instance
+  {:database/conn #dromon/ref :dromon.datomic/conn}
+
+  :dromon.interaction/create
+  {:database/transaction-executor #dromon/ref :dromon.datomic.transaction/executor
+   :database/conn #dromon/ref :dromon.datomic/conn
+   :term-service #dromon/ref :dromon/terminology-service}
+
+  :dromon.interaction/delete
+  {:database/transaction-executor #dromon/ref :dromon.datomic.transaction/executor
+   :database/conn #dromon/ref :dromon.datomic/conn}
+
+  :dromon.interaction/read
+  {:database/conn #dromon/ref :dromon.datomic/conn}
+
+  :dromon.interaction/search-type
+  {:database/conn #dromon/ref :dromon.datomic/conn}
+
+  :dromon.interaction.transaction/executor {}
+
+  :dromon.interaction.transaction/handler
+  {:database/transaction-executor #dromon/ref :dromon.datomic.transaction/executor
+   :database/conn #dromon/ref :dromon.datomic/conn
+   :term-service #dromon/ref :dromon/terminology-service
+   :executor #dromon/ref :dromon.interaction.transaction/executor}
+
+  :dromon.interaction/update
+  {:database/transaction-executor #dromon/ref :dromon.datomic.transaction/executor
+   :database/conn #dromon/ref :dromon.datomic/conn
+   :term-service #dromon/ref :dromon/terminology-service}
+
+  :dromon.fhir.operation.evaluate-measure/executor {}
+
+  :dromon.fhir.operation.evaluate-measure/handler
+  {:clock #dromon/ref :dromon/clock
+   :database/transaction-executor #dromon/ref :dromon.datomic.transaction/executor
+   :database/conn #dromon/ref :dromon.datomic/conn
+   :term-service #dromon/ref :dromon/terminology-service
+   :executor #dromon/ref :dromon.fhir.operation.evaluate-measure/executor}
+
+  :dromon.fhir.operation.evaluate-measure/compile-duration-seconds {}
+  :dromon.fhir.operation.evaluate-measure/evaluate-duration-seconds {}
+
+  :dromon/rest-api
+  {:transaction-handler #dromon/ref :dromon.interaction.transaction/handler
+   :history-system-handler #dromon/ref :dromon.interaction.history/system
+   :middleware #dromon/refset :dromon.router/middleware
+   :resource-patterns
+   [#:dromon.rest-api.resource-pattern
+       {:type :default
+        :interactions
+        {:read
+         #:dromon.rest-api.interaction
+             {:handler #dromon/ref :dromon.interaction/read}
+         :vread
+         #:dromon.rest-api.interaction
+             {:handler #dromon/ref :dromon.interaction/read}
+         :update
+         #:dromon.rest-api.interaction
+             {:handler #dromon/ref :dromon.interaction/update}
+         :delete
+         #:dromon.rest-api.interaction
+             {:handler #dromon/ref :dromon.interaction/delete}
+         :history-instance
+         #:dromon.rest-api.interaction
+             {:handler #dromon/ref :dromon.interaction.history/instance}
+         :history-type
+         #:dromon.rest-api.interaction
+             {:handler #dromon/ref :dromon.interaction.history/type}
+         :create
+         #:dromon.rest-api.interaction
+             {:handler #dromon/ref :dromon.interaction/create}
+         :search-type
+         #:dromon.rest-api.interaction
+             {:handler #dromon/ref :dromon.interaction/search-type}}}]
+   :operations
+   [#:dromon.rest-api.operation
+       {:code "evaluate-measure"
+        :def-uri "http://hl7.org/fhir/OperationDefinition/Measure-evaluate-measure"
+        :resource-types ["Measure"]
+        :type-handler #dromon/ref :dromon.fhir.operation.evaluate-measure/handler
+        :instance-handler #dromon/ref :dromon.fhir.operation.evaluate-measure/handler}]}}
+
+  :features
+ [{:name "OpenID Authentication"
+   :toggle "OPENID_PROVIDER_URL"
+   :config
+   {[:dromon.auth/backend :dromon.openid-auth/backend]
+    {:openid-provider/url #dromon/cfg ["OPENID_PROVIDER_URL" string?]}}}
+
+  {:name   "Cross Site Origins"
+   :toggle "CORS_ALLOWED_ORIGINS"
+   :config
+   {[:dromon.router/middleware :dromon.rest-api.middleware.cors/get-wrap-cors]
+    {:cors/allowed-origins? #dromon/cfg ["CORS_ALLOWED_ORIGINS" string?]}}}]}

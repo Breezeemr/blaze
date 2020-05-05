@@ -2,16 +2,16 @@
              {:url "https://my.datomic.com/repo"}}
 
  :deps
- {blaze/module-base
+ {dromon/module-base
   {:local/root "../module-base"}
 
-  blaze/spec
+  dromon/spec
   {:local/root "../spec"}
 
-  blaze/rest-util
+  dromon/rest-util
   {:local/root "../rest-util"}
 
-  blaze/structure-definition
+  dromon/structure-definition
   {:local/root "../structure-definition"}
 
   buddy/buddy-auth

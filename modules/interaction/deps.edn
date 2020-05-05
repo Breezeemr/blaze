@@ -2,16 +2,16 @@
              {:url "https://my.datomic.com/repo"}}
 
  :deps
- {blaze/executor
+ {dromon/executor
   {:local/root "../executor"}
 
-  blaze/module-base
+  dromon/module-base
   {:local/root "../module-base"}
 
-  blaze/rest-util
+  dromon/rest-util
   {:local/root "../rest-util"}
 
-  blaze/spec
+  dromon/spec
   {:local/root "../spec"}}
 
  :aliases
@@ -19,7 +19,7 @@
   {:extra-paths ["test"]
 
    :extra-deps
-   {blaze/datomic-test-util
+   {dromon/datomic-test-util
     {:local/root "../datomic-test-util"}
 
     lambdaisland/kaocha

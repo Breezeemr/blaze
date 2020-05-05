@@ -1,11 +1,11 @@
 {:deps
- {blaze/fhir-client
+ {dromon/fhir-client
   {:local/root "../fhir-client"}
 
-  blaze/module-base
+  dromon/module-base
   {:local/root "../module-base"}
 
-  blaze/terminology-service
+  dromon/terminology-service
   {:local/root "../terminology-service"}
 
   org.clojure/core.cache

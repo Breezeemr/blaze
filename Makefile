@@ -48,7 +48,7 @@ test: test-cql test-datomic test-interaction test-openid-auth test-operations-me
 	clojure -A:test --profile :ci
 
 uberjar:
-	clojure -A:depstar -m hf.depstar.uberjar target/blaze-${VERSION}-standalone.jar
+	clojure -A:depstar -m hf.depstar.uberjar target/dromon-${VERSION}-standalone.jar
 
 
 .PHONY: check test-cql test-datomic test-interaction test-openid-auth test-operations-measure-evaluate-measure test-rest-api test-rest-util test uberjar

@@ -1,19 +1,19 @@
 {:mvn/repos {"my.datomic.com"
               {:url "https://my.datomic.com/repo"}}
  :deps
- {blaze/anomaly
+ {dromon/anomaly
   {:local/root "../anomaly"}
 
-  blaze/executor
+  dromon/executor
   {:local/root "../executor"}
 
-  blaze/module-base
+  dromon/module-base
   {:local/root "../module-base"}
 
-  blaze/structure-definition
+  dromon/structure-definition
   {:local/root "../structure-definition"}
 
-  blaze/terminology-service
+  dromon/terminology-service
   {:local/root "../terminology-service"}
 
   com.datomic/datomic-pro
@@ -33,7 +33,7 @@
   {:extra-paths ["test"]
 
    :extra-deps
-   {blaze/datomic-test-util
+   {dromon/datomic-test-util
     {:local/root "../datomic-test-util"}
 
     criterium
