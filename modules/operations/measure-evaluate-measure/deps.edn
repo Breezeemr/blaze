@@ -3,19 +3,19 @@
 
 
  :deps
- {blaze/cql
+ {dromon/cql
   {:local/root "../../cql"}
 
-  blaze/executor
+  dromon/executor
   {:local/root "../../executor"}
 
-  blaze/module-base
+  dromon/module-base
   {:local/root "../../module-base"}
 
-  blaze/rest-util
+  dromon/rest-util
   {:local/root "../../rest-util"}
 
-  blaze/thread-pool-executor-collector
+  dromon/thread-pool-executor-collector
   {:local/root "../../thread-pool-executor-collector"}}
 
  :aliases
@@ -23,10 +23,10 @@
   {:extra-paths ["test"]
 
    :extra-deps
-   {blaze/datomic-test-util
+   {dromon/datomic-test-util
     {:local/root "../../datomic-test-util"}
 
-    blaze/extern-terminology-service
+    dromon/extern-terminology-service
     {:local/root "../../extern-terminology-service"}
 
     lambdaisland/kaocha

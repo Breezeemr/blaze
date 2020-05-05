@@ -2,7 +2,7 @@
              {:url "https://my.datomic.com/repo"}}
 
  :deps
- {blaze/anomaly
+ {dromon/anomaly
   {:local/root "../anomaly"}
 
   com.taoensso/timbre

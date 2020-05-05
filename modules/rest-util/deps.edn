@@ -2,10 +2,10 @@
              {:url "https://my.datomic.com/repo"}}
 
  :deps
- {blaze/datomic
+ {dromon/datomic
   {:local/root "../datomic"}
 
-  blaze/module-base
+  dromon/module-base
   {:local/root "../module-base"}
 
   org.apache.httpcomponents/httpcore
@@ -28,7 +28,7 @@
   {:extra-paths ["test"]
 
    :extra-deps
-   {blaze/datomic-test-util
+   {dromon/datomic-test-util
     {:local/root "../datomic-test-util"}
 
     lambdaisland/kaocha

@@ -1,5 +1,5 @@
 {:deps
- {blaze/module-base
+ {dromon/module-base
   {:local/root "../module-base"}
 
   buddy/buddy-auth

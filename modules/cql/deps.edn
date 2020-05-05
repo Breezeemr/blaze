@@ -4,7 +4,7 @@
  :paths ["src" "resources"]
 
  :deps
- {blaze/datomic
+ {dromon/datomic
   {:local/root "../datomic"}
 
   info.cqframework/cql-to-elm
@@ -42,7 +42,7 @@
   {:extra-paths ["test"]
 
    :extra-deps
-   {blaze/datomic-test-util
+   {dromon/datomic-test-util
     {:local/root "../datomic-test-util"}
 
     lambdaisland/kaocha

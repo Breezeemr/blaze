@@ -1,11 +1,11 @@
 {:lint-as
- {blaze.elm.compiler/defunop clojure.core/defn
-  blaze.elm.compiler/defbinop clojure.core/defn
-  blaze.elm.compiler/defternop clojure.core/defn
-  blaze.elm.compiler/defnaryop clojure.core/defn
-  blaze.elm.compiler/defaggop clojure.core/defn
-  blaze.elm.compiler/defbinopp clojure.core/defn
-  blaze.elm.compiler/defunopp clojure.core/defn
+ {dromon.elm.compiler/defunop clojure.core/defn
+  dromon.elm.compiler/defbinop clojure.core/defn
+  dromon.elm.compiler/defternop clojure.core/defn
+  dromon.elm.compiler/defnaryop clojure.core/defn
+  dromon.elm.compiler/defaggop clojure.core/defn
+  dromon.elm.compiler/defbinopp clojure.core/defn
+  dromon.elm.compiler/defunopp clojure.core/defn
   clojure.test.check.properties/for-all clojure.core/let
   datomic-tools.schema/defunc clojure.core/defn
   manifold.deferred/loop clojure.core/loop
@@ -17,10 +17,10 @@
  :linters
  {:unused-private-var
   {:exclude
-   [blaze.datomic.value/string-short-len-code
-    blaze.datomic.value/string-int-len-code
-    blaze.datomic.value/boolean-code]}
+   [dromon.datomic.value/string-short-len-code
+    dromon.datomic.value/string-int-len-code
+    dromon.datomic.value/boolean-code]}
 
-  ;; because of macros in modules/cql/src/blaze/elm/compiler.clj
+  ;; because of macros in modules/cql/src/dromon/elm/compiler.clj
   :redefined-var
   {:level :off}}}

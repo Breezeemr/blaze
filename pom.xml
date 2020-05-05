@@ -2,12 +2,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>samply</groupId>
-    <artifactId>blaze</artifactId>
+    <artifactId>dromon</artifactId>
     <version>0.8.0-alpha.9</version>
-    <name>blaze</name>
+    <name>dromon</name>
 
     <description>A FHIR Store with internal, fast CQL Evaluation Engine</description>
-    <url>https://github.com/samply/blaze</url>
+    <url>https://github.com/samply/dromon</url>
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>

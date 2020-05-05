@@ -1,7 +1,7 @@
 {:mvn/repos {"my.datomic.com"
              {:url "https://my.datomic.com/repo"}}
  :deps
- {blaze/datomic
+ {dromon/datomic
   {:local/root "../datomic"}
 
   com.datomic/datomic-pro
