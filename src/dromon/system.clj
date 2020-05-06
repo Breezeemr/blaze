@@ -41,7 +41,9 @@
   (try
     (with-open [rdr (PushbackReader. (io/reader (io/resource "dromon.edn")))]
       (edn/read
-        {:readers {'dromon/ref ig/ref 'dromon/cfg cfg}}
+        {:readers {'dromon/ref ig/ref
+                   'dromon/cfg cfg
+                   'dromon/refset ig/refset}}
         rdr))
     (catch Exception e
       (log/warn "Problem while reading dromon.edn. Skipping it." e))))
