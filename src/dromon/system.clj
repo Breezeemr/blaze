@@ -211,7 +211,8 @@
 (defmethod ig/init-key :dromon.server/ssl-context
   [_ {:keys [ssl/option]}]
   (case option
-    :ssl/self-signed (netty/self-signed-ssl-context)))
+    :ssl/self-signed (netty/self-signed-ssl-context)
+    nil))
 
 (defmethod ig/init-key :dromon/server
   [_ {:keys [port] :as config}]
