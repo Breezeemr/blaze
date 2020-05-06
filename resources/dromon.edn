@@ -115,5 +115,5 @@
 
   {:name   "Self Signed Secure Socket Layer"
    :toggle "SSL"
-   :config {:dromon.server/ssl-context {:ssl/option ::ssl/self-signed}}}
+   :config {:dromon.server/ssl-context {:ssl/option :ssl/self-signed}}}
   ]}
