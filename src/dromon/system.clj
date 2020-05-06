@@ -211,9 +211,9 @@
     :ssl/self-signed (netty/self-signed-ssl-context)))
 
 (defmethod ig/init-key :dromon/server
-  [_ {:keys [port executor handler version ssl-context]}]
+  [_ {:keys [port] :as config}]
   (log/info "Start main server on port" port)
-  (server/init! port executor handler version ssl-context))
+  (server/init! config))
 
 (defmethod ig/halt-key! :dromon/server
   [_ server]
@@ -222,10 +222,11 @@
 
 
 (defmethod ig/init-key :dromon.metrics/server
-  [_ {:keys [port handler version]}]
+  [_ {:keys [port] :as config}]
   (log/info "Start metrics server on port" port)
-  (server/init! port (ex/single-thread-executor) handler version))
-
+  (server/init! (-> config
+                  (dissoc :ssl-context)
+                  (assoc  :executor (ex/single-thread-executor)))))
 
 (defmethod ig/halt-key! :dromon.metrics/server
   [_ server]
