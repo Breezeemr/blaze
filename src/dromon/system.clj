@@ -228,7 +228,9 @@
 (defmethod ig/init-key :dromon.metrics/server
   [_ {:keys [port] :as config}]
   (log/info "Start metrics server on port" port)
-  (server/init! (assoc config :executor (ex/single-thread-executor))))
+  (server/init! (-> config
+                  (dissoc :ssl-context)
+                  (assoc  :executor (ex/single-thread-executor)))))
 
 (defmethod ig/halt-key! :dromon.metrics/server
   [_ server]
