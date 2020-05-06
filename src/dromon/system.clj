@@ -118,14 +118,11 @@
 
    :dromon.server/executor {}
 
-   :dromon.server/ssl-context {}
-
    :dromon/server
    {:port (->Cfg "SERVER_PORT" nat-int? 8080)
     :executor (ig/ref :dromon.server/executor)
     :handler (ig/ref :dromon.handler/app)
-    :version (ig/ref :dromon/version)
-    :ssl-context (ig/ref :dromon.server/ssl-context)}
+    :version (ig/ref :dromon/version)}
 
    :dromon/thread-pool-executor-collector
    {:executors (ig/refmap :dromon.metrics/thread-pool-executor)}
