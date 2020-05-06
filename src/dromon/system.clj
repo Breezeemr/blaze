@@ -13,7 +13,8 @@
             [dromon.server :as server]
             [integrant.core :as ig]
             [spec-coerce.alpha :refer [coerce]]
-            [taoensso.timbre :as log])
+            [taoensso.timbre :as log]
+            [aleph.netty :as netty])
   (:import java.io.PushbackReader
            java.time.Clock))
 
@@ -114,11 +115,14 @@
 
    :dromon.server/executor {}
 
+   :dromon.server/ssl-context {}
+
    :dromon/server
    {:port (->Cfg "SERVER_PORT" nat-int? 8080)
     :executor (ig/ref :dromon.server/executor)
     :handler (ig/ref :dromon.handler/app)
-    :version (ig/ref :dromon/version)}
+    :version (ig/ref :dromon/version)
+    :ssl-context (ig/ref :dromon.server/ssl-context)}
 
    :dromon/thread-pool-executor-collector
    {:executors (ig/refmap :dromon.metrics/thread-pool-executor)}
@@ -201,12 +205,15 @@
 
 (derive :dromon.server/executor :dromon.metrics/thread-pool-executor)
 
+(defmethod ig/init-key :dromon.server/ssl-context
+  [_ {:keys [ssl/option]}]
+  (case option
+    :ssl/self-signed (netty/self-signed-ssl-context)))
 
 (defmethod ig/init-key :dromon/server
-  [_ {:keys [port executor handler version]}]
+  [_ {:keys [port executor handler version ssl-context]}]
   (log/info "Start main server on port" port)
-  (server/init! port executor handler version))
-
+  (server/init! port executor handler version ssl-context))
 
 (defmethod ig/halt-key! :dromon/server
   [_ server]
