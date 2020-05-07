@@ -2,70 +2,58 @@
   "FHIR search interaction.
 
   https://www.hl7.org/fhir/http.html#search"
-  (:require [clojure.spec.alpha :as s]
-            [clojure.string :as str]
-            [cognitect.anomalies :as anom]
-            [datomic-spec.core :as ds]
-            [datomic.api :as d]
-            [dromon.datomic.pull :as pull]
-            [dromon.datomic.util :as db]
-            [dromon.handler.fhir.util :as fhir-util]
-            [dromon.handler.util :as handler-util]
-            [dromon.middleware.fhir.metrics :refer [wrap-observe-request-duration]]
-            [integrant.core :as ig]
-            [reitit.core :as reitit]
-            [ring.middleware.params :refer [wrap-params]]
-            [ring.util.response :as ring]
-            [taoensso.timbre :as log]))
+  (:require
+   [dromon.handler.fhir.util :as fhir-util]
+   [dromon.middleware.fhir.metrics :refer [wrap-observe-request-duration]]
+   [dromon.fhir.transforms :as transforms]
+   [clojure.spec.alpha :as s]
+   [clojure.set :refer [rename-keys]]
+   [datomic.api :as d]
+   [integrant.core :as ig]
+   [reitit.core :as reitit]
+   [ring.middleware.params :refer [wrap-params]] [ring.util.response :as ring]
+   [taoensso.timbre :as log])
+  (:import
+   [java.util UUID]))
 
-(defn- normalize [s]
-  (-> s str/trim str/lower-case))
+(defn- match?
+  [tree path search]
+  (let [k       (first path)
+        subtree (get tree k)]
+    (cond
+      (nil? k)              (= search tree)
+      (nil? subtree)        false
+      (sequential? subtree) (some (fn [st] (match? st (rest path) search))
+                                  subtree)
+      :else                 (match? subtree (rest path) search))))
 
-
-;; TODO: improve quick hack
-(defn- resource-pred
-  [db type {:strs [_id identifier title title:contains measure url]}]
-  (cond
-    _id
-    (let [ids (set (str/split _id #","))
-          id-attr (keyword type "id")]
+(defn- resource-pred [query-params config]
+  (let [valid-query-params  (select-keys query-params (map :dromon.fhir.SearchParameter/code config))
+        select-params-by-code (fn [config code]
+                              (->> config
+                                   (filter #(= (:dromon.fhir.SearchParameter/code %) code))
+                                   first))]
+    (when (seq valid-query-params)
       (fn [resource]
-        (ids (id-attr resource))))
+        (every? (fn [[path search]]
+                  (match? resource path search))
+                (mapv (fn [[k v]]
+                        (let [params (select-params-by-code config k)
+                              path   (:dromon.fhir.SearchParameter/expression params)
+                              type   (:dromon.fhir.SearchParameter/type params)
+                              search (case type
+                                       "uuid" (UUID/fromString v)
+                                       v)]
+                          [path search]))
+                      valid-query-params))))))
 
-    identifier
-    (let [attr (keyword type "identifier")
-          {:db/keys [cardinality]} (db/cached-entity db attr)
-          matches?
-          (fn [{:Identifier/keys [value]}]
-            (= identifier value))]
-      (fn [resource]
-        (let [value (get resource attr)]
-          (if (= :db.cardinality/many cardinality)
-            (some matches? value)
-            (matches? value)))))
-
-    (and (#{"Library" "Measure"} type) title)
-    (let [title (normalize title)]
-      (fn [resource]
-        (when-let [value ((keyword type "title") resource)]
-          (str/starts-with? (normalize value) title))))
-
-    (and (#{"Library" "Measure"} type) title:contains)
-    (let [title (normalize title:contains)]
-      (fn [resource]
-        (when-let [value ((keyword type "title") resource)]
-          (str/includes? (normalize value) title))))
-
-    (and (#{"MeasureReport"} type) measure)
-    (fn [resource]
-      (when-let [value ((keyword type "measure") resource)]
-        (= value measure)))
-
-    (and (#{"Library" "Measure"} type) url)
-    (fn [resource]
-      (when-let [value ((keyword type "url") resource)]
-        (= value url)))))
-
+(defn constraints->filter-fn
+  [constraints]
+  (fn [resource]
+    (every? (fn [[path search]]
+              (match? resource path search))
+      (mapv (juxt :dromon.fhir.constraint/expression :dromon.fhir.constraint/value)
+        constraints))))
 
 (defn- entry
   [router {type "resourceType" id "id" :as resource}]
@@ -73,114 +61,103 @@
    :resource resource
    :search {:mode "match"}})
 
-
 (defn- summary?
   "Returns true iff a summary result is requested."
   [{summary "_summary" :as query-params}]
   (or (zero? (fhir-util/page-size query-params)) (= "count" summary)))
 
+(defn query-params->valid-search-params+value
+  [config query-params]
+  (->> query-params
+    (map (fn [[k v]] (hash-map :dromon.fhir.SearchParameter/code k :dromon.fhir.SearchParameter/value v)))
+    (set/join config)))
 
-(defn- entries
-  [router db type {:keys [pred sort page-size]}]
-  (if (seq sort)
+(defn search-param->constraint
+  [{exp   :dromon.fhir.SearchParameter/expression
+    order :dromon.fhir.constraint/order
+    value :dromon.fhir.SearchParameter/value
+    type  :dromon.fhir.SearchParameter/type
+    :or   {order 0}}]
+  {:dromon.fhir.constraint/expression exp
+   :dromon.fhir.constraint/value      (case type
+                                       "uuid" (UUID/fromString value)
+                                       value)
+   :dromon.fhir.constraint/operation  :matches
+   :dromon.fhir.constraint/order      order})
 
-    (let [[{:keys [search-param order]}] sort]
-      (into
-        []
-        (comp
-          (filter (or pred any?))
-          (map #(pull/pull-resource* db type %))
-          (take page-size)
-          (map #(entry router %)))
-        (cond-> (db/list-resources-sorted-by db type search-param)
-          (= :desc order) reverse)))
+(defn search [{:keys [database/conn  dromon.fhir.SearchParameter/config schema/pattern schema/mapping query-params router]}]
+  (let [db                                                          (d/db conn)
+        [index & constraints]                                       (->> (query-params->valid-search-params+value config query-params)
+                                                                     (map search-param->constraint)
+                                                                     (sort-by :dromon.fhir.constraint/order))
+        {[attribute lookup-ref-attr] :dromon.fhir.constraint/expression
+         ;;TODO we need a more robust way to get the lookup-ref. e.g what if its not a lookup-ref just a value?
+         lookup-ref-value            :dromon.fhir.constraint/value} (update index :dromon.fhir.constraint/expression transforms/->expression mapping)
+        filter-fn                                                   (constraints->filter-fn constraints)]
+    {:resourceType "Bundle"
+     :type         "searchset"
+     :entry        (into
+                     []
+                     (comp
+                       (map :e)
+                       (map #(d/pull db pattern %))
 
-    (into
-      []
-      (comp
-        (filter (or pred any?))
-        (map #(pull/pull-resource* db type %))
-        (take page-size)
-        (map #(entry router %)))
-      (db/list-resources db type))))
+                       (map #(transforms/transform db mapping %))
+                       (filter filter-fn)
+                       (map #(dissoc % :db/id))
+                       (take (fhir-util/page-size query-params))
+                       (map #(rename-keys % {:fhir.Resource/id "id" :resourceType "resourceType"}))
+                       (map #(update % "id" str))
+                       (map #(entry router %)))
+                     (d/datoms db :avet attribute [lookup-ref-attr lookup-ref-value]))}))
 
-
-(defn- decode-sort-params [db type sort-params]
-  (transduce
-    (map
-      (fn [sort-param]
-        (if (str/starts-with? sort-param "-")
-          {:order :desc
-           :code (subs sort-param 1)}
-          {:order :asc
-           :code sort-param})))
-    (completing
-      (fn [res {:keys [code] :as sort-param}]
-        (if-let [search-param (db/find-search-param-by-type-and-code db type code)]
-          (conj res (assoc sort-param :search-param search-param))
-          (reduced
-            {::anom/category ::anom/incorrect
-             ::anom/message
-             (format "Unknown sort parameter with code `%s` on type `%s`."
-                     code type)
-             :fhir/issue "value"
-             :fhir/operation-outcome "MSG_SORT_UNKNOWN"}))))
-    []
-    (str/split sort-params #",")))
-
-
-(defn- decode-params
-  [db type {sort-params "_sort" :as params}]
-  (let [sort (some->> sort-params (decode-sort-params db type))]
-    (if (::anom/category sort)
-      sort
-      {:pred (resource-pred db type params)
-       :sort sort
-       :summary? (summary? params)
-       :page-size (fhir-util/page-size params)})))
-
-
-(defn- search [router db type params]
-  (let [params (decode-params db type params)]
-    (if (::anom/category params)
-      params
-      (cond->
-        {:resourceType "Bundle"
-         :type "searchset"}
-
-        (nil? (:pred params))
-        (assoc :total (db/type-total db type))
-
-        (not (:summary? params))
-        (assoc :entry (entries router db type params))))))
-
-
-(defn- handler-intern [conn]
+(defn- handler-intern [config]
   (fn [{{{:fhir.resource/keys [type]} :data} ::reitit/match
-        :keys [params]
-        ::reitit/keys [router]}]
-    (let [body (search router (d/db conn) type params)]
-      (if (::anom/category body)
-        (handler-util/error-response body)
-        (ring/response body)))))
-
+       :keys                                [params]
+       ::reitit/keys                        [router]}]
+    (log/info "Search:" type)
+    (-> config
+      (assoc :query-params params :router router)
+      search
+      ring/response)))
 
 (s/def :handler.fhir/search fn?)
 
-
+;;TODO improve spec
 (s/fdef handler
-  :args (s/cat :conn ::ds/conn)
+  :args (s/keys :config map?)
   :ret :handler.fhir/search)
 
 (defn handler
-  ""
-  [conn]
-  (-> (handler-intern conn)
+  [config]
+  (-> (handler-intern config)
       (wrap-params)
       (wrap-observe-request-duration "search-type")))
 
 
 (defmethod ig/init-key :dromon.interaction/search-type
-  [_ {:database/keys [conn]}]
-  (log/info "Init FHIR search-type interaction handler")
-  (handler conn))
+  [[_ k] config]
+  (log/info "Init FHIR search-type interaction handler for" k)
+  (handler config))
+
+(defmethod ig/init-key :dromon.fhir/SearchParameter
+  [_ config]
+  (log/info "Init search parameters")
+  (if-let [params-fn (:fn config)]
+    ((requiring-resolve params-fn))
+    (:params config)))
+
+;; TODO: these are more generic than just search_type
+(defmethod ig/init-key :dromon.schema/mapping
+  [[_ k] config]
+  (log/info "Init schema mapping for" k)
+  (if-let [mapping-fn (:fn config)]
+    ((requiring-resolve mapping-fn))
+    (merge (:mapping config) (:default config))))
+
+(defmethod ig/init-key :dromon.schema/pattern
+  [[_ k] config]
+  (log/info "Init schema pull patterns for" k)
+  (if-let [pull-fn (:fn config)]
+    ((requiring-resolve pull-fn))
+    (:pattern config)))
