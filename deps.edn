@@ -1,4 +1,4 @@
-{:paths ["src" "resources"]
+{:paths ["src"]
 
  ;; Points to location of datomic pro peer library
  ;; requires a ~/.m2/settings.xml file with id and username and password
