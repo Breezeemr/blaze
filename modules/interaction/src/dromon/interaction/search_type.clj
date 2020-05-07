@@ -7,7 +7,7 @@
    [dromon.middleware.fhir.metrics :refer [wrap-observe-request-duration]]
    [dromon.fhir.transforms :as transforms]
    [clojure.spec.alpha :as s]
-   [clojure.set :refer [rename-keys]]
+   [clojure.set :as set]
    [datomic.api :as d]
    [integrant.core :as ig]
    [reitit.core :as reitit]
@@ -106,7 +106,7 @@
                        (filter filter-fn)
                        (map #(dissoc % :db/id))
                        (take (fhir-util/page-size query-params))
-                       (map #(rename-keys % {:fhir.Resource/id "id" :resourceType "resourceType"}))
+                       (map #(set/rename-keys % {:fhir.Resource/id "id" :resourceType "resourceType"}))
                        (map #(update % "id" str))
                        (map #(entry router %)))
                      (d/datoms db :avet attribute [lookup-ref-attr lookup-ref-value]))}))
