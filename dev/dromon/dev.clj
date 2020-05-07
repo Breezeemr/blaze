@@ -3,7 +3,6 @@
             [clojure.spec.test.alpha :as st]
             [clojure.tools.namespace.repl :refer [refresh]]
             [datomic-spec.test :as dst]
-            [clojure.java.io :as io]
             dromon.spec
             [dromon.system :as system]))
 
