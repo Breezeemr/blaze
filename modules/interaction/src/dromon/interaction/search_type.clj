@@ -5,7 +5,7 @@
   (:require
    [dromon.handler.fhir.util :as fhir-util]
    [dromon.middleware.fhir.metrics :refer [wrap-observe-request-duration]]
-   [dromon.fhir.transforms :as transforms]
+   [dromon.interaction.transforms :as transforms]
    [clojure.spec.alpha :as s]
    [clojure.set :as set]
    [datomic.api :as d]
