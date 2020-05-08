@@ -85,13 +85,20 @@
    :dromon.fhir.constraint/operation  :matches
    :dromon.fhir.constraint/order      order})
 
-(defn search [{:keys [database/conn  dromon.fhir.SearchParameter/config schema/pattern schema/mapping query-params router]}]
+(defn search
+  [{:keys [database/conn
+           dromon.fhir.SearchParameter/config
+           schema/pattern
+           schema/mapping
+           query-params
+           router]}]
   (let [db                                                          (d/db conn)
         [index & constraints]                                       (->> (query-params->valid-search-params+value config query-params)
-                                                                     (map search-param->constraint)
-                                                                     (sort-by :dromon.fhir.constraint/order))
+                                                                      (map search-param->constraint)
+                                                                      (sort-by :dromon.fhir.constraint/order))
+
+        ;;TODO we need a more robust way to get the lookup-ref. e.g what if its not a lookup-ref just a value?
         {[attribute lookup-ref-attr] :dromon.fhir.constraint/expression
-         ;;TODO we need a more robust way to get the lookup-ref. e.g what if its not a lookup-ref just a value?
          lookup-ref-value            :dromon.fhir.constraint/value} (update index :dromon.fhir.constraint/expression transforms/->expression mapping)
         filter-fn                                                   (constraints->filter-fn constraints)]
     {:resourceType "Bundle"
@@ -101,7 +108,6 @@
                      (comp
                        (map :e)
                        (map #(d/pull db pattern %))
-
                        (map #(transforms/transform db mapping %))
                        (filter filter-fn)
                        (map #(dissoc % :db/id))
@@ -130,9 +136,10 @@
 
 (defn handler
   [config]
-  (-> (handler-intern config)
-      (wrap-params)
-      (wrap-observe-request-duration "search-type")))
+  (-> config
+    handler-intern
+    wrap-params
+    (wrap-observe-request-duration "search-type")))
 
 
 (defmethod ig/init-key :dromon.interaction/search-type
