@@ -42,15 +42,18 @@
      :replace
      {`d/entity replace-fn}}))
 
-
+;;using fixture
 (deftest handler-test-v2
   (testing "we can pass arguments to the handler"
     ;;TODO will have to fill in arguments
-    @(handler {:database/conn ::conn
+    @((handler {:database/conn                      ::conn
                :dromon.fhir.SearchParameter/config {}
-               :schema/pattern {}
-               :schema/mapping {}
-              })))
+               :schema/pattern                     {}
+               :schema/mapping                     {}
+                })
+      {::reitit/router ::router
+       ::reitit/match  {:data {:fhir.resource/type "Patient"}}}
+      )))
 
 
 
