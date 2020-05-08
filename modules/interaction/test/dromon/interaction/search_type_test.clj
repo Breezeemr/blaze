@@ -23,7 +23,7 @@
     {:spec
      {`handler
       (s/fspec
-        :args (s/cat :conn #{::conn}))}})
+        :args (s/cat :config map?))}})
   (datomic-test-util/stub-db ::conn ::db)
   (log/with-merged-config {:level :error} (f))
   (st/unstrument))
