@@ -32,4 +32,20 @@
     {:mvn/version "0.10.0"}}
 
    :main-opts
-   ["-m" "kaocha.runner"]}}}
+   ["-m" "kaocha.runner"]}
+  :dev {:extra-paths ["dev" "test"]
+        :extra-deps
+        {dromon/datomic-test-util
+         {:local/root "../datomic-test-util"}
+
+         expound
+         {:mvn/version "0.8.4"}
+
+         lambdaisland/kaocha
+         {:mvn/version "0.0-565"}
+
+         org.clojars.akiel/iota
+         {:mvn/version "0.1"}
+
+         org.clojure/test.check
+         {:mvn/version "0.10.0"}}}}}
