@@ -43,6 +43,17 @@
      {`d/entity replace-fn}}))
 
 
+(deftest handler-test-v2
+  (testing "we can pass arguments to the handler"
+    ;;TODO will have to fill in arguments
+    @(handler {:database/conn ::conn
+               :dromon.fhir.SearchParameter/config {}
+               :schema/pattern {}
+               :schema/mapping {}
+              })))
+
+
+
 (deftest handler-test
   (testing "Returns all existing resources of type"
     (let [patient {"resourceType" "Patient" "id" "0"}]
