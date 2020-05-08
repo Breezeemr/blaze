@@ -102,6 +102,10 @@
        :keys                                [params]
        ::reitit/keys                        [router]}]
     (log/info "Search:" type)
+
+    ;;TODO it might be a good idea validate we have a valid index and constraints.
+    ;; something simple like if (query-params->valid-search-params+value (:dromon.fhir.SearchParameter/config config) query-params)
+    ;; is empty then we return something else here. e.g an error or empty set.
     (-> config
       (assoc :query-params params :router router)
       search
