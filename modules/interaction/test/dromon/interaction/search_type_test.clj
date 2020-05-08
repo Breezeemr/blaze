@@ -52,7 +52,8 @@
                :schema/mapping                     {}
                 })
       {::reitit/router ::router
-       ::reitit/match  {:data {:fhir.resource/type "Patient"}}}
+       :params         {"patient" "1"}
+       ::reitit/match  {:data {:fhir.resource/type "MedicationRequest"}}}
       )))
 
 
