@@ -44,7 +44,7 @@
 
 ;;using fixture
 (deftest handler-test-v2
-  (testing "we can pass arguments to the handler"
+  (testing "handles medication request"
     (let [config [{:blaze.fhir.SearchParameter/code       "patient"
                    :blaze.fhir.SearchParameter/expression [:fhir.MedicationRequest/subject :fhir.Resource/id]
                    :blaze.fhir.SearchParameter/type       "uuid"}]]
