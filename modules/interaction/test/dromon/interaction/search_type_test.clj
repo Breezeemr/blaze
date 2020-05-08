@@ -45,16 +45,19 @@
 ;;using fixture
 (deftest handler-test-v2
   (testing "we can pass arguments to the handler"
-    ;;TODO will have to fill in arguments
-    @((handler {:database/conn                      ::conn
-               :dromon.fhir.SearchParameter/config {}
-               :schema/pattern                     {}
-               :schema/mapping                     {}
-                })
-      {::reitit/router ::router
-       :params         {"patient" "1"}
-       ::reitit/match  {:data {:fhir.resource/type "MedicationRequest"}}}
-      )))
+    (let [config {:blaze.fhir.SearchParameter/code       "patient"
+                  :blaze.fhir.SearchParameter/expression [:fhir.MedicationRequest/subject :fhir.Resource/id]
+                  :blaze.fhir.SearchParameter/type       "uuid"}]
+      ;;TODO will have to fill in arguments
+      @((handler {:database/conn                      ::conn
+                  :dromon.fhir.SearchParameter/config config
+                  :schema/pattern                     {}
+                  :schema/mapping                     {}
+                  })
+        {::reitit/router ::router
+         :params         {"patient" "1"}
+         ::reitit/match  {:data {:fhir.resource/type "MedicationRequest"}}}
+        ))))
 
 
 
