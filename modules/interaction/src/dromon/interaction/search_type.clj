@@ -27,26 +27,6 @@
                                   subtree)
       :else                 (match? subtree (rest path) search))))
 
-(defn- resource-pred [query-params config]
-  (let [valid-query-params  (select-keys query-params (map :dromon.fhir.SearchParameter/code config))
-        select-params-by-code (fn [config code]
-                              (->> config
-                                   (filter #(= (:dromon.fhir.SearchParameter/code %) code))
-                                   first))]
-    (when (seq valid-query-params)
-      (fn [resource]
-        (every? (fn [[path search]]
-                  (match? resource path search))
-                (mapv (fn [[k v]]
-                        (let [params (select-params-by-code config k)
-                              path   (:dromon.fhir.SearchParameter/expression params)
-                              type   (:dromon.fhir.SearchParameter/type params)
-                              search (case type
-                                       "uuid" (UUID/fromString v)
-                                       v)]
-                          [path search]))
-                      valid-query-params))))))
-
 (defn constraints->filter-fn
   [constraints]
   (fn [resource]
