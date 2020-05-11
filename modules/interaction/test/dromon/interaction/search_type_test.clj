@@ -3,16 +3,18 @@
 
   https://www.hl7.org/fhir/http.html#search"
   (:require
-    [dromon.datomic.test-util :as datomic-test-util]
-    [dromon.interaction.search-type :refer [handler]]
-    [dromon.interaction.test-util :as test-util]
-    [clojure.spec.alpha :as s]
-    [clojure.spec.test.alpha :as st]
-    [clojure.test :as test :refer [deftest is testing]]
-    [datomic.api :as d]
-    [datomic-spec.test :as dst]
-    [reitit.core :as reitit]
-    [taoensso.timbre :as log]))
+   [dromon.datomic.test-util :as datomic-test-util]
+   [dromon.interaction.search-type :refer [handler] :as search]
+   [dromon.interaction.test-util :as test-util]
+   [clojure.spec.alpha :as s]
+   [clojure.spec.test.alpha :as st]
+   [clojure.test :as test :refer [deftest is testing]]
+   [datomic.api :as d]
+   [datomic-spec.test :as dst]
+   [reitit.core :as reitit]
+   [taoensso.timbre :as log]
+   [clojure.set :as set])
+  (:import [java.util UUID]))
 
 
 (defn fixture [f]
@@ -45,7 +47,8 @@
 ;;using fixture
 (deftest handler-test-v2
   (testing "handles medication request"
-    (let [config [{:dromon.fhir.SearchParameter/code       "patient"
+    (let [uuid (str (UUID/randomUUID ))
+          config [{:dromon.fhir.SearchParameter/code       "patient"
                    :dromon.fhir.SearchParameter/expression [:fhir.MedicationRequest/subject :fhir.Resource/id]
                    :dromon.fhir.SearchParameter/type       "uuid"}]]
       ;;TODO will have to fill in arguments
@@ -62,7 +65,7 @@
                   :schema/mapping                     {}
                   })
         {::reitit/router ::router
-         :params         {"patient" "1"}
+         :params         {"patient" uuid}
          ::reitit/match  {:data {:fhir.resource/type "MedicationRequest"}}}
         ))))
 
