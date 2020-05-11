@@ -49,6 +49,13 @@
                    :dromon.fhir.SearchParameter/expression [:fhir.MedicationRequest/subject :fhir.Resource/id]
                    :dromon.fhir.SearchParameter/type       "uuid"}]]
       ;;TODO will have to fill in arguments
+
+      (datomic-test-util/stub-datoms-fn
+        ::db
+        :avet
+        any?
+        (constantly [{:v ::patient-1-eid} {:v ::patient-2-eid}]))
+
       @((handler {:database/conn                      ::conn
                   :dromon.fhir.SearchParameter/config config
                   :schema/pattern                     {}
