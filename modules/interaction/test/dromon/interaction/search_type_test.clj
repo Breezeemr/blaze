@@ -45,9 +45,9 @@
 ;;using fixture
 (deftest handler-test-v2
   (testing "handles medication request"
-    (let [config [{:blaze.fhir.SearchParameter/code       "patient"
-                   :blaze.fhir.SearchParameter/expression [:fhir.MedicationRequest/subject :fhir.Resource/id]
-                   :blaze.fhir.SearchParameter/type       "uuid"}]]
+    (let [config [{:dromon.fhir.SearchParameter/code       "patient"
+                   :dromon.fhir.SearchParameter/expression [:fhir.MedicationRequest/subject :fhir.Resource/id]
+                   :dromon.fhir.SearchParameter/type       "uuid"}]]
       ;;TODO will have to fill in arguments
       @((handler {:database/conn                      ::conn
                   :dromon.fhir.SearchParameter/config config
